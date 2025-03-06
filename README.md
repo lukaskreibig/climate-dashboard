@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Climate Dashboard
 
-## Getting Started
+An interactive, data-driven dashboard that visualizes climate data—including temperature anomalies, sea ice extent, and CO₂ emissions—to illustrate how the Arctic is changing compared to global trends. The project leverages Next.js for the web framework, D3.js and Recharts for interactive charting, and Mantine for UI components.
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Overview](#overview)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Data Processing](#data-processing)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The Climate Dashboard provides a visual story of how climate variables evolve over time. The dashboard:
+- Compares Arctic temperature anomalies against global averages.
+- Tracks changes in sea ice extent using daily and annual data.
+- Illustrates CO₂ emission trends and their correlation with temperature anomalies.
+- Offers interactive toggles to switch between different charting libraries (D3.js vs. Recharts) for a flexible visualization experience.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- **Multi-Line Charts:** Compare multiple variables (e.g., Arctic, global, CO₂) on a single chart with interactive legends and tooltips.
+- **Z-Score Visualizations:** Standardize values to compare disparate scales and reveal underlying trends.
+- **Bar Charts:** A snapshot view of anomalies for a specific year (e.g., 2024) that highlights polar amplification.
+- **Scatter Plots with Trendlines:** Visualize relationships between global temperature and sea ice extent.
+- **Correlation Heatmaps:** Understand how key climate indicators correlate over time.
+- **Seasonal & Daily Anomaly Charts:** Drill down into seasonal patterns and daily deviations.
+- **Toggle & Switch Controls:** Seamlessly switch between D3.js and Recharts versions of each chart for comparison.
+- **Responsive Design:** Built using Next.js and Mantine for a modern, responsive user interface.
 
-To learn more about Next.js, take a look at the following resources:
+## Technologies Used
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js:** Server-side rendering and routing.
+- **React:** Component-based UI development.
+- **D3.js:** Custom, low-level data visualizations.
+- **Recharts:** High-level charting components for React.
+- **Mantine UI:** Modern React component library for styling.
+- **Node.js & npm/yarn:** Package management and backend scripting.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Installation
 
-## Deploy on Vercel
+1. **Clone the Repository:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   git clone https://github.com/your-username/climate-dashboard.git
+   cd climate-dashboard
