@@ -108,7 +108,7 @@ export default function BarChart2024({ data }: Bar2024Props) {
       })
       .on("mousemove", (event, d) => {
         tooltip
-          .style("left",(event.offsetX+17)+"px")
+          .style("left",(event.offsetX+4)+"px")
           .style("top",(event.offsetY+122)+"px")
           .style("opacity", 1)
           .html(`

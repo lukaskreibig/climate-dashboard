@@ -65,7 +65,7 @@ export default function ClimateReportPage() {
   // Toggles for D3 vs Recharts
   const [libMultiLine, setLibMultiLine] = useState<"d3" | "recharts">("recharts");
   const [libZscore, setLibZscore] = useState<"d3" | "recharts">("recharts");
-  const [libBar2024, setLibBar2024] = useState<"d3" | "recharts">("d3");
+  const [libBar2024, setLibBar2024] = useState<"d3" | "recharts">("recharts");
   const [libScatter, setLibScatter] = useState<"d3" | "recharts">("d3");
   const [libHeatmap, setLibHeatmap] = useState<"d3" | "recharts">("d3");
   const [libSeasonal, setLibSeasonal] = useState<"d3" | "recharts">("d3");
