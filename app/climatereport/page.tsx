@@ -118,7 +118,7 @@ export default function ClimateReportPage() {
           </Group>
         }
         description={`
-          Starting with a univariate perspective, this chart plots daily measurements of Arctic sea ice extent throughout the year. It reveals the natural seasonal cycle of ice formation and melt—a crucial baseline for understanding long-term changes.
+          This chart displays daily measurements of Arctic sea ice extent over the course of a year. Sea ice extent refers to the area of ocean where there is at least some sea ice—typically measured in million square kilometers. This chart not only reveals the natural seasonal cycle—where ice grows in winter and melts in summer—but also provides a critical baseline to detect long-term changes. By understanding these cycles, we can better appreciate how shifts in temperature and other climatic factors are gradually reducing the overall ice cover in the Arctic.
         `}
       >
         {libSeasonal === "d3" ? (
