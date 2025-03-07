@@ -57,7 +57,4 @@ This project uses an automated data workflow to ensure that the visualizations a
 - Computes z-scores for temperature and CO₂ data to standardize different scales.
 - Generates a Pearson correlation matrix and precomputes IQR statistics.
 - Aggregates daily anomalies for annual bar chart visualization.
-
-## Output:
-
-The final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
+- Final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
