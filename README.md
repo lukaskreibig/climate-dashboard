@@ -44,12 +44,10 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 This project relies on **scientifically verified** datasets from trusted institutions. The data is automatically updated daily.
 
 ### Primary Data Sources:
-- **[NASA GISS - Annual Temperature Anomaly Data](https://data.giss.nasa.gov/gistemp/)**
-- **[NOAA - Daily Arctic Sea Ice Extent Data](https://nsidc.org/data/seaice_index)**
-- **[Our World in Data - Global CO₂ Emissions](https://ourworldindata.org/co2-emissions)**
-
+- **<a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noopener noreferrer">NASA GISS - Annual Temperature Anomaly Data</a>**
+- **<a href="https://nsidc.org/data/seaice_index" target="_blank" rel="noopener noreferrer">NOAA - Daily Arctic Sea Ice Extent Data</a>**
+- **<a href="https://ourworldindata.org/co2-emissions" target="_blank" rel="noopener noreferrer">Our World in Data - Global CO₂ Emissions</a>**
 Each dataset undergoes preprocessing to ensure consistency and accuracy before being visualized.
-
 
 ## Data Processing
 This project uses an automated data workflow to ensure that the visualizations are always up-to-date with the latest climate data. The update-data.py script (triggered daily via a GitHub Actions workflow) performs the following tasks:
