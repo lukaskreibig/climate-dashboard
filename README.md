@@ -39,14 +39,20 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 - **Recharts:** High-level charting components for React.
 - **Mantine UI:** Modern React component library for styling.
 
+## Data Sources
+
+This project relies on **scientifically verified** datasets from trusted institutions. The data is automatically updated daily.
+
+### Primary Data Sources:
+- **[NASA GISS - Annual Temperature Anomaly Data](https://data.giss.nasa.gov/gistemp/)**
+- **[NOAA - Daily Arctic Sea Ice Extent Data](https://nsidc.org/data/seaice_index)**
+- **[Our World in Data - Global CO₂ Emissions](https://ourworldindata.org/co2-emissions)**
+
+Each dataset undergoes preprocessing to ensure consistency and accuracy before being visualized.
+
+
 ## Data Processing
 This project uses an automated data workflow to ensure that the visualizations are always up-to-date with the latest climate data. The update-data.py script (triggered daily via a GitHub Actions workflow) performs the following tasks:
-
-## Data Download:
-
-- **NASA GISS**: Downloads annual temperature anomaly data.
-- **NOAA**: Retrieves daily sea ice extent measurements.
-- **Our World in Data**: Fetches annual CO₂ emissions records.
 
 ## Data Cleaning and Transformation:
 
