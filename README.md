@@ -10,18 +10,6 @@ Explore the live version of the Climate Dashboard:
 
 👉 [View Live Dashboard](https://your-deployment-url.com)
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Data Processing](#data-processing)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
-
 ## Overview
 
 The Climate Dashboard provides a visual story of how climate variables evolve over time. The dashboard:
@@ -73,11 +61,3 @@ This project uses an automated data workflow to ensure that the visualizations a
 ## Output:
 
 The final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
-
-## Installation
-
-1. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/your-username/climate-dashboard.git
-   cd climate-dashboard
