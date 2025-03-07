@@ -8,7 +8,7 @@ An interactive, data-driven dashboard that visualizes climate data—including t
 
 Explore the live version of the Climate Dashboard:
 
-👉 [View Live Dashboard](https://your-deployment-url.com)
+👉 [View Live Dashboard](climate-dashboard-three.vercel.app)
 
 ## Overview
 
