@@ -56,10 +56,10 @@ export default function ClimateReportPage() {
   const [iqrStats, setIQRStats] = useState<any[]>([]);
   const [partial2025, setPartial2025] = useState<any[]>([]);
 
-  // For the "Z-Score Anomalies" chart's D3 version
+  // For the Z-Score Anomalies chart
   const [seaIceInverted, setSeaIceInverted] = useState(false);
 
-  // For the "Daily Anomaly of a Selected Year" chart
+  // For the Daily Anomaly chart
   const [dailyAnomalyYear, setDailyAnomalyYear] = useState(2024);
 
   // Toggles for D3 vs Recharts
@@ -90,188 +90,21 @@ export default function ClimateReportPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
-      <Card shadow="sm" padding="10" radius="md" withBorder className="mx-auto" style={{ maxWidth: 1200 }}>
-        <Card.Section pl="md" withBorder inheritPadding py="xs" >
-          <Title order={2}>The Changing Arctic</Title>
-        </Card.Section>
-        <Text size="md" p="md" style={{ textAlign: "center" }}>
-          This study aggregates data from three leading climate sources: NASA GISS provides annual temperature anomaly data, NOAA supplies daily measurements of Arctic sea ice extent, and Our World in Data compiles comprehensive CO₂ emissions records. Together, these datasets reveal the dramatic warming of the Arctic relative to global trends—highlighting a steady decline in sea ice coverage as temperatures rise. Use the interactive toggles to switch between D3 and Recharts charting libraries and explore the underlying trends driving these changes.
-        </Text>
-      </Card>
-    </div>
+      {/* Introductory Card */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
+        <Card shadow="sm" padding="md" radius="md" withBorder className="mx-auto">
+          <Card.Section pl="md" withBorder inheritPadding py="xs">
+            <Title order={2}>The Changing Arctic</Title>
+          </Card.Section>
+          <Text size="md" p="md" style={{ textAlign: "center" }}>
+            This study aggregates data from three leading climate sources: NASA GISS provides annual temperature anomaly data, NOAA supplies daily measurements of Arctic sea ice extent, and Our World in Data compiles comprehensive CO₂ emissions records. Together, these datasets reveal the dramatic warming of the Arctic relative to global trends—highlighting a steady decline in sea ice as temperatures rise. Explore the interactive charts below to understand seasonal cycles, long‐term trends, and the relationships among key climate indicators.
+          </Text>
+        </Card>
+      </div>
 
       <Space h="xl" />
 
-      {/* MULTI-LINE Chart */}
-      <ChartContainer
-        title="Temperature & CO₂ Over Time"
-        headerExtra={
-          <Group spacing="xs">
-            <Button variant={libMultiLine === "d3" ? "filled" : "outline"} onClick={() => setLibMultiLine("d3")}>
-              D3
-            </Button>
-            <Button variant={libMultiLine === "recharts" ? "filled" : "outline"} onClick={() => setLibMultiLine("recharts")}>
-              Recharts
-            </Button>
-          </Group>
-        }
-        description={`
-          This chart highlights Arctic (64N–90N) temperature anomalies versus global averages, along with
-          rising CO₂ levels. Over the decades, the Arctic often shows larger temperature swings, illustrating
-          polar amplification. Meanwhile, the CO₂ line or scale indicates a steady upward trend, underscoring
-          the strong link between greenhouse gas emissions and warming.
-        `}
-      >
-        {libMultiLine === "d3" ? (
-          <MultiLineChartD3 data={annualData} linesActive={{ Arctic: true, Global: true, CO2: true }} />
-        ) : (
-          <MultiLineChartRecharts data={annualData} />
-        )}
-      </ChartContainer>
-
-      <Space h="lg" />
-
-      {/* Z-Score Chart */}
-      <ChartContainer
-        title="Z-Score Anomalies"
-        headerExtra={
-          <Group spacing="xs">
-            <Button variant={libZscore === "d3" ? "filled" : "outline"} onClick={() => setLibZscore("d3")}>
-              D3
-            </Button>
-            <Button variant={libZscore === "recharts" ? "filled" : "outline"} onClick={() => setLibZscore("recharts")}>
-              Recharts
-            </Button>
-          </Group>
-        }
-        description={`
-          By converting Arctic temperatures, sea ice extent, and CO₂ emissions into z-scores,
-          we place them on a comparable scale. This reveals how each variable diverges from
-          its historical average. Toggling the sea ice line to “inverted” underscores its
-          negative correlation with warming: as z-scores for temperature rise, sea ice
-          z-scores typically drop.
-        `}
-      >
-        {libZscore === "d3" ? (
-          <>
-            {/* The local invert button is inside ZScoreChartD3 */}
-            <ZScoreChartD3 data={annualData} inverted={seaIceInverted} />
-          </>
-        ) : (
-          <>
-            {/* If you want a separate invert toggle for Recharts, place it here. */}
-            <ZScoreChartRecharts data={annualData} inverted={seaIceInverted} />
-          </>
-        )}
-      </ChartContainer>
-
-      <Space h="lg" />
-
-   {/* 2024 Bar Chart with 50/50 split and vertical divider */}
-<ChartContainer
-  title="2024 Arctic vs. Global"
-  headerExtra={
-    <Group spacing="xs">
-      <Button variant={libBar2024 === "d3" ? "filled" : "outline"} onClick={() => setLibBar2024("d3")}>
-        D3
-      </Button>
-      <Button variant={libBar2024 === "recharts" ? "filled" : "outline"} onClick={() => setLibBar2024("recharts")}>
-        Recharts
-      </Button>
-    </Group>
-  }
-  description=""
->
-  <Group align="center" >
-    {/* Left side: descriptive text */}
-    <div style={{ flex: 1, padding: "1rem" }}>
-      <Text>
-        In 2024, the disparity between Arctic and global temperature anomalies becomes striking.
-        The bar chart on the right shows that the Arctic anomaly is significantly higher—an indicator
-        of polar amplification. Notably, the Arctic is warming at roughly twice the rate of the global average,
-        which has serious implications for regional and global climate dynamics.
-      </Text>
-    </div>
-    {/* Vertical divider */}
-    <Divider orientation="vertical" size="xs" />
-    {/* Right side: the bar chart */}
-    <div style={{ flex: 1, padding: "1rem" }}>
-      {libBar2024 === "d3" ? (
-        <BarChart2024D3 data={annualData} />
-      ) : (
-        <BarChart2024Recharts data={annualData} />
-      )}
-    </div>
-  </Group>
-</ChartContainer>
-
-
-
-      <Space h="lg" />
-
-      {/* SCATTER Chart */}
-      <ChartContainer
-        title="Scatter: Global Temp vs. Sea Ice (Trendline)"
-        headerExtra={
-          <Group spacing="xs">
-            <Button variant={libScatter === "d3" ? "filled" : "outline"} onClick={() => setLibScatter("d3")}>
-              D3
-            </Button>
-            <Button variant={libScatter === "recharts" ? "filled" : "outline"} onClick={() => setLibScatter("recharts")}>
-              Recharts
-            </Button>
-          </Group>
-        }
-        description={`
-          Plotting global temperature anomalies against average sea ice extent reveals a clear
-          inverse relationship. The trendline typically slopes downward: higher global temps coincide
-          with reduced sea ice coverage. This underscores how warming conditions often erode the polar ice.
-        `}
-      >
-        {libScatter === "d3" ? (
-          <ScatterChartD3 data={annualData} />
-        ) : (
-          <ScatterChartRecharts data={annualData} />
-        )}
-      </ChartContainer>
-
-      <Space h="lg" />
-
-      {/* HEATMAP */}
-      <ChartContainer
-        title="Correlation Heatmap"
-        headerExtra={null} // No toggles
-        description=""
-      >
-        <Group align="center" >
-    {/* Left side: descriptive text */}
-    <div style={{ flex: 1, padding: "1rem" }}>
-      <Text style={{ maxWidth: 800, margin: "0 auto" }}>
-    This heatmap displays the Pearson correlation coefficients among Arctic temperature anomalies, global temperature anomalies, and CO₂ emissions. The values, indicate a remarkably strong linear relationship between these variables.  Overall, this visualization confirms that changes in greenhouse gas emissions and temperature anomalies are tightly coupled, reinforcing the link between rising CO₂ levels and accelerated warming, particularly in the Arctic.
-  </Text>
-
-    </div>
-    {/* Vertical divider */}
-    <Divider orientation="vertical" size="xs" />
-    {/* Right side: the bar chart */}
-    <div style={{ flex: 1, padding: "1rem" }}>
-    {libHeatmap === "d3" ? (
-          <HeatmapChartD3 data={annualData} />
-        ) : (
-          <HeatmapChartRecharts
-            data={corrMatrix}
-            rowDomain={["Global Temp", "Arctic Temp", "CO₂"]}
-            colDomain={["Global Temp", "Arctic Temp", "CO₂"]}
-          />
-        )}
-    </div>
-  </Group>
-  </ChartContainer>
-
-      <Space h="lg" />
-
-      {/* SEASONAL LINES Chart */}
+      {/* 1. Seasonal Sea Ice Lines (Daily) */}
       <ChartContainer
         title="Seasonal Sea Ice Lines (Daily)"
         headerExtra={
@@ -285,10 +118,7 @@ export default function ClimateReportPage() {
           </Group>
         }
         description={`
-          Each colored line traces daily sea ice extent for a given year. By overlaying decades
-          of data, we can see consistent seasonal patterns but also note a gradual downward shift.
-          This visual captures how recent years tend to have less ice, especially in late summer,
-          reflecting a long-term thinning of the Arctic’s icy cap.
+          Starting with a univariate perspective, this chart plots daily measurements of Arctic sea ice extent throughout the year. It reveals the natural seasonal cycle of ice formation and melt—a crucial baseline for understanding long-term changes.
         `}
       >
         {libSeasonal === "d3" ? (
@@ -300,43 +130,12 @@ export default function ClimateReportPage() {
 
       <Space h="lg" />
 
-      {/* IQR Chart */}
-      <ChartContainer
-        title="Daily IQR Envelope"
-        headerExtra={
-          <Group spacing="xs">
-            <Button variant={libIQR === "d3" ? "filled" : "outline"} onClick={() => setLibIQR("d3")}>
-              D3
-            </Button>
-            <Button variant={libIQR === "recharts" ? "filled" : "outline"} onClick={() => setLibIQR("recharts")}>
-              Recharts
-            </Button>
-          </Group>
-        }
-        description={`
-          This envelope depicts the daily sea ice extent’s 25th–75th percentile range over the
-          historical record (excluding 2025). The mean line shows a typical seasonal cycle. 
-          An orange trace for 2025 (if available) indicates whether current observations are
-          tracking within or below the historical band, highlighting potential record lows.
-        `}
-      >
-        {libIQR === "d3" ? (
-          <IQRChartD3 data={dailyData} />
-        ) : (
-          <IQRChartRecharts stats={iqrStats} partial2025={partial2025} />
-        )}
-      </ChartContainer>
-
-      <Space h="lg" />
-
-      {/* Rolling Chart */}
+      {/* 2. 365-Day Rolling Average */}
       <ChartContainer
         title="365-Day Rolling Average"
-        headerExtra={null} // No toggles
+        headerExtra={null}
         description={`
-          A rolling average smooths out daily fluctuations, showing longer-term shifts in sea ice extent.
-          This curve helps isolate sustained declines from short-lived anomalies, painting a clearer picture
-          of how Arctic ice coverage evolves over multiple years.
+          By averaging each day's sea ice extent with the previous 364 days, this rolling average chart smooths out daily variability. It highlights the persistent decline in Arctic ice over multiple years, providing a clear view of long-term trends.
         `}
       >
         <RollingChartD3 data={dailyData} />
@@ -344,7 +143,7 @@ export default function ClimateReportPage() {
 
       <Space h="lg" />
 
-      {/* Annual Sea Ice Extent Anomalies */}
+      {/* 3. Annual Sea Ice Extent Anomalies */}
       <ChartContainer
         title="Annual Sea Ice Extent Anomalies"
         headerExtra={
@@ -358,10 +157,7 @@ export default function ClimateReportPage() {
           </Group>
         }
         description={`
-          Aggregating daily anomalies by year reveals overall trends in sea ice coverage.
-          Blue bars represent years with more ice than the historical average, while red bars
-          highlight years falling below that benchmark. A predominance of red in recent decades
-          signals a consistent shortfall of ice coverage.
+          This chart aggregates daily anomalies by year, illustrating how each year’s sea ice extent deviates from its long-term average. A predominance of negative anomalies in recent years signals an ongoing loss of ice.
         `}
       >
         {libAnnualAnom === "d3" ? (
@@ -373,7 +169,33 @@ export default function ClimateReportPage() {
 
       <Space h="lg" />
 
-      {/* Daily Anomaly Chart */}
+      {/* 4. Daily IQR Envelope */}
+      <ChartContainer
+        title="Daily IQR Envelope"
+        headerExtra={
+          <Group spacing="xs">
+            <Button variant={libIQR === "d3" ? "filled" : "outline"} onClick={() => setLibIQR("d3")}>
+              D3
+            </Button>
+            <Button variant={libIQR === "recharts" ? "filled" : "outline"} onClick={() => setLibIQR("recharts")}>
+              Recharts
+            </Button>
+          </Group>
+        }
+        description={`
+          This envelope captures the 25th to 75th percentile range of daily sea ice extent, outlining the typical seasonal variability. An overlay for partial 2025 data shows whether current conditions fall within or below historical norms.
+        `}
+      >
+        {libIQR === "d3" ? (
+          <IQRChartD3 data={dailyData} />
+        ) : (
+          <IQRChartRecharts stats={iqrStats} partial2025={partial2025} />
+        )}
+      </ChartContainer>
+
+      <Space h="lg" />
+
+      {/* 5. Daily Anomaly of a Selected Year */}
       <ChartContainer
         title="Daily Anomaly of a Selected Year"
         headerExtra={
@@ -405,10 +227,9 @@ export default function ClimateReportPage() {
           </Group>
         }
         description={`
-          By selecting a specific year, we can compare daily sea ice coverage against a
-          multi-year average. Positive anomalies mean more ice than typical for that day;
-          negative anomalies suggest a deficit. This daily-level perspective reveals
-          when and how a year deviates from the norm.
+          Focus on one year to see how daily sea ice extent deviates from a multi-year average.
+          Positive anomalies indicate higher-than-average ice coverage, while negative values reveal deficits.
+          This detailed view helps pinpoint seasonal shifts and record-breaking lows.
         `}
       >
         {libDailyAnom === "d3" ? (
@@ -418,24 +239,178 @@ export default function ClimateReportPage() {
         )}
       </ChartContainer>
 
+      <Space h="lg" />
+
+      {/* 6. Temperature & CO₂ Over Time */}
+      <ChartContainer
+        title="Temperature & CO₂ Over Time"
+        headerExtra={
+          <Group spacing="xs">
+            <Button variant={libMultiLine === "d3" ? "filled" : "outline"} onClick={() => setLibMultiLine("d3")}>
+              D3
+            </Button>
+            <Button variant={libMultiLine === "recharts" ? "filled" : "outline"} onClick={() => setLibMultiLine("recharts")}>
+              Recharts
+            </Button>
+          </Group>
+        }
+        description={`
+          This multivariate chart shows Arctic temperature anomalies against global averages, while simultaneously tracking rising CO₂ levels.
+          The data reveal that the Arctic experiences much larger temperature swings—a clear sign of polar amplification—while CO₂ concentrations steadily climb.
+        `}
+      >
+        {libMultiLine === "d3" ? (
+          <MultiLineChartD3 data={annualData} linesActive={{ Arctic: true, Global: true, CO2: true }} />
+        ) : (
+          <MultiLineChartRecharts data={annualData} />
+        )}
+      </ChartContainer>
+
+      <Space h="lg" />
+
+      {/* 7. Z-Score Anomalies */}
+      <ChartContainer
+        title="Z-Score Anomalies"
+        headerExtra={
+          <Group spacing="xs">
+            <Button variant={libZscore === "d3" ? "filled" : "outline"} onClick={() => setLibZscore("d3")}>
+              D3
+            </Button>
+            <Button variant={libZscore === "recharts" ? "filled" : "outline"} onClick={() => setLibZscore("recharts")}>
+              Recharts
+            </Button>
+          </Group>
+        }
+        description={`
+          Converting temperature and CO₂ measurements into z-scores puts them on a common scale.
+          This chart makes it easy to compare how far current values deviate from historical averages,
+          with a special focus on the pronounced drop in sea ice as temperatures rise.
+        `}
+      >
+        {libZscore === "d3" ? (
+          <ZScoreChartD3 data={annualData} inverted={seaIceInverted} />
+        ) : (
+          <ZScoreChartRecharts data={annualData} inverted={seaIceInverted} />
+        )}
+      </ChartContainer>
+
+      <Space h="lg" />
+
+      {/* 8. 2024 Bar Chart with 50/50 split and vertical divider */}
+      <ChartContainer
+        title="2024 Arctic vs. Global"
+        headerExtra={
+          <Group spacing="xs">
+            <Button variant={libBar2024 === "d3" ? "filled" : "outline"} onClick={() => setLibBar2024("d3")}>
+              D3
+            </Button>
+            <Button variant={libBar2024 === "recharts" ? "filled" : "outline"} onClick={() => setLibBar2024("recharts")}>
+              Recharts
+            </Button>
+          </Group>
+        }
+        description=""
+      >
+        <Group align="center">
+          {/* Left: Descriptive text */}
+          <div style={{ flex: 1, padding: "1rem" }}>
+            <Text>
+              In 2024, the gap between Arctic and global temperature anomalies is big. The bar chart on the right
+              demonstrates that the Arctic is warming at nearly twice the rate of the global average—an unmistakable
+              sign of polar amplification with far-reaching climate consequences.
+            </Text>
+          </div>
+          {/* Vertical divider */}
+          <Divider orientation="vertical" size="xs" />
+          {/* Right: Bar Chart */}
+          <div style={{ flex: 1, padding: "1rem" }}>
+            {libBar2024 === "d3" ? (
+              <BarChart2024D3 data={annualData} />
+            ) : (
+              <BarChart2024Recharts data={annualData} />
+            )}
+          </div>
+        </Group>
+      </ChartContainer>
+
+      <Space h="lg" />
+
+      {/* 9. Scatter Chart */}
+      <ChartContainer
+        title="Scatter: Global Temp vs. Sea Ice (Trendline)"
+        headerExtra={
+          <Group spacing="xs">
+            <Button variant={libScatter === "d3" ? "filled" : "outline"} onClick={() => setLibScatter("d3")}>
+              D3
+            </Button>
+            <Button variant={libScatter === "recharts" ? "filled" : "outline"} onClick={() => setLibScatter("recharts")}>
+              Recharts
+            </Button>
+          </Group>
+        }
+        description={`
+          This scatter plot reveals an inverse relationship between global temperature anomalies and Arctic sea ice extent.
+          The downward-sloping trendline underscores that higher temperatures are consistently linked with diminished ice cover.
+        `}
+      >
+        {libScatter === "d3" ? (
+          <ScatterChartD3 data={annualData} />
+        ) : (
+          <ScatterChartRecharts data={annualData} />
+        )}
+      </ChartContainer>
+
+      <Space h="lg" />
+
+      {/* 10. Correlation Heatmap */}
+      <ChartContainer
+        title="Correlation Heatmap"
+        headerExtra={null}
+        description={``}
+      >
+        <Group align="center">
+          {/* Left: Explanation */}
+          <div style={{ flex: 1, padding: "1rem" }}>
+            <Text style={{ maxWidth: 800, margin: "0 auto" }}>
+            This heatmap displays Pearson correlation coefficients among global temperature, Arctic temperature,
+          and CO₂ emissions. The exceptionally high coefficients (ranging from 0.90 to 0.92) emphasize a strong,
+          linear relationship among these variables—reinforcing the tight coupling between greenhouse gas emissions and
+          rapid polar warming.
+            </Text>
+          </div>
+          {/* Vertical divider */}
+          <Divider orientation="vertical" size="xs" />
+          {/* Right: Heatmap */}
+          <div style={{ flex: 1, padding: "1rem" }}>
+            {libHeatmap === "d3" ? (
+              <HeatmapChartD3 data={annualData} />
+            ) : (
+              <HeatmapChartRecharts
+                data={corrMatrix}
+                rowDomain={["Global Temp", "Arctic Temp", "CO₂"]}
+                colDomain={["Global Temp", "Arctic Temp", "CO₂"]}
+              />
+            )}
+          </div>
+        </Group>
+      </ChartContainer>
+      
+
       <Space h="xl" />
 
-        <ChartContainer title="Conclusions & Observations">
-      <Text style={{ maxWidth: 800, margin: "0 auto" }}>
-        The Arctic stands out as a region experiencing disproportionate warming. 
-        Many charts illustrate the persistent decline in sea ice coverage, particularly 
-        in recent decades. Correlations between rising CO₂ and increasing temperature 
-        anomalies reinforce the broader narrative: greenhouse gases are fueling warming, 
-        with polar areas bearing the brunt. Meanwhile, daily, seasonal, and annual analyses 
-        all point toward consistent ice shortfalls. 
-        <br /><br />
-        These findings underscore a pressing trend: 
-        the Arctic is warming faster than the global average, sea ice is diminishing, 
-        and each new year seems poised to break previous records. Whether looking at 
-        daily anomalies or multi-year rolling averages, the message is clear: a smaller, 
-        thinner ice cap is quickly becoming the new norm, with global implications for 
-        weather patterns, ecosystems, and sea levels worldwide.
-      </Text>
+      {/* 13. Conclusions & Observations */}
+      <ChartContainer title="Conclusions & Observations">
+        <Text style={{ maxWidth: 800, margin: "0 auto" }}>
+          The data reveal a dramatic shift in the Arctic climate. Seasonal analyses clearly show a persistent decline in sea ice,
+          while rolling averages and annual anomaly charts confirm that this loss is part of a long-term trend. Multivariate
+          comparisons—through temperature records, z-scores, and correlation heatmaps—underscore the strong linkage between
+          rising CO₂ emissions and accelerated warming in polar regions.
+          <br /><br />
+          In summary, the Arctic is warming far faster than the global average, and its ice cover is diminishing rapidly.
+          These changes have profound implications for weather patterns, ecosystems, and sea levels worldwide. The evidence
+          presented here makes it clear: the transformation of the Arctic is not only real, but also a indicator of global
+          climate disruption.
+        </Text>
       </ChartContainer>
 
       <Space h="xl" />
