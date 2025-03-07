@@ -38,7 +38,6 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 - **D3.js:** Custom, low-level data visualizations.
 - **Recharts:** High-level charting components for React.
 - **Mantine UI:** Modern React component library for styling.
-- **Node.js & npm/yarn:** Package management and backend scripting.
 
 ## Data Processing
 This project uses an automated data workflow to ensure that the visualizations are always up-to-date with the latest climate data. The update-data.py script (triggered daily via a GitHub Actions workflow) performs the following tasks:
