@@ -242,13 +242,21 @@ export default function ClimateReportPage() {
       <ChartContainer
         title="Correlation Heatmap"
         headerExtra={null} // No toggles
-        description={`
-          Here we see the correlation strength among Arctic temperature, global temperature,
-          and CO₂ emissions. Darker red or blue squares signify stronger correlations (positive
-          or negative). This heatmap helps quantify how closely each factor moves in tandem with the others.
-        `}
+        description=""
       >
-        {libHeatmap === "d3" ? (
+        <Group align="center" >
+    {/* Left side: descriptive text */}
+    <div style={{ flex: 1, padding: "1rem" }}>
+      <Text style={{ maxWidth: 800, margin: "0 auto" }}>
+    This heatmap displays the Pearson correlation coefficients among Arctic temperature anomalies, global temperature anomalies, and CO₂ emissions. The values, indicate a remarkably strong linear relationship between these variables.  Overall, this visualization confirms that changes in greenhouse gas emissions and temperature anomalies are tightly coupled, reinforcing the link between rising CO₂ levels and accelerated warming, particularly in the Arctic.
+  </Text>
+
+    </div>
+    {/* Vertical divider */}
+    <Divider orientation="vertical" size="xs" />
+    {/* Right side: the bar chart */}
+    <div style={{ flex: 1, padding: "1rem" }}>
+    {libHeatmap === "d3" ? (
           <HeatmapChartD3 data={annualData} />
         ) : (
           <HeatmapChartRecharts
@@ -257,7 +265,9 @@ export default function ClimateReportPage() {
             colDomain={["Global Temp", "Arctic Temp", "CO₂"]}
           />
         )}
-      </ChartContainer>
+    </div>
+  </Group>
+  </ChartContainer>
 
       <Space h="lg" />
 
