@@ -8,6 +8,8 @@ Explore the live version of the Climate Dashboard:
 
 👉 [View Live Dashboard](https://your-deployment-url.com)
 
+<img width="1201" alt="Bildschirmfoto 2025-03-07 um 08 36 22" src="https://github.com/user-attachments/assets/983ba157-e598-42a6-944a-82161b72d1c7" />
+
 ## Table of Contents
 
 - [Overview](#overview)
