@@ -3,12 +3,13 @@ import React from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  Line,
 } from "recharts";
 
 interface AnnualRow {
@@ -24,7 +25,7 @@ interface Props {
 
 const numberFormatter = (value: number) => value.toFixed(2);
 
-// Custom tooltip formatter that formats CO₂ values differently
+// Custom tooltip formatter that formats CO₂ values in gigatonnes
 const tooltipFormatter = (value: any, name: string) => {
   if (name === "CO₂" && typeof value === "number") {
     return [(value / 1e9).toFixed(2) + " Gt", name];
@@ -44,7 +45,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
 
           <XAxis
             dataKey="Year"
-            tickFormatter={(y) => String(y)}
+            tickFormatter={(year) => (year % 4 === 0 ? String(year) : "")}
             angle={-45}
             textAnchor="end"
             interval={0}
@@ -62,7 +63,9 @@ export default function MultiLineChartRecharts({ data }: Props) {
           <YAxis
             yAxisId="co2"
             orientation="right"
-            tickFormatter={(val: number) => (typeof val === "number" ? (val / 1e9).toFixed(2) : val)}
+            tickFormatter={(val: number) =>
+              typeof val === "number" ? (val / 1e9).toFixed(2) : val
+            }
             label={{ value: "CO₂ (Gt)", angle: 90, position: "insideRight" }}
           />
 

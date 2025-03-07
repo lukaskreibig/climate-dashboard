@@ -22,7 +22,7 @@ export default function ChartContainer({
         {headerExtra && <div>{headerExtra}</div>}
       </div>
       {description && (
-        <Text size="sm" color="dimmed" mb="md">
+        <Text size="sm" mb="md" pt="md">
           {description}
         </Text>
       )}

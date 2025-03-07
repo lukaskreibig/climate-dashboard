@@ -26,7 +26,7 @@ import AnnualAnomalyBarChartRecharts from "@/components/Rechart/AnnualAnomalyBar
 
 import ChartContainer from "@/components/ChartContainer";
 
-import { Title, Text, Space, Group, Button, Select, Divider } from "@mantine/core";
+import { Title, Text, Space, Group, Button, Select, Divider, Card } from "@mantine/core";
 
 interface AnnualRow {
   Year: number;
@@ -90,13 +90,16 @@ export default function ClimateReportPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
-      <Title order={1} sx={{ marginBottom: "1rem" }}>
-        The Changing Arctic: A Data-Driven Story
-      </Title>
-      <Text color="dimmed" style={{ maxWidth: 800, margin: "0 auto" }}>
-        Explore how Arctic and global temperature anomalies have evolved alongside sea ice extent and rising CO₂.
-        Toggle between D3 and Recharts for each chart, and discover the underlying trends in this dynamic environment.
-      </Text>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
+      <Card shadow="sm" padding="10" radius="md" withBorder className="mx-auto" style={{ maxWidth: 1200 }}>
+        <Card.Section pl="md" withBorder inheritPadding py="xs" >
+          <Title order={2}>The Changing Arctic</Title>
+        </Card.Section>
+        <Text size="md" p="md" style={{ textAlign: "center" }}>
+          This study aggregates data from three leading climate sources: NASA GISS provides annual temperature anomaly data, NOAA supplies daily measurements of Arctic sea ice extent, and Our World in Data compiles comprehensive CO₂ emissions records. Together, these datasets reveal the dramatic warming of the Arctic relative to global trends—highlighting a steady decline in sea ice coverage as temperatures rise. Use the interactive toggles to switch between D3 and Recharts charting libraries and explore the underlying trends driving these changes.
+        </Text>
+      </Card>
+    </div>
 
       <Space h="xl" />
 
@@ -191,7 +194,7 @@ export default function ClimateReportPage() {
       </Text>
     </div>
     {/* Vertical divider */}
-    <Divider orientation="vertical" size="md" />
+    <Divider orientation="vertical" size="xs" />
     {/* Right side: the bar chart */}
     <div style={{ flex: 1, padding: "1rem" }}>
       {libBar2024 === "d3" ? (

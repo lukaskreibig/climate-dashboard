@@ -22,15 +22,14 @@ export interface AnnualRowZ {
 
 interface ZScoreChartRechartsProps {
   data: AnnualRowZ[];
-  // Optional initial inversion state:
   inverted?: boolean;
 }
 
 export default function ZScoreChartRecharts({ data, inverted = false }: ZScoreChartRechartsProps) {
-  // Local state to toggle inversion; initial value taken from the prop inverted.
+  // Local state for inversion; initial value from the prop inverted.
   const [localInverted, setLocalInverted] = useState<boolean>(inverted);
 
-  // Compute final data using the local inversion flag.
+  // Compute the final data: include a new property SeaIceFinal that is either SeaIce_z or SeaIce_z_inv
   const finalData = useMemo(() => {
     return data.map(d => {
       const seaVal = localInverted ? d.SeaIce_z_inv : d.SeaIce_z;
@@ -52,10 +51,10 @@ export default function ZScoreChartRecharts({ data, inverted = false }: ZScoreCh
 
   return (
     <div style={{ width: "100%", height: 400 }}>
-      {/* Place the inversion toggle above the chart */}
+      {/* Inversion toggle placed above the chart */}
       <Group justify="center" mb="md">
         <Switch 
-          label="Press to Invert Sea Ice Extent" 
+          label="Invert Sea Ice" 
           checked={localInverted}
           onChange={(event) => setLocalInverted(event.currentTarget.checked)}
           color="blue"
@@ -66,9 +65,9 @@ export default function ZScoreChartRecharts({ data, inverted = false }: ZScoreCh
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="Year" tickFormatter={(v) => String(v)} />
           <YAxis />
-          <Tooltip formatter={(val) => typeof val === "number" ? val.toFixed(2) : val} />
+          <Tooltip formatter={(val) => (typeof val === "number" ? val.toFixed(2) : val)} />
           <Legend onClick={handleLegendClick} />
-          <Line
+          <Line 
             type="monotone"
             dataKey="Arctic_z"
             name="Arctic Temp (z)"
