@@ -47,6 +47,7 @@ This project relies on **scientifically verified** datasets from trusted institu
 - **<a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noopener noreferrer">NASA GISS - Annual Temperature Anomaly Data</a>**
 - **<a href="https://nsidc.org/data/seaice_index" target="_blank" rel="noopener noreferrer">NOAA - Daily Arctic Sea Ice Extent Data</a>**
 - **<a href="https://ourworldindata.org/co2-emissions" target="_blank" rel="noopener noreferrer">Our World in Data - Global CO₂ Emissions</a>**
+
 Each dataset undergoes preprocessing to ensure consistency and accuracy before being visualized.
 
 ## Data Processing
