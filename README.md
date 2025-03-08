@@ -1,18 +1,14 @@
 # Climate Dashboard
 
-An interactive, data-driven dashboard that visualizes climate data—including temperature anomalies, sea ice extent, and CO₂ emissions—to illustrate how the Arctic is changing compared to global trends. The project leverages Next.js for the web framework, D3.js and Recharts for interactive charting, and Mantine for UI components.
+An interactive, data-driven dashboard that visualizes climate data—including temperature anomalies, sea ice extent, and CO₂ emissions—to illustrate how the Arctic is changing compared to global trends. The project leverages Next.js for the web framework, D3.js and Recharts for interactive charting, and Mantine for UI components. **Data is updated daily** via an automated GitHub workflow using a Python script.
 
-## Table of Contents
+<img width="1201" alt="Bildschirmfoto 2025-03-07 um 08 36 22" src="https://github.com/user-attachments/assets/983ba157-e598-42a6-944a-82161b72d1c7" />
 
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Data Processing](#data-processing)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+## Deployed Version
+
+Explore the live version of the Climate Dashboard:
+
+👉 [View Live Dashboard](climate-dashboard-three.vercel.app)
 
 ## Overview
 
@@ -35,17 +31,34 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 
 ## Technologies Used
 
+- **Pandas & Python:** For data processing and transformation.
+- **GitHub Actions:** For automating daily data updates via a Python script.
 - **Next.js:** Server-side rendering and routing.
 - **React:** Component-based UI development.
 - **D3.js:** Custom, low-level data visualizations.
 - **Recharts:** High-level charting components for React.
 - **Mantine UI:** Modern React component library for styling.
-- **Node.js & npm/yarn:** Package management and backend scripting.
 
-## Installation
+## Data Sources
 
-1. **Clone the Repository:**
+This project relies on **scientifically verified** datasets from trusted institutions. The data is automatically updated daily.
 
-   ```bash
-   git clone https://github.com/your-username/climate-dashboard.git
-   cd climate-dashboard
+### Primary Data Sources:
+- **<a href="https://data.giss.nasa.gov/gistemp/" target="_blank" rel="noopener noreferrer">NASA GISS - Annual Temperature Anomaly Data</a>**
+- **<a href="https://nsidc.org/data/seaice_index" target="_blank" rel="noopener noreferrer">NOAA - Daily Arctic Sea Ice Extent Data</a>**
+- **<a href="https://ourworldindata.org/co2-emissions" target="_blank" rel="noopener noreferrer">Our World in Data - Global CO₂ Emissions</a>**
+
+Each dataset undergoes preprocessing to ensure consistency and accuracy before being visualized.
+
+## Data Processing
+This project uses an automated data workflow to ensure that the visualizations are always up-to-date with the latest climate data. The update-data.py script (triggered daily via a GitHub Actions workflow) performs the following tasks:
+
+## Data Cleaning and Transformation:
+
+- Cleans and reshapes NOAA sea ice data.
+- Merges temperature and sea ice datasets to create a unified view.
+- Processes CO₂ data to compute global averages and pivot data by entity.
+- Computes z-scores for temperature and CO₂ data to standardize different scales.
+- Generates a Pearson correlation matrix and precomputes IQR statistics.
+- Aggregates daily anomalies for annual bar chart visualization.
+- Final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
