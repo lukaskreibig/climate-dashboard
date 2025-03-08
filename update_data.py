@@ -3,6 +3,8 @@ import numpy as np
 import json
 import os
 from datetime import datetime
+import requests
+import io
 
 def update_data():
     # 1) NASA GISS temperature data (annual)
@@ -15,9 +17,18 @@ def update_data():
     )
     
     # 3) CO2 from Our World in Data
-    annual_co_emissions = pd.read_csv(
-        "https://ourworldindata.org/grapher/annual-co-emissions-by-region.csv?v=1&csvType=full&useColumnShortNames=true"
-    )
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    }
+
+    url = "https://ourworldindata.org/grapher/annual-co-emissions-by-region.csv?v=1&csvType=full&useColumnShortNames=true"
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        csv_data = io.StringIO(response.text)
+        annual_co_emissions = pd.read_csv(csv_data)
+    else:
+        raise Exception(f"Failed to download data: {response.status_code}")
     
     # --- Clean Sea Ice Data ---
     df_ice.rename(columns={df_ice.columns[0]: "Month", df_ice.columns[1]: "Day"}, inplace=True)

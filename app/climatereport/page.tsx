@@ -27,6 +27,7 @@ import AnnualAnomalyBarChartRecharts from "@/components/Rechart/AnnualAnomalyBar
 import ChartContainer from "@/components/ChartContainer";
 
 import { Title, Text, Space, Group, Button, Select, Divider, Card } from "@mantine/core";
+import IntroCardWithModal from "@/components/modal/IntroCardWithModal";
 
 interface AnnualRow {
   Year: number;
@@ -74,6 +75,10 @@ export default function ClimateReportPage() {
   const [libDailyAnom, setLibDailyAnom] = useState<"d3" | "recharts">("recharts");
   const [libAnnualAnom, setLibAnnualAnom] = useState<"d3" | "recharts">("recharts");
 
+  //Modal State
+  const [modalOpened, setModalOpened] = useState(false);
+
+
   useEffect(() => {
     fetch("/api/data")
       .then((res) => res.json())
@@ -90,17 +95,8 @@ export default function ClimateReportPage() {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
-      {/* Introductory Card */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
-        <Card shadow="sm" padding="md" radius="md" withBorder className="mx-auto">
-          <Card.Section pl="md" withBorder inheritPadding py="xs">
-            <Title order={2}>The Changing Arctic</Title>
-          </Card.Section>
-          <Text size="md" p="md" style={{ textAlign: "center" }}>
-            This study aggregates data from three leading climate sources: NASA GISS provides annual temperature anomaly data, NOAA supplies daily measurements of Arctic sea ice extent, and Our World in Data compiles comprehensive CO₂ emissions records. Together, these datasets reveal the dramatic warming of the Arctic relative to global trends—highlighting a steady decline in sea ice as temperatures rise. Explore the interactive charts below to understand seasonal cycles, long‐term trends, and the relationships among key climate indicators.
-          </Text>
-        </Card>
-      </div>
+
+      <IntroCardWithModal />
 
       <Space h="xl" />
 
