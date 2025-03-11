@@ -30,7 +30,7 @@ jobs:
 
       - name: Commit and Push Updated Data
         run: |
-          git config --global user.email "lukatze@posteo.de"
+          git config --global user.email "lukas.kreibig@posteo.de"
           git config --global user.name "Lukas Kreibig"
           git add backend/data/data.json
           git commit -m "Daily data update: $(date)" || echo "No changes to commit"
