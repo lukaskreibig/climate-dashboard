@@ -76,10 +76,9 @@ export default function ClimateReportPage() {
   const [libAnnualAnom, setLibAnnualAnom] = useState<"d3" | "recharts">("recharts");
 
   // Modal State 
-  const [modalOpened, setModalOpened] = useState(false);
+  const [modalOpened, setModalOpened] = useState(false)
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   useEffect(() => {
     fetch(`${API_URL}`)
