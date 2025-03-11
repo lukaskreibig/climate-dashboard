@@ -2,7 +2,7 @@
 
 An interactive, data-driven dashboard that visualizes climate data—including temperature anomalies, sea ice extent, and CO₂ emissions—to illustrate how the Arctic is changing compared to global trends. The project leverages Next.js for the web framework, D3.js and Recharts for interactive charting, and Mantine for UI components. **Data is updated daily** via an automated GitHub workflow using a Python script.
 
-<img width="1201" alt="Bildschirmfoto 2025-03-07 um 08 36 22" src="https://github.com/user-attachments/assets/983ba157-e598-42a6-944a-82161b72d1c7" />
+<img width="1201" alt="Graph Picture" src="https://github.com/user-attachments/assets/983ba157-e598-42a6-944a-82161b72d1c7" />
 
 ## Deployed Version
 

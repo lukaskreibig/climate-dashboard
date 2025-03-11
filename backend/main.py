@@ -11,16 +11,20 @@ app = FastAPI(
     description="API zum Bereitstellen der Klima-Daten und zukünftiger ML-Vorhersagen."
 )
 
-# CORS-Konfiguration
+origins = [
+    "https://climate-dashboard-three.vercel.app/",  # Vercel production domain
+    "http://localhost:3000"                         # local dev
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In der Produktion sollte dies angepasst werden
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pydantic Modelle
+# Pydantic
 class DataResponse(BaseModel):
     annual: List[Any]
     dailySeaIce: List[Any]
@@ -41,7 +45,7 @@ async def get_data():
         raise HTTPException(status_code=500, detail=f"Error reading data file: {e}")
     return data
 
-# Beispiel-Endpoint für ML-Predictions
+# Placeholder Endpoint for ML
 class PredictRequest(BaseModel):
     temperature: float
     co2: float
