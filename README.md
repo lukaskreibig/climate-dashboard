@@ -10,6 +10,7 @@ Explore the live version of the Climate Dashboard:
 
 👉 [View Live Dashboard](climate-dashboard-three.vercel.app)
 
+
 ## Overview
 
 The Climate Dashboard provides a visual story of how climate variables evolve over time. The dashboard:
@@ -31,13 +32,18 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 
 ## Technologies Used
 
-- **Pandas & Python:** For data processing and transformation.
+- **Pandas (Python):** For data processing transformation.
+- **FastAPI (Python):** Backend service providing API endpoints for data.
 - **GitHub Actions:** For automating daily data updates via a Python script.
 - **Next.js:** Server-side rendering and routing.
 - **React:** Component-based UI development.
 - **D3.js:** Custom, low-level data visualizations.
 - **Recharts:** High-level charting components for React.
 - **Mantine UI:** Modern React component library for styling.
+
+## Repository Structure
+
+The project is structured as a monorepo with separate folders for the frontend (Typescript / Next.js) and backend (Python / Pandas / fastAPI).
 
 ## Data Sources
 
@@ -62,3 +68,4 @@ This project uses an automated data workflow to ensure that the visualizations a
 - Generates a Pearson correlation matrix and precomputes IQR statistics.
 - Aggregates daily anomalies for annual bar chart visualization.
 - Final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
+
