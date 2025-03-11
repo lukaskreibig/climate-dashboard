@@ -11,10 +11,14 @@ app = FastAPI(
     description="API zum Bereitstellen der Klima-Daten und zukünftiger ML-Vorhersagen."
 )
 
-# CORS-Konfiguration
+origins = [
+    "https://climate-dashboard-three.vercel.app/",  # Vercel production domain
+    "http://localhost:3000"                         # local dev
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this for production
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-      "dev": "concurrently \"cd backend && uvicorn main:app --reload --host 127.0.0.1 --port 8000\" \"cd frontend && yarn dev\""
+        "dev": "concurrently \"cd backend && uvicorn main:app --reload --port 8000\" \"cd frontend && yarn dev\""
     },
     "devDependencies": {
       "concurrently": "^7.0.0"
