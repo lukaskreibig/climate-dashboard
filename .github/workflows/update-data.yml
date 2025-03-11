@@ -19,17 +19,21 @@ jobs:
           python-version: '3.x'
 
       - name: Install Python Dependencies
-        run: pip install -r requirements.txt
+        run: |
+          cd backend
+          pip install -r requirements.txt
 
       - name: Run Data Update Script
-        run: python update_data.py
+        run: |
+          cd backend
+          python update_data.py
 
       - name: Commit and Push Updated Data
         run: |
           git config --global user.email "lukatze@posteo.de"
           git config --global user.name "Lukas Kreibig"
-          git add data/data.json
-          git commit -m "Daily data update: $(date)"
+          git add backend/data/data.json
+          git commit -m "Daily data update: $(date)" || echo "No changes to commit"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

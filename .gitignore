@@ -16,6 +16,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Python Env
+.venv
+
 # ----------------------------
 # Next.js Build Output
 # ----------------------------
