@@ -80,7 +80,7 @@ export default function ClimateReportPage() {
 
 
   useEffect(() => {
-    fetch("/api/data")
+    fetch("http://localhost:8000/data")
       .then((res) => res.json())
       .then((json: DataJSON) => {
         setAnnualData(json.annual);
