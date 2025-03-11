@@ -44,6 +44,8 @@ The Climate Dashboard provides a visual story of how climate variables evolve ov
 ## Repository Structure
 
 The project is structured as a monorepo with separate folders for the frontend (Typescript / Next.js) and backend (Python / Pandas / fastAPI).
+- **Backend:** Deployed via Railway.
+- **Frontend:** Deployed via Vercel.
 
 ## Data Sources
 
