@@ -12,7 +12,7 @@ app = FastAPI(
 )
 
 origins = [
-    "https://climate-dashboard-three.vercel.app",  # Vercel production domain
+    "https://climate-dashboard-three.vercel.app/",  # Vercel production domain
     "http://localhost:3000"                         # local dev
 ]
 
