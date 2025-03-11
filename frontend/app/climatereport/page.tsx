@@ -26,7 +26,7 @@ import AnnualAnomalyBarChartRecharts from "@/components/Rechart/AnnualAnomalyBar
 
 import ChartContainer from "@/components/ChartContainer";
 
-import { Title, Text, Space, Group, Button, Select, Divider, Card } from "@mantine/core";
+import { Text, Space, Group, Button, Select, Divider } from "@mantine/core";
 import IntroCardWithModal from "@/components/modal/IntroCardWithModal";
 
 interface AnnualRow {
