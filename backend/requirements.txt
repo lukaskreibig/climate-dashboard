@@ -4,3 +4,4 @@ pydantic
 pandas
 requests
 openpyxl
+openai
