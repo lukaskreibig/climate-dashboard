@@ -28,18 +28,20 @@ interface ChatBotProps {
 
 const TYPING_SPEED_MS = 25;
 
-/**
- * Custom hook that returns blinking dots.
- * Cycles through "", ".", "..", "..." repeatedly.
- */
+
 function useBlinkingDots(interval = 400, maxDots = 3) {
-  const [dots, setDots] = useState("");
+  const [dots, setDots] = useState(".");
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setDots((prev) => (prev.length < maxDots ? prev + "." : ""));
+      setDots((prev) => {
+        return prev.length < maxDots ? prev + "." : ".";
+      });
     }, interval);
+
     return () => clearInterval(timer);
   }, [interval, maxDots]);
+
   return dots;
 }
 
