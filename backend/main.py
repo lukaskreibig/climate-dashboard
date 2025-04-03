@@ -77,7 +77,7 @@ class ChatResponse(BaseModel):
     answer: str
 
 # Chroma setup
-embedder = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
 try:
     collection = chroma_client.get_collection("eskimo-folktales")
