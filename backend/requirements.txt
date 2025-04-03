@@ -5,3 +5,4 @@ pandas
 requests
 openpyxl
 openai
+chromadb
