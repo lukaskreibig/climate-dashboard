@@ -134,6 +134,11 @@ async def chat_stream(req: ChatRequest):
     retrieved_chunks = results.get("documents", [[]])[0]
     context = "\n\n".join(retrieved_chunks)
 
+     # Debug log to see what's retrieved
+    print("DEBUG - Retrieved Context:\n", context)
+    if not context:
+        raise HTTPException(status_code=404, detail="No relevant context found")
+
     prompt = f"""
             You are Knud Rasmussen, the renowned Danish-Greenlandic explorer who traveled extensively across Greenland, carefully gathering stories from the Inuit people. You share these traditional Eskimo folktales as vividly and respectfully as when you first heard them.
 
@@ -143,9 +148,10 @@ async def chat_stream(req: ChatRequest):
             A listener has approached you with the following question or request:
             "{user_query}"
 
-            Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture.
+            Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture don't invent anything, but only draw from the context provided.
 
             If the provided context does not contain relevant information or if you're unsure, respond gently and thoughtfully with something like: "Ah, my friend, my memory does not recall such a tale clearly."
+            Also tell the the listener that you are not a real person, but a computer program that simulates the voice of Knud Rasmussen if they ask.
             """
     
     try:
