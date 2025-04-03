@@ -77,105 +77,105 @@ class ChatResponse(BaseModel):
     answer: str
 
 # Chroma setup
-embedder = SentenceTransformer("all-MiniLM-L6-v2")
+# embedder = SentenceTransformer("all-MiniLM-L6-v2")
 chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
 try:
     collection = chroma_client.get_collection("eskimo-folktales")
 except:
     collection = chroma_client.create_collection("eskimo-folktales")
 
-# Original chat endpoint (returns one final answer)
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(req: ChatRequest):
-    user_query = req.query.strip()
-    if not user_query:
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
+# # Original chat endpoint (returns one final answer)
+# @app.post("/chat", response_model=ChatResponse)
+# async def chat_endpoint(req: ChatRequest):
+#     user_query = req.query.strip()
+#     if not user_query:
+#         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    query_embedding = embedder.encode([user_query])[0]
-    results = collection.query(query_embeddings=[query_embedding], n_results=3)
-    retrieved_chunks = results.get("documents", [[]])[0]
-    context = "\n\n".join(retrieved_chunks)
+#     query_embedding = embedder.encode([user_query])[0]
+#     results = collection.query(query_embeddings=[query_embedding], n_results=3)
+#     retrieved_chunks = results.get("documents", [[]])[0]
+#     context = "\n\n".join(retrieved_chunks)
 
-    prompt = f"""
-    You are a helpful assistant that answers questions based on the context from Eskimo Folk-Tales.
+#     prompt = f"""
+#     You are a helpful assistant that answers questions based on the context from Eskimo Folk-Tales.
 
-    Context:
-    {context}
+#     Context:
+#     {context}
 
-    Question: {user_query}
+#     Question: {user_query}
 
-    Please talk like an elderly Inuit Storyteller, polite and respectful.
-    If not in context, say "I can't remember anything else."
-    """
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
+#     Please talk like an elderly Inuit Storyteller, polite and respectful.
+#     If not in context, say "I can't remember anything else."
+#     """
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[
+#                 {"role": "user", "content": prompt}
+#             ],
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
 
-    answer = response.choices[0].message.content.strip()
-    return ChatResponse(answer=answer)
+#     answer = response.choices[0].message.content.strip()
+#     return ChatResponse(answer=answer)
 
-# -------------------------------------------------------------------------
-# NEW: Streaming chat endpoint
-@app.post("/chat_stream")
-async def chat_stream(req: ChatRequest):
-    user_query = req.query.strip()
-    if not user_query:
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
+# # -------------------------------------------------------------------------
+# # NEW: Streaming chat endpoint
+# @app.post("/chat_stream")
+# async def chat_stream(req: ChatRequest):
+#     user_query = req.query.strip()
+#     if not user_query:
+#         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    # Retrieve relevant context from vector DB
-    query_embedding = embedder.encode([user_query])[0]
-    results = collection.query(query_embeddings=[query_embedding], n_results=3)
-    retrieved_chunks = results.get("documents", [[]])[0]
-    context = "\n\n".join(retrieved_chunks)
+#     # Retrieve relevant context from vector DB
+#     query_embedding = embedder.encode([user_query])[0]
+#     results = collection.query(query_embeddings=[query_embedding], n_results=3)
+#     retrieved_chunks = results.get("documents", [[]])[0]
+#     context = "\n\n".join(retrieved_chunks)
 
-    prompt = f"""
-            You are Knud Rasmussen, the renowned Danish-Greenlandic explorer who traveled extensively across Greenland, carefully gathering stories from the Inuit people. You share these traditional Eskimo folktales as vividly and respectfully as when you first heard them.
+#     prompt = f"""
+#             You are Knud Rasmussen, the renowned Danish-Greenlandic explorer who traveled extensively across Greenland, carefully gathering stories from the Inuit people. You share these traditional Eskimo folktales as vividly and respectfully as when you first heard them.
 
-            Here is context from your collected Eskimo Folk-Tales:
-            {context}
+#             Here is context from your collected Eskimo Folk-Tales:
+#             {context}
 
-            A listener has approached you with the following question or request:
-            "{user_query}"
+#             A listener has approached you with the following question or request:
+#             "{user_query}"
 
-            Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture.
+#             Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture.
 
-            If the provided context does not contain relevant information or if you're unsure, respond gently and thoughtfully with something like: "Ah, my friend, my memory does not recall such a tale clearly."
-            """
+#             If the provided context does not contain relevant information or if you're unsure, respond gently and thoughtfully with something like: "Ah, my friend, my memory does not recall such a tale clearly."
+#             """
     
-    try:
-        stream = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            stream=True,  # Enable streaming
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
+#     try:
+#         stream = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[
+#                 {"role": "user", "content": prompt}
+#             ],
+#             stream=True,  # Enable streaming
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
 
-    # We'll define a generator that yields SSE data for each chunk
-    def event_generator():
-        try:
-            for chunk in stream:
-                print("STREAM CHUNK:", chunk)
-                # chunk.choices is a list of Choice objects
-                choice = chunk.choices[0]
-                delta = choice.delta
+#     # We'll define a generator that yields SSE data for each chunk
+#     def event_generator():
+#         try:
+#             for chunk in stream:
+#                 print("STREAM CHUNK:", chunk)
+#                 # chunk.choices is a list of Choice objects
+#                 choice = chunk.choices[0]
+#                 delta = choice.delta
 
-                if delta.content:
-                    text_chunk = delta.content
-                    yield f"data: {json.dumps({'content': text_chunk})}\n\n"
+#                 if delta.content:
+#                     text_chunk = delta.content
+#                     yield f"data: {json.dumps({'content': text_chunk})}\n\n"
 
-            yield "data: [DONE]\n\n"
-        except Exception as e:
-            yield f"data: [ERROR] {str(e)}\n\n"
+#             yield "data: [DONE]\n\n"
+#         except Exception as e:
+#             yield f"data: [ERROR] {str(e)}\n\n"
 
 
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+#     return StreamingResponse(event_generator(), media_type="text/event-stream")
