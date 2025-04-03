@@ -20,8 +20,8 @@ app = FastAPI(
 )
 
 origins = [
-    "https://climate-dashboard-three.vercel.app",  # production
-    "http://localhost:3000",                       # dev
+    "https://climate-dashboard-three.vercel.app",  
+    "http://localhost:3000",                      
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -84,57 +84,17 @@ try:
 except:
     collection = chroma_client.create_collection("eskimo-folktales")
 
-# # Original chat endpoint (returns one final answer)
-# @app.post("/chat", response_model=ChatResponse)
-# async def chat_endpoint(req: ChatRequest):
-#     user_query = req.query.strip()
-#     if not user_query:
-#         raise HTTPException(status_code=400, detail="Query cannot be empty")
-
-#     query_embedding = embedder.encode([user_query])[0]
-#     results = collection.query(query_embeddings=[query_embedding], n_results=3)
-#     retrieved_chunks = results.get("documents", [[]])[0]
-#     context = "\n\n".join(retrieved_chunks)
-
-#     prompt = f"""
-#     You are a helpful assistant that answers questions based on the context from Eskimo Folk-Tales.
-
-#     Context:
-#     {context}
-
-#     Question: {user_query}
-
-#     Please talk like an elderly Inuit Storyteller, polite and respectful.
-#     If not in context, say "I can't remember anything else."
-#     """
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-4o",
-#             messages=[
-#                 {"role": "user", "content": prompt}
-#             ],
-#         )
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
-
-#     answer = response.choices[0].message.content.strip()
-#     return ChatResponse(answer=answer)
-
-# -------------------------------------------------------------------------
-# NEW: Streaming chat endpoint
 @app.post("/chat_stream")
 async def chat_stream(req: ChatRequest):
     user_query = req.query.strip()
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    # Retrieve relevant context from vector DB
     query_embedding = embedder.encode([user_query])[0]
     results = collection.query(query_embeddings=[query_embedding], n_results=3)
     retrieved_chunks = results.get("documents", [[]])[0]
     context = "\n\n".join(retrieved_chunks)
 
-     # Debug log to see what's retrieved
     print("DEBUG - Retrieved Context:\n", context)
     if not context:
         raise HTTPException(status_code=404, detail="No relevant context found")
@@ -160,17 +120,15 @@ async def chat_stream(req: ChatRequest):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            stream=True,  # Enable streaming
+            stream=True, 
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
 
-    # We'll define a generator that yields SSE data for each chunk
     def event_generator():
         try:
             for chunk in stream:
                 print("STREAM CHUNK:", chunk)
-                # chunk.choices is a list of Choice objects
                 choice = chunk.choices[0]
                 delta = choice.delta
 
