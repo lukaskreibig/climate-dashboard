@@ -84,41 +84,41 @@ try:
 except:
     collection = chroma_client.create_collection("eskimo-folktales")
 
-# Original chat endpoint (returns one final answer)
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(req: ChatRequest):
-    user_query = req.query.strip()
-    if not user_query:
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
+# # Original chat endpoint (returns one final answer)
+# @app.post("/chat", response_model=ChatResponse)
+# async def chat_endpoint(req: ChatRequest):
+#     user_query = req.query.strip()
+#     if not user_query:
+#         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    query_embedding = embedder.encode([user_query])[0]
-    results = collection.query(query_embeddings=[query_embedding], n_results=3)
-    retrieved_chunks = results.get("documents", [[]])[0]
-    context = "\n\n".join(retrieved_chunks)
+#     query_embedding = embedder.encode([user_query])[0]
+#     results = collection.query(query_embeddings=[query_embedding], n_results=3)
+#     retrieved_chunks = results.get("documents", [[]])[0]
+#     context = "\n\n".join(retrieved_chunks)
 
-    prompt = f"""
-    You are a helpful assistant that answers questions based on the context from Eskimo Folk-Tales.
+#     prompt = f"""
+#     You are a helpful assistant that answers questions based on the context from Eskimo Folk-Tales.
 
-    Context:
-    {context}
+#     Context:
+#     {context}
 
-    Question: {user_query}
+#     Question: {user_query}
 
-    Please talk like an elderly Inuit Storyteller, polite and respectful.
-    If not in context, say "I can't remember anything else."
-    """
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
+#     Please talk like an elderly Inuit Storyteller, polite and respectful.
+#     If not in context, say "I can't remember anything else."
+#     """
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[
+#                 {"role": "user", "content": prompt}
+#             ],
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
 
-    answer = response.choices[0].message.content.strip()
-    return ChatResponse(answer=answer)
+#     answer = response.choices[0].message.content.strip()
+#     return ChatResponse(answer=answer)
 
 # -------------------------------------------------------------------------
 # NEW: Streaming chat endpoint
