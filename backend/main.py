@@ -78,11 +78,11 @@ class ChatResponse(BaseModel):
 
 # Chroma setup
 # embedder = SentenceTransformer("all-MiniLM-L6-v2")
-chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
-try:
-    collection = chroma_client.get_collection("eskimo-folktales")
-except:
-    collection = chroma_client.create_collection("eskimo-folktales")
+# chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
+# try:
+#     collection = chroma_client.get_collection("eskimo-folktales")
+# except:
+#     collection = chroma_client.create_collection("eskimo-folktales")
 
 # # Original chat endpoint (returns one final answer)
 # @app.post("/chat", response_model=ChatResponse)
