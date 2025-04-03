@@ -6,3 +6,4 @@ requests
 openpyxl
 openai
 chromadb
+sentence_transformers
