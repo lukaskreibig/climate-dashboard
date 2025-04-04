@@ -63,7 +63,7 @@ __pycache__/
 /backend/data/books
 /backend/data/cds
 /backend/data/cdscmip6_monthly_1850-2014_historical_ukesm1_0_ll
-/backend/jupyter_notebook
+# /backend/jupyter_notebook
 /backend/data/csv
 
 /.vscode
