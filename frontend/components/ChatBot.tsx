@@ -336,7 +336,7 @@ export default function ChatBot({ API_URL }: ChatBotProps) {
           </ScrollArea>
 
           {/* Input and Send */}
-          <Group spacing="xs">
+          <Group gap="xs">
             <TextInput
               placeholder="Ask about Greenlandic Stories..."
               autoComplete="off"
