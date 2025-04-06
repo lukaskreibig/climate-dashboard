@@ -79,10 +79,8 @@ export default function ClimateReportPage() {
   // Modal State 
   const [modalOpened, setModalOpened] = useState(false)
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL
-
   useEffect(() => {
-    fetch(`${API_URL}/data`)
+    fetch(`api/data`)
       .then((res) => res.json())
       .then((json: DataJSON) => {
         setAnnualData(json.annual);

@@ -126,11 +126,12 @@ export default function ChatBot({ API_URL }: ChatBotProps) {
     stopTypingInterval();
     setAccumulatedText("");
     try {
-      const response = await fetch(`${API_URL}/chat_stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/chat_stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
+      
       if (!response.ok) {
         throw new Error(`Server returned status: ${response.status}`);
       }
