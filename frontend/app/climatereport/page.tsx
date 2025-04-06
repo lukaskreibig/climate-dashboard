@@ -408,7 +408,7 @@ export default function ClimateReportPage() {
           climate disruption.
         </Text>
       </ChartContainer>
-      <ChatBot API_URL={API_URL!} />
+      <ChatBot />
 
       <Space h="xl" />
     </div>
