@@ -1,10 +1,10 @@
 fastapi
 uvicorn[standard]
 pydantic
+accelerate
 pandas
 requests
 openpyxl
 openai
 chromadb
 sentence_transformers
-transformers==4.29.0

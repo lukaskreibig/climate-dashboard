@@ -66,6 +66,8 @@ __pycache__/
 # /backend/jupyter_notebook
 /backend/data/csv
 
+/frontend/yarn.lock
+
 /.vscode
 
 .yarn
