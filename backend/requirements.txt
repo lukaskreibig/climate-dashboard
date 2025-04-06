@@ -7,3 +7,4 @@ openpyxl
 openai
 chromadb
 sentence_transformers
+transformers==4.29.0
