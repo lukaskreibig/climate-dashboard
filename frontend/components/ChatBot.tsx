@@ -121,7 +121,6 @@ export default function ChatBot({ API_URL }: ChatBotProps) {
    */
   async function streamAssistantReply(query: string) {
     setIsLoading(true);
-    // We'll use a flag to check if we've created the assistant bubble yet
     let firstChunkReceived = false;
     let fullText = "";
     stopTypingInterval();
