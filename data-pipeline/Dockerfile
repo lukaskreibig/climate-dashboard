@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY update_pipeline.py .
 
 # Use the absolute path to Python
-CMD ["/usr/local/bin/python3", "update_pipeline.py"]
+CMD ["python3", "update_pipeline.py"]
