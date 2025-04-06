@@ -4,8 +4,9 @@ FROM python:3.13.2-alpine3.21
 # Set the working directory in the container
 WORKDIR /app
 
-# Update apk and install build dependencies
-RUN apk update && apk add --no-cache gcc musl-dev build-base
+# Update apk and install build dependencies including Rust and Cargo
+RUN apk update && \
+    apk add --no-cache gcc musl-dev build-base rust cargo
 
 # Copy the requirements file to the container
 COPY requirements.txt .
