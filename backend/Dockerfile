@@ -17,7 +17,7 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose the port that Uvicorn will run on (adjust as needed)
-EXPOSE 8080
+EXPOSE 8000
 
 # Set the command to run your FastAPI application using Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
