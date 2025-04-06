@@ -39,7 +39,7 @@ def update_data():
     # -----------------------------------------------------
     # 4. Clean and transform NOAA sea ice data (example)
     # -----------------------------------------------------
-    # Basic approach from your original code
+    # Rename and fill missing values
     df_ice.rename(columns={df_ice.columns[0]: "Month", df_ice.columns[1]: "Day"}, inplace=True)
     df_ice["Month"] = df_ice["Month"].ffill()
     # Drop extraneous columns
@@ -52,7 +52,7 @@ def update_data():
         var_name="Year",
         value_name="Extent"
     )
-    # Create datetime
+    # Create datetime column
     df_ice_long["Date"] = pd.to_datetime(
         df_ice_long["Day"].astype(str) + " " + df_ice_long["Month"] + " " + df_ice_long["Year"].astype(str),
         errors="coerce"
@@ -79,9 +79,8 @@ def update_data():
     merged_all = pd.merge(merged_tempice, global_co2, on="Year", how="left")
 
     # -----------------------------------------------------
-    # 7. Build correlation or compute z-scores, etc.
+    # 7. Compute additional metrics (example: z-scores)
     # -----------------------------------------------------
-    # Just an example of z-scores
     if "64N-90N" in merged_all.columns:
         arctic_series = merged_all["64N-90N"]
         merged_all["Arctic_z"] = (arctic_series - arctic_series.mean()) / arctic_series.std()
@@ -91,25 +90,18 @@ def update_data():
     # -----------------------------------------------------
     print("[INFO] Connecting to PostgreSQL...")
 
-    # Railway typically sets these environment variables if you add a Postgres reference
-    PGHOST = os.getenv("PGHOST", "localhost")
-    PGPORT = os.getenv("PGPORT", "5432")
-    PGUSER = os.getenv("PGUSER", "postgres")
-    PGPASSWORD = os.getenv("PGPASSWORD", "secret")
-    PGDATABASE = os.getenv("PGDATABASE", "postgres")
-
-    engine = create_engine(
-        f"postgresql://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}"
-    )
+    # Use the complete connection string provided by Railway
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise Exception("DATABASE_URL is not set")
+    engine = create_engine(database_url)
 
     print("[INFO] Inserting data into PostgreSQL tables...")
-
     # Example: store cleaned NOAA daily data
     df_ice_clean.to_sql("daily_sea_ice", engine, if_exists="replace", index=False)
-    # Combined NASA + sea ice + CO₂
+    # Store combined NASA + sea ice + CO₂ data
     merged_all.to_sql("merged_climate_data", engine, if_exists="replace", index=False)
 
-    # Done!
     print(f"[INFO] Data pipeline completed at {datetime.now()}.")
 
 if __name__ == "__main__":
