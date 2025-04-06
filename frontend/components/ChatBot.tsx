@@ -22,10 +22,6 @@ interface ChatMessage {
   text: string;
 }
 
-interface ChatBotProps {
-  API_URL: string;
-}
-
 const TYPING_SPEED_MS = 25;
 
 
@@ -45,7 +41,7 @@ function useBlinkingDots(interval = 400, maxDots = 3) {
   return dots;
 }
 
-export default function ChatBot({ API_URL }: ChatBotProps) {
+export default function ChatBot() {
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
 
