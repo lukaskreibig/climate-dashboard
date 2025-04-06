@@ -1,5 +1,5 @@
 # Use the official Python 3.10.16 slim image as a base image
-FROM python:3.13.2-slim-bookworm
+FROM python:3.13.2-alpine3.21
 
 # Set the working directory in the container
 WORKDIR /app
@@ -16,5 +16,8 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 # Copy the rest of your application code to the container
 COPY . .
 
-# Expose the port that Uvicorn will run on (adjust as needed)
-EXPOSE 8000
+# # Expose the port that Uvicorn will run on (adjust as needed)
+# EXPOSE 8000
+
+# # Set the command to run your FastAPI application using Uvicorn
+# CMD ["uvicorn", "main:app", "--host", "::", "--port", "8000"]
