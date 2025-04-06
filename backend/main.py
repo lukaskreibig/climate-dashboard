@@ -20,7 +20,8 @@ app = FastAPI(
 )
 
 origins = [
-    "https://climate-dashboard-three.vercel.app",  
+    "https://climate-dashboard-three.vercel.app", 
+    "https://nextjs-frontend-production-9055.up.railway.app",
     "http://localhost:3000",                      
 ]
 app.add_middleware(
