@@ -1,0 +1,6 @@
+word,start,end,entity_group
+Nukúnguasik,0,11,B-PER
+traveled,12,20,PER
+from,21,25,O
+Ikerssuaq,26,35,B-LOC
+Nuuk,39,43,B-LOC
