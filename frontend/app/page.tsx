@@ -1,46 +1,36 @@
-'use client'
-import { AppShell } from '@mantine/core';
-import ClimateReportPage from './climatereport/page';
+// app/page.tsx  (or wherever your Page lives)
+"use client";
 
-export default function Home () {
-  // const [opened, { toggle }] = useDisclosure();
+import { useEffect, useState } from "react";
+import IntroHero from "@/components/IntroHero";
+import ChartScene from "@/components/scenes/ChartScene";
+import { scenes } from "@/components/scenes/scenesConfig";
+import ProgressNav from "@/components/ProgressNav";  // ← new
+import ProgressTimeline from "@/components/ProgressTimeline";
+
+interface DataJSON { [k: string]: any; }
+
+export default function Page() {
+  const [data, setData] = useState<DataJSON | null>(null);
+  useEffect(() => {
+    fetch("/api/data").then(r => r.json()).then(setData);
+  }, []);
+  if (!data) return null;
 
   return (
-    <AppShell
-      // header={{ height: 60 }}
-      // navbar={{
-      //   width: 300,
-      //   breakpoint: 'sm',
-      //   collapsed: { mobile: !opened },
-      // }}
-      padding="md"
-    >
-      {/* <AppShell.Header>
-  <div className="flex items-center justify-center w-full p-4 bg-gradient-to-r from-blue-500 to-green-500">
-    <Burger
-      opened={opened}
-      onClick={toggle}
-      hiddenFrom="sm"
-      size="sm"
-      className="mr-4"
-    />
-    <div className="text-center">
-      <h1 className="text-4xl font-extrabold text-white tracking-widest">
-        Climate Stories - Data-Driven Exploration of Our Changing World
+    <main className="bg-night-900 text-snow-50 relative">
+      <IntroHero />
+      {/* ← show your scroll progress nav */}
+      {/* <ProgressNav/> */}
 
-      </h1>
-      <p className="mt-2 text-lg text-white opacity-80">
-      </p>
-    </div>
-  </div>
-</AppShell.Header> */}
+      
+      {/* <ProgressTimeline /> */}
 
 
-      {/* <AppShell.Navbar p="md">Navbar</AppShell.Navbar> */}
-
-      <AppShell.Main>
-        <ClimateReportPage /> 
-        </AppShell.Main>
-    </AppShell>
+      {/* all your scenes */}
+      {scenes.map(sc => (
+        <ChartScene key={sc.key} cfg={sc} globalData={data} />
+      ))}
+    </main>
   );
 }

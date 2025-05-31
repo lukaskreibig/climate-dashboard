@@ -24,7 +24,7 @@ interface Props {
   partial2025: PartialRow[]; // from python partial2025
 }
 
-export default function IQRChartRecharts({ stats, partial2025 }: Props) {
+export default function IQRChartRecharts({ stats,   partial2025 = [],}: Props) {
   if(!stats || !stats.length) {
     return <p>No IQR stats found.</p>;
   }
@@ -56,19 +56,19 @@ export default function IQRChartRecharts({ stats, partial2025 }: Props) {
     <div style={{ width:"100%", height:400}}>
       <ResponsiveContainer>
         <ComposedChart margin={{ top:20, right:20, bottom:40, left:20 }}>
-          <CartesianGrid strokeDasharray="3 3"/>
-          <XAxis
+          <CartesianGrid  className="chart-grid" strokeDasharray="3 3"/>
+          <XAxis  className="chart-axis"
             type="number"
             dataKey="DayOfYear"
             domain={[1,366]}
             tickCount={12}
           />
-          <YAxis
+          <YAxis  className="chart-axis"
             domain={[minE, maxE]}
             label={{ value:"Sea Ice Extent", angle:-90, position:"insideLeft"}}
           />
           <Tooltip formatter={(val)=>(typeof val==="number"? val.toFixed(2) : parseInt(val).toFixed(2))}/>
-          <Legend/>
+          <Legend className="chart-axis" />
 
           {/* The IQR area => we must feed one combined array. We'll do area referencing q25 & q75. */}
           <Area 

@@ -65,14 +65,14 @@ console.log("colDomain", colDomain)
       <ResponsiveContainer>
         <ScatterChart margin={{ top:20, right:20, bottom:20, left:20 }}>
           {/* We'll define xAxis range = [0, colDomain.length], yAxis range = [0, rowDomain.length] */}
-          <XAxis
+          <XAxis  className="chart-axis"
             type="number"
             dataKey="x"
             domain={[0, colDomain.length]}
             tickCount={colDomain.length+1}
             tickFormatter={idx => colDomain[idx]||""}
           />
-          <YAxis
+          <YAxis  className="chart-axis"
             type="number"
             dataKey="y"
             domain={[0, rowDomain.length]}
@@ -85,7 +85,7 @@ console.log("colDomain", colDomain)
               return [val.toFixed(2), 'Corr'];
             }}
           />
-          <Legend />
+          <Legend className="chart-grid" />
 
           <Scatter
             name="Heatmap"

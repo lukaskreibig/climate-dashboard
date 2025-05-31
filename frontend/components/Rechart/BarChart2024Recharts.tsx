@@ -39,11 +39,11 @@ export default function BarChart2024Recharts({ data }: Props) {
     <div style={{ width: "100%", height: 400 }}>
       <ResponsiveContainer>
         <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="location" />
-          <YAxis />
+          <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />
+          <XAxis  className="chart-axis" dataKey="location" />
+          <YAxis  className="chart-axis" />
           <Tooltip formatter={(val) => typeof val === "number" ? val.toFixed(2) : val} />
-          <Legend />
+          <Legend className="chart-grid" />
           <Bar dataKey="value" name="Mean Anomaly">
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.location === "Arctic" ? "red" : "blue"} />

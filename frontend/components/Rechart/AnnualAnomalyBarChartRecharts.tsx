@@ -34,8 +34,8 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
     <div style={{ width: "100%", height: 400 }}>
       <ResponsiveContainer>
         <BarChart data={valid} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
+          <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />
+          <XAxis  className="chart-axis"
             dataKey="Year"
             angle={-45}
             textAnchor="end"
@@ -43,9 +43,9 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
             height={60}
             tickFormatter={(year: number) => (year % 5 === 0 ? String(year) : "")}
           />
-          <YAxis />
+          <YAxis  className="chart-axis" />
           <Tooltip formatter={(val) => (typeof val === "number" ? val.toFixed(2) : val)} />
-          <Legend />
+          {/* <Legend className="chart-grid" /> */}
           {/* Dashed zero line */}
           <ReferenceLine y={0} stroke="#000" strokeDasharray="3 3" />
 
