@@ -1,98 +1,82 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useImperativeHandle } from "react";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
+  LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend
 } from "recharts";
-import { Switch, Group } from "@mantine/core";
+import { Switch } from "@/components/ui/switch";
 
-export interface AnnualRowZ {
-  Year: number;
-  Arctic_z?: number | null;
-  SeaIce_z?: number | null;
-  SeaIce_z_inv?: number | null;
-  GlobCO2Mean_z?: number | null;
+/* ------------- types -------------------------------------------- */
+export interface RowZ {
+  Year:number;
+  Arctic_z?:number|null;
+  SeaIce_z?:number|null;
+  SeaIce_z_inv?:number|null;
+  GlobCO2Mean_z?:number|null;
 }
-
-interface ZScoreChartRechartsProps {
-  data: AnnualRowZ[];
+interface Props {
+  data    : RowZ[];
   inverted?: boolean;
+  apiRef? : React.MutableRefObject<any>;
 }
 
-export default function ZScoreChartRecharts({ data, inverted = false }: ZScoreChartRechartsProps) {
-  // Local state for inversion; initial value from the prop inverted.
-  const [localInverted, setLocalInverted] = useState<boolean>(inverted);
+/* ------------- component ---------------------------------------- */
+export default function ZScoreChartRecharts({
+  data, inverted=false, apiRef
+}:Props){
+  const [inv, setInv] = useState(inverted);
 
-  // Compute the final data: include a new property SeaIceFinal that is either SeaIce_z or SeaIce_z_inv
-  const finalData = useMemo(() => {
-    return data.map(d => {
-      const seaVal = localInverted ? d.SeaIce_z_inv : d.SeaIce_z;
-      return { ...d, SeaIceFinal: seaVal };
-    });
-  }, [data, localInverted]);
+  /* expose API for ChartScene actions ----------------------------- */
+  useImperativeHandle(apiRef, ()=>({
+    toggleInvert: (v:boolean)=> setInv(v)
+  }));
 
-  // State to allow hiding/showing lines via legend clicks.
-  const [hiddenKeys, setHiddenKeys] = useState<string[]>([]);
+  /* merge inverted column on-the-fly ----------------------------- */
+  const plotted = useMemo(()=> data.map(r=>({
+    ...r, SeaIceFinal: inv ? r.SeaIce_z_inv : r.SeaIce_z
+  })),[data,inv]);
 
-  function handleLegendClick(o: any) {
-    const { dataKey } = o;
-    if (hiddenKeys.includes(dataKey)) {
-      setHiddenKeys(hiddenKeys.filter(k => k !== dataKey));
-    } else {
-      setHiddenKeys([...hiddenKeys, dataKey]);
-    }
-  }
+  /* legend hide/show state --------------------------------------- */
+  const [hidden, setHidden] = useState<string[]>([]);
 
-  return (
-    <div style={{ width: "100%", height: 400 }}>
-      {/* Inversion toggle placed above the chart */}
-      <Group justify="center" mb="md">
-        <Switch 
-          label="Invert Sea Ice" 
-          checked={localInverted}
-          onChange={(event) => setLocalInverted(event.currentTarget.checked)}
-          color="blue"
-        />
-      </Group>
-      <ResponsiveContainer>
-        <LineChart data={finalData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="Year" tickFormatter={(v) => String(v)} />
-          <YAxis />
-          <Tooltip formatter={(val) => (typeof val === "number" ? val.toFixed(2) : val)} />
-          <Legend onClick={handleLegendClick} />
-          <Line 
-            type="monotone"
-            dataKey="Arctic_z"
-            name="Arctic Temp (z)"
-            stroke="red"
-            hide={hiddenKeys.includes("Arctic_z")}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="SeaIceFinal"
-            name={localInverted ? "Sea Ice (inverted, z)" : "Sea Ice (z)"}
-            stroke="blue"
-            hide={hiddenKeys.includes("SeaIceFinal")}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="GlobCO2Mean_z"
-            name="CO₂ (z)"
-            stroke="orange"
-            hide={hiddenKeys.includes("GlobCO2Mean_z")}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+  /* ------------- render ----------------------------------------- */
+  return(
+    <div className="w-full">
+      {/* invert switch */}
+      <div className="mb-4 flex justify-center items-center gap-2">
+        <label htmlFor="inv" className="text-sm select-none">
+          Invert Sea-Ice
+        </label>
+        {/* <Switch id="inv" checked={inv} onCheckedChange={setInv}/> */}
+      </div>
+
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer>
+          <LineChart data={plotted} margin={{top:20,right:20,bottom:20,left:0}}>
+            <CartesianGrid className="chart-grid" strokeDasharray="3 3"/>
+            <XAxis className="chart-axis" dataKey="Year"/>
+            <YAxis className="chart-axis"/>
+            <Tooltip formatter={v=>typeof v==="number"?v.toFixed(2):v}/>
+            <Legend className="chart-grid"
+                    onClick={o=>{
+                      const k=o.dataKey as string;
+                      setHidden(h=>h.includes(k) ? h.filter(x=>x!==k)
+                                                 : [...h, k]);
+                    }}/>
+            <Line type="monotone" dataKey="Arctic_z"
+                  name="Arctic Temp (z)" stroke="#ef4444"
+                  hide={hidden.includes("Arctic_z")} dot={false}/>
+            <Line type="monotone" dataKey="SeaIceFinal"
+                  name={inv ? "Sea Ice (inv, z)" : "Sea Ice (z)"}
+                  stroke="#3b82f6"
+                  hide={hidden.includes("SeaIceFinal")} dot={false}/>
+            <Line type="monotone" dataKey="GlobCO2Mean_z"
+                  name="CO₂ (z)" stroke="#fb923c"
+                  hide={hidden.includes("GlobCO2Mean_z")} dot={false}/>
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

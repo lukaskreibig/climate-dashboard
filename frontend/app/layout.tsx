@@ -1,40 +1,34 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
+import "../globals.css"
+import { Geist, Geist_Mono, Rubik_Distressed } from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+
+const geist     = Geist({variable:"--font-geist",       subsets:["latin"]})
+const geistMono = Geist_Mono({variable:"--font-mono",   subsets:["latin"]})
+const rubik     = Rubik_Distressed({variable:"--font-rubik", weight:"400", subsets:["latin"]})
 
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: "The Changing Arctic",
-  description: "A study about the Sea Ice Extend",
+export const metadata = {
+  title:  'The Big Melt',
+  description: 'A data-driven chronicle of sea-ice decline',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({children}:{children:React.ReactNode}) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-      <MantineProvider>
+    <html lang="en" className="scroll-smooth dark" suppressHydrationWarning>
+
+      <body
+      className={`${geist.variable} ${geistMono.variable} ${rubik.variable} font-sans`}
+
+      > 
+         <ThemeProvider
+         attribute="class"
+         defaultTheme="dark"
+         enableSystem={false}
+         disableTransitionOnChange
+         >
         {children}
-        </MantineProvider>
+        </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }
-
-
-

@@ -1,24 +1,21 @@
 "use client";
 import React, { useState } from "react";
-import { Modal, Button, Card, Title, Text, Group, Space, List, ThemeIcon } from "@mantine/core";
+import { Modal, Button, Card, Title, Text, Group, Space, List, ThemeIcon, Center, Box } from "@mantine/core";
 import {IconInfoCircle, IconExternalLink} from '@tabler/icons-react';
 
 export default function IntroCardWithModal() {
   const [opened, setOpened] = useState(false);
 
   return (
-    <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <Group justify="space-between" align="center" mb="xs">
-          <Title order={2}>The Changing Arctic</Title>
-          <Button variant="outline" size="xs" onClick={() => setOpened(true)} leftSection={<IconInfoCircle size={16} />}>
+    <Box mb="200px">
+      <Card shadow="sm" radius="md" mt="xl" withBorder style={{ maxWidth: 1200, margin: "0 auto", zIndex: 2, backgroundColor: "transparent", boxShadow: "none", border: "none", justifyContent:"center", alignItems: "center" }}>
+            <Title order={1} style={{ color: "#2e3440", fontSize: "10rem" }}>The Arctic Meltdown</Title>
+            {/* <Title order={1} style={{ color: "#2e3440", fontSize: "2.5rem" }}>Greenland’s Race Against Time</Title> */}
+          {/* <Button variant="outline" size="xs" onClick={() => setOpened(true)} leftSection={<IconInfoCircle size={16} />}>
             About the Data
-          </Button>
-        </Group>
-
-        <Text size="md" style={{ textAlign: "center", lineHeight: 1.6 }}>
-          This study aggregates data from three leading climate sources: NASA GISS provides annual temperature anomaly data, NOAA supplies daily measurements of Arctic sea ice extent, and Our World in Data compiles comprehensive CO₂ emissions records. Together, these datasets reveal the dramatic warming of the Arctic relative to global trends—highlighting a steady decline in sea ice as temperatures rise. Explore the interactive charts below to understand seasonal cycles, long‐term trends, and the relationships among key climate indicators.
-        </Text>
+          </Button> */}
+      </Card>
+      <Card shadow="sm" radius="md" mt="xs"  withBorder style={{ maxWidth: 1200, margin: "0 auto", zIndex: 2, backgroundColor: "transparent", boxShadow: "none", border: "none" }}>
       </Card>
 
       <Modal
@@ -30,7 +27,7 @@ export default function IntroCardWithModal() {
         padding="lg"
         transitionProps={{ transition: "pop", duration: 200 }}
       >
-        <Card shadow="sm" padding="md" radius="md" withBorder style={{ backgroundColor: "#f9fafb" }}>
+        <Card shadow="sm" padding="md" radius="md" withBorder style={{ backgroundColor: "#434c5e" }}>
           <Text size="sm" style={{ lineHeight: 1.5 }}>
             The data presented in this dashboard is automatically updated daily by an automated workflow script that fetches the latest datasets, processes them, and transforms them for visualization.
           </Text>
@@ -65,6 +62,6 @@ export default function IntroCardWithModal() {
       </Modal>
 
       <Space h="lg" />
-    </>
+    </Box>
   );
 }

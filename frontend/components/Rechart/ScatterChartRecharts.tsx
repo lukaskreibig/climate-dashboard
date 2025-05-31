@@ -53,14 +53,14 @@ export default function ScatterChartRecharts({ data }: Props) {
     <div style={{ width:"100%", height:400 }}>
       <ResponsiveContainer>
         <ComposedChart margin={{ top:20, right:20, bottom:20, left:20 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
+          <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />
+          <XAxis  className="chart-axis" 
             type="number" 
             dataKey="x" 
             name="Global Temp" 
             tickCount={5}
           />
-          <YAxis 
+          <YAxis  className="chart-axis" 
             type="number" 
             dataKey="y" 
             name="Sea Ice Mean"
@@ -70,7 +70,7 @@ export default function ScatterChartRecharts({ data }: Props) {
             formatter={(val,name) => typeof val==="number"? val.toFixed(2): val}
             labelFormatter={() => ""} // to not show weird label
           />
-          <Legend />
+          <Legend className="chart-grid" />
 
           {/* The Scatter points */}
           <Scatter 

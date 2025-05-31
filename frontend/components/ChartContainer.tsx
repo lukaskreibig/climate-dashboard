@@ -1,32 +1,20 @@
 "use client";
-import React from "react";
-import { Card, Title, Text, Divider } from "@mantine/core";
 
-interface ChartContainerProps {
+import { Card } from "@/components/ui/card";
+
+interface Props {
   title: string;
-  description?: string;
   headerExtra?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export default function ChartContainer({
-  title,
-  description,
-  headerExtra,
-  children,
-}: ChartContainerProps) {
+export function ChartContainer({ title, headerExtra, children }: Props) {
   return (
-    <Card shadow="sm" radius="md" withBorder p="lg" mb="xl">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Title order={3} style={{ margin: 0 }}>{title}</Title>
-        {headerExtra && <div>{headerExtra}</div>}
+    <Card className="mx-auto mb-24 w-[95vw] px-6 py-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-display text-2xl">{title}</h2>
+        {headerExtra}
       </div>
-      {description && (
-        <Text size="sm" mb="md" pt="md">
-          {description}
-        </Text>
-      )}
-      <Divider mb="md" />
       {children}
     </Card>
   );

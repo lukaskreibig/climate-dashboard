@@ -1,83 +1,70 @@
 "use client";
-
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useImperativeHandle } from "react";
 import {
   ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+  LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend
 } from "recharts";
 
-interface DailySeaIceRow {
-  Year: number;
-  DayOfYear: number;
-  Extent?: number | null;
-}
+/* ------------- types -------------------------------------------- */
+interface Row { Year:number; DayOfYear:number; Extent?:number|null }
 interface Props {
-  data: DailySeaIceRow[];
-  chosenYear: number;
+  data       : Row[];
+  chosenYear : number;
+  apiRef?    : React.MutableRefObject<any>;
 }
 
-/**
- * We compute the baseline from all years != chosenYear, then compute the daily anomaly for chosenYear.
- * In a real app, you might do that in the Python side or pass "df_annual" from the server.
- */
-export default function DailyAnomalyChartRecharts({ data, chosenYear }: Props) {
-  // Filter out chosen year
-  const base = useMemo(()=> data.filter(d => d.Year !== chosenYear && d.Extent!=null), [data, chosenYear]);
-  const chosen = useMemo(()=> data.filter(d => d.Year === chosenYear && d.Extent!=null), [data, chosenYear]);
+/* ------------- component ---------------------------------------- */
+export default function DailyAnomalyChartRecharts({
+  data, chosenYear, apiRef
+}:Props){
+  const [year, setYear] = useState(chosenYear);
 
-  if(chosen.length===0) {
-    return <p className="text-gray-500 p-2">No daily data for {chosenYear}.</p>;
-  }
+  /* expose imperative API (called by ChartScene.actions) ---------- */
+  useImperativeHandle(apiRef, ()=>({
+    nextYear: () => setYear(y => y + 1),
+  }));
 
-  // Build a map of DayOfYear -> mean baseline extent
-  const baselineMap = new Map<number, number>();
-  {
+  /* baseline (all years except current) --------------------------- */
+  const baselineMap = useMemo(()=>{
+    const base = data.filter(r => r.Year !== year && r.Extent!=null);
     const byDay = new Map<number, number[]>();
-    base.forEach(d => {
-      if(!byDay.has(d.DayOfYear)) byDay.set(d.DayOfYear, []);
-      byDay.get(d.DayOfYear)!.push(d.Extent!);
+    base.forEach(r=>{
+      byDay.set(r.DayOfYear, [...(byDay.get(r.DayOfYear) ?? []), r.Extent!]);
     });
-    byDay.forEach((arr, day) => {
-      const m = arr.reduce((s,v)=>s+v, 0)/arr.length;
-      baselineMap.set(day, m);
+    const m = new Map<number, number>();
+    byDay.forEach((arr, day)=> {
+      m.set(day, arr.reduce((s,v)=>s+v,0)/arr.length);
     });
-  }
+    return m;
+  },[data, year]);
 
-  // Build anomalies
-  const anomalyData = chosen.map(d => {
-    const baseVal = baselineMap.get(d.DayOfYear) || 0;
-    const anom = (d.Extent ?? 0) - baseVal;
-    return {
-      dayOfYear: d.DayOfYear,
-      anomaly: anom
-    };
-  }).sort((a,b) => a.dayOfYear - b.dayOfYear);
+  /* chosen year anomalies ---------------------------------------- */
+  const chosen = data.filter(r=>r.Year===year && r.Extent!=null);
+  if(!chosen.length) return <p className="text-gray-500 p-2">
+    No daily data for {year}.
+  </p>;
 
-  return (
-    <div style={{ width:"100%", height:400 }}>
+  const anoms = chosen.map(r=>({
+    dayOfYear: r.DayOfYear,
+    anomaly : (r.Extent ?? 0) - (baselineMap.get(r.DayOfYear) ?? 0)
+  })).sort((a,b)=>a.dayOfYear-b.dayOfYear);
+
+  /* ------------- render ----------------------------------------- */
+  return(
+    <div className="h-[400px] w-full">
       <ResponsiveContainer>
-        <LineChart data={anomalyData} margin={{ top:20, right:20, bottom:20, left:0 }}>
-          <CartesianGrid strokeDasharray="3 3"/>
-          <XAxis 
-            dataKey="dayOfYear"
-            name="Day of Year"
-            type="number"
-            domain={[1,366]}
-            tickCount={12}
-          />
-          <YAxis/>
-          <Tooltip 
-            formatter={(val)=>typeof val==="number"? val.toFixed(2): val}
-            />
-          <Legend />
-          {/* horizontal line at 0 -> we can do a reference line or a custom line */}
-          <Line
-            type="monotone"
-            dataKey="anomaly"
-            name={`Daily Anomaly (${chosenYear})`}
-            stroke="#8884d8"
-            dot={false}
-          />
+        <LineChart data={anoms} margin={{top:20,right:20,bottom:20,left:0}}>
+          <CartesianGrid className="chart-grid" strokeDasharray="3 3"/>
+          <XAxis className="chart-axis"
+                 dataKey="dayOfYear" type="number" domain={[1,366]}
+                 tickCount={12}/>
+          <YAxis className="chart-axis"/>
+          <Tooltip formatter={v=>typeof v==="number"?v.toFixed(2):v}/>
+          <Legend/>
+          <Line type="monotone" dataKey="anomaly"
+                name={`Daily Anomaly (${year})`}
+                stroke="#8884d8" dot={false}/>
         </LineChart>
       </ResponsiveContainer>
     </div>

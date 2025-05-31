@@ -41,9 +41,9 @@ export default function MultiLineChartRecharts({ data }: Props) {
     <div style={{ width: "100%", height: 400 }}>
       <ResponsiveContainer>
         <ComposedChart data={valid} margin={{ top: 20, right: 30, bottom: 40, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />
 
-          <XAxis
+          <XAxis  className="chart-axis"
             dataKey="Year"
             tickFormatter={(year) => (year % 4 === 0 ? String(year) : "")}
             angle={-45}
@@ -53,14 +53,14 @@ export default function MultiLineChartRecharts({ data }: Props) {
           />
 
           {/* Left Y-axis for temperature anomalies */}
-          <YAxis
+          <YAxis  className="chart-axis"
             yAxisId="temp"
             label={{ value: "Temp Anomaly (°C)", angle: -90, position: "insideLeft" }}
             tickFormatter={numberFormatter}
           />
 
           {/* Right Y-axis for CO₂ values: format in gigatonnes */}
-          <YAxis
+          <YAxis  className="chart-axis"
             yAxisId="co2"
             orientation="right"
             tickFormatter={(val: number) =>
@@ -70,7 +70,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
           />
 
           <Tooltip formatter={tooltipFormatter} labelFormatter={(year) => `Year: ${year}`} />
-          <Legend />
+          <Legend className="chart-grid" />
 
           {/* Arctic line */}
           <Line
