@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import IntroHero from "@/components/IntroHero";
 import ChartScene from "@/components/scenes/ChartScene";
 import { scenes } from "@/components/scenes/scenesConfig";
-import HorizontalDailyTunnel from "@/components/scenes/HorizontalDailyTunnelScene";
 
 interface DataJSON{
   dailySeaIce:any[];
@@ -25,15 +24,10 @@ export default function Page(){
       <IntroHero/>
 
       {scenes.map(sc=>(
-        sc.key==="daily"
-          ? (
-              /* inject tunnel immediately AFTER the “daily” ChartScene */
-              <div key={sc.key}>
-                <ChartScene cfg={sc} globalData={data}/>
-                {/* <HorizontalDailyTunnel data={data.dailySeaIce}/> */}
-              </div>
-            )
-          : <ChartScene key={sc.key} cfg={sc} globalData={data}/>
+      <div id="firstChartAnchor" key={sc.key}>
+        <ChartScene key={sc.key} cfg={sc} globalData={data}/>
+      </div>
+      
       ))}
     </main>
   );
