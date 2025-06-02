@@ -25,52 +25,6 @@ interface DataBundle{
   annual        : any[];
 }
 
-/* ---------- extra “time-tunnel” scene ------------------------ */
-const START   = 1980;
-const YEARS   = 55;                     // 1980…2025
-const CAP = 0.015;                  // caption length in 0-1 space
-
-const dailyTimeTunnel: SceneCfg = {
-  key   : "daily-tunnel",
-  chart : (d:DataBundle,api)=>
-            <DailyChart data={d.dailySeaIce}
-                        chosenYear={START}
-                        apiRef={api}/>,
-
-  axesSel  : AXES,
-  chartSide: "fullscreen",
-
-  captions : [
-    { at:0.00, out:0.06, html:<></> },   /* empty intro */
-
-    ...Array.from({length:YEARS},(_,i)=>{
-      const yr=START+i;
-      return{
-        captionSide:"right" as const,
-        at :0.06+i*CAP,
-        out:0.06+(i+1)*CAP,
-        html:<h3 className="text-xl font-display">{yr}</h3>
-      };
-    }),
-
-    {
-      captionSide:"left",
-      at:0.90, out:1,
-      html:(<>
-        <h3 className="text-2xl font-display mb-2">Half a Century of Wiggles</h3>
-        <p className="text-lg">Scroll up to replay — or keep going to the next chapter.</p>
-      </>)
-    }
-  ],
-
-  actions : Array.from({length:YEARS},(_,i)=>({
-    captionIdx:1+i,                    // first real caption index
-    call     :(api:any)=>api?.addYear?.()
-  }))
-};
-
-
-/* ---------- scene list --------------------------------------- */
 export const scenes: SceneCfg[] = [
   /* 1 — Seasonal lines --------------------------------------- */
   {
@@ -262,5 +216,39 @@ export const scenes: SceneCfg[] = [
         </>)
       }
     ]
-  }
+  },
+  /* ------------------------------------------------------------------
+   Beta / Disclaimer scene – full-screen caption, no chart, no axes
+------------------------------------------------------------------ */
+
+{  key: "beta",
+  /* blank chart keeps the sticky area in place
+     but shows nothing – just a neutral backdrop */
+  chart: () => <div className="w-full h-full bg-slate-100" />,
+
+  /* no helper/axes selectors */
+  axesSel: NO_MATCH,
+
+  captions: [
+    {
+      html: (
+        <>
+          <h2 className="text-4xl font-bold mb-4">🚧 Beta Preview</h2>
+
+              <p className="text-lg max-w-prose mx-auto">
+        Here ends the <strong>early-access beta</strong>. <br/>The experience is still
+        being refined, and new chapters are coming soon, including a&nbsp;
+        <em>Knud Rasmussen Gen-AI chatbot</em> that tells Inuit stories, Computer Vision
+        insights from AI processed Arctic satellite imagery, and new sea-ice change data.
+        <br />
+        <br />
+        Thanks for exploring <strong>arctic.rip</strong>. Check back in a few weeks
+        for the next wave of features!
+      </p>
+        </>
+      ),
+    }
+  ],
+  chartSide: "fullscreen"}
+
 ];
