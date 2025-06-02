@@ -1,35 +1,39 @@
-// app/page.tsx  (or wherever your Page lives)
 "use client";
 
 import { useEffect, useState } from "react";
 import IntroHero from "@/components/IntroHero";
 import ChartScene from "@/components/scenes/ChartScene";
 import { scenes } from "@/components/scenes/scenesConfig";
-import ProgressNav from "@/components/ProgressNav";  // ← new
-import ProgressTimeline from "@/components/ProgressTimeline";
+import HorizontalDailyTunnel from "@/components/scenes/HorizontalDailyTunnelScene";
 
-interface DataJSON { [k: string]: any; }
+interface DataJSON{
+  dailySeaIce:any[];
+  annualAnomaly:any[];
+  iqrStats:any;
+  annual:any[];
+}
 
-export default function Page() {
-  const [data, setData] = useState<DataJSON | null>(null);
-  useEffect(() => {
-    fetch("/api/data").then(r => r.json()).then(setData);
-  }, []);
-  if (!data) return null;
+export default function Page(){
+  const [data,setData] = useState<DataJSON|null>(null);
+  useEffect(()=>{
+    fetch("/api/data").then(r=>r.json()).then(setData);
+  },[]);
+  if(!data) return null;
 
-  return (
-    <main className="bg-night-900 text-snow-50 relative">
-      <IntroHero />
-      {/* ← show your scroll progress nav */}
-      {/* <ProgressNav/> */}
+  return(
+    <main className="bg-night-900 text-snow-50">
+      <IntroHero/>
 
-      
-      {/* <ProgressTimeline /> */}
-
-
-      {/* all your scenes */}
-      {scenes.map(sc => (
-        <ChartScene key={sc.key} cfg={sc} globalData={data} />
+      {scenes.map(sc=>(
+        sc.key==="daily"
+          ? (
+              /* inject tunnel immediately AFTER the “daily” ChartScene */
+              <div key={sc.key}>
+                <ChartScene cfg={sc} globalData={data}/>
+                {/* <HorizontalDailyTunnel data={data.dailySeaIce}/> */}
+              </div>
+            )
+          : <ChartScene key={sc.key} cfg={sc} globalData={data}/>
       ))}
     </main>
   );
