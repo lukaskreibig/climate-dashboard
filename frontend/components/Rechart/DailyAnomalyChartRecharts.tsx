@@ -1,16 +1,13 @@
-/* ------------------------------------------------------------------
-   DailyAnomalyChartRecharts  (v3.1 — decades + blue-red + months)
-   - Fix tooltip labels to show decade names
-   - Pressable legend to toggle series visibility
------------------------------------------------------------------- */
 "use client";
 
-import React, {
-  useMemo,
-  useState,
-  useImperativeHandle,
-  useCallback,
-} from "react";
+/* ------------------------------------------------------------------
+   DailyAnomalyChartRecharts (v4.0)
+   • Starts with ONE decade (1970s).
+   • apiRef exposes showLevel(level) – set visible count *exactly*.
+   • Scrolling back reduces lines; no duplicate renders possible.
+------------------------------------------------------------------ */
+
+import React, { useMemo, useState, useImperativeHandle } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -20,224 +17,84 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  LegendPayload,
 } from "recharts";
 
-export interface Row {
-  Year: number;
-  DayOfYear: number;
-  Extent?: number | null;
-}
-export interface Props {
-  data: Row[];
-  chosenYear: number;
-  apiRef?: React.MutableRefObject<any>;
-}
+/* ---------- types ------------------------------------------- */
+export interface Row { Year: number; DayOfYear: number; Extent: number|null; }
+export interface Props { data: Row[]; apiRef?: React.MutableRefObject<any>; }
 
-export default function DailyAnomalyChartRecharts({
-  data,
-  chosenYear,
-  apiRef,
-}: Props) {
-  const [maxYear, setMaxYear] = useState(chosenYear);
+/* ---------- helpers ----------------------------------------- */
+const monthTicks = [1,32,60,91,121,152,182,213,244,274,305,335];
+const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthOf = (d:number)=>months[ monthTicks.findLastIndex(t=>d>=t) ] ?? "";
 
-  /* NEW 👉 store hidden series (decades) for interactive legend */
-  const [hiddenDecades, setHiddenDecades] = useState<string[]>([]);
+const colorOf = (dec:string)=>({
+  "1970s":"#0f766e",  // teal
+  "1980s":"#1e40af",  // blue-1
+  "1990s":"#2563eb",  // blue-2
+  "2000s":"#f59e0b",  // amber
+  "2010s":"#ef4444",  // red
+  "2020s":"#b91c1c",  // dark-red
+}[dec] || "#6b7280");
 
-  /* imperative API ------------------------------------------- */
-  useImperativeHandle(
-    apiRef,
-    () => ({
-      addYear: () =>
-        setMaxYear((y) => {
-          const next = y + 1;
-          return data.some((r) => r.Year === next) ? next : y;
-        }),
-      nextYear: () => setMaxYear((y) => y + 1),
-      setYear: (y: number) => setMaxYear(y),
-    }),
-    [data]
-  );
+/* ============================================================ */
+export default function DailyAnomalyChart({ data, apiRef }: Props) {
+  /* ---- build decades & baseline --------------------------- */
+  const series = useMemo(()=>{
+    /* baseline - mean extent for each day -------------------- */
+    const base=new Map<number,number>();
+    for(let d=1;d<=366;d++){
+      const vals=data.filter(r=>r.DayOfYear===d&&r.Extent!=null).map(r=>r.Extent!);
+      base.set(d, vals.reduce((s,v)=>s+v,0)/vals.length);
+    }
 
-  /* baseline -------------------------------------------------- */
-  const baseline = useMemo(() => {
-    const base = data.filter((r) => r.Year <= maxYear && r.Extent != null);
-    const byDay = new Map<number, number[]>();
-    base.forEach((r) => {
-      byDay.set(r.DayOfYear, [...(byDay.get(r.DayOfYear) ?? []), r.Extent!]);
-    });
-    const m = new Map<number, number>();
-    byDay.forEach((arr, day) => m.set(day, arr.reduce((s, v) => s + v, 0) / arr.length));
-    return m;
-  }, [data, maxYear]);
-
-  /* color mapping from blue to red ----------------------------- */
-  const getDecadeColor = (decade: string) => {
-    const decadeColors: Record<string, string> = {
-      "1980s": "#1e40af", // Deep blue
-      "1990s": "#3b82f6", // Blue
-      "2000s": "#f59e0b", // Amber/Orange
-      "2010s": "#ef4444", // Red
-      "2020s": "#dc2626", // Dark red
-    };
-    return decadeColors[decade] ?? "#6b7280";
-  };
-
-  /* group years into decades ----------------------------------- */
-  const decadeSeries = useMemo(() => {
-    const years = [
-      ...new Set(data.filter((r) => r.Year <= maxYear).map((r) => r.Year)),
-    ].sort((a, b) => a - b);
-
-    // Group years by decade
-    const decades = new Map<string, number[]>();
-    years.forEach((year) => {
-      const decade = `${Math.floor(year / 10) * 10}s`;
-      decades.set(decade, [...(decades.get(decade) ?? []), year]);
+    /* collect anomalies per decade -------------------------- */
+    const byDec=new Map<string,Map<number,number[]>>();
+    data.forEach(r=>{
+      if(r.Extent==null) return;
+      const dec=`${Math.floor(r.Year/10)*10}s`;
+      if(!byDec.has(dec)) byDec.set(dec,new Map());
+      const m=byDec.get(dec)!;
+      const an=r.Extent - (base.get(r.DayOfYear) ?? 0);
+      m.set(r.DayOfYear,[...(m.get(r.DayOfYear)??[]),an]);
     });
 
-    // Build data for each decade
-    const decadeData = new Map<string, Map<number, number[]>>();
-
-    data.forEach((r) => {
-      if (r.Year > maxYear || r.Extent == null) return;
-
-      const decade = `${Math.floor(r.Year / 10) * 10}s`;
-      if (!decadeData.has(decade)) {
-        decadeData.set(decade, new Map());
-      }
-
-      const dayMap = decadeData.get(decade)!;
-      const anomaly = r.Extent - (baseline.get(r.DayOfYear) ?? 0);
-      dayMap.set(r.DayOfYear, [...(dayMap.get(r.DayOfYear) ?? []), anomaly]);
-    });
-
-    // Average anomalies by day for each decade
-    return Array.from(decades.keys())
-      .sort()
-      .map((decade) => {
-        const dayMap = decadeData.get(decade) ?? new Map();
-        const rows: { day: number; an: number }[] = [];
-
-        for (let day = 1; day <= 366; day++) {
-          const values = dayMap.get(day) ?? [];
-          if (values.length > 0) {
-            const avgAnomaly = values.reduce((s, v) => s + v, 0) / values.length;
-            rows.push({ day, an: avgAnomaly });
-          }
-        }
-
-        return {
-          decade,
-          rows: rows.sort((a, b) => a.day - b.day),
-          color: getDecadeColor(decade),
-        };
+    return Array.from(byDec.keys()).sort().map(dec=>{
+      const rows:Array<{day:number;an:number}>=[];
+      byDec.get(dec)!.forEach((arr,day)=>{
+        rows.push({day,an:arr.reduce((s,v)=>s+v,0)/arr.length});
       });
-  }, [data, maxYear, baseline]);
+      rows.sort((a,b)=>a.day-b.day);
+      return {decade:dec,rows,color:colorOf(dec)};
+    });
+  },[data]);
 
-  /* month labels for x-axis ----------------------------------- */
-  const monthTicks = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-  const monthLabels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  /* ---- visible count & imperative API --------------------- */
+  const [visible,setVisible]=useState(1);          // show 1970s only at start
+  useImperativeHandle(apiRef,()=>({
+    showLevel:(lvl:number)=>setVisible(Math.max(1,Math.min(lvl,series.length)))
+  }),[series.length]);
 
-  const formatXAxisLabel = (value: number) => {
-    const monthIndex = monthTicks.findIndex((tick) => Math.abs(tick - value) < 15);
-    return monthIndex >= 0 ? monthLabels[monthIndex] : "";
-  };
-
-    /* custom tooltip -------------------------------------------- */
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload || payload.length === 0) return null;
-
-    const dayOfYear = Math.round(label);
-    const monthIndex =
-      monthTicks.findIndex((tick) => dayOfYear >= tick) !== -1
-        ? monthTicks.findLastIndex((tick) => dayOfYear >= tick)
-        : 0;
-    const month = monthLabels[monthIndex] || "Unknown";
-
-    return (
-      <div className="bg-white/95 p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-medium text-gray-800">{`${month} (Day ${dayOfYear})`}</p>
-
-        {payload.map((entry: any, index: number) => {
-          // 🔎 Re-look-up the correct value from our pre-computed decade data
-          const decadeData = decadeSeries.find((d) => d.decade === entry.name);
-          const row = decadeData?.rows.find((r) => r.day === dayOfYear);
-          const value = row?.an ?? null;
-
-          return (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {`${entry.name}: ${
-                value !== null ? value.toFixed(3) : "—"
-              }`}
-            </p>
-          );
-        })}
-      </div>
-    );
-  };
-
-
-  /* legend click handler -------------------------------------- */
-  const handleLegendClick = useCallback((e: LegendPayload) => {
-    const { value } = e; // `value` equals the `name` prop we give to <Line /> (the decade)
-    if (typeof value !== "string") return;
-    setHiddenDecades((prev) =>
-      prev.includes(value) ? prev.filter((d) => d !== value) : [...prev, value]
-    );
-  }, []);
-
-  /* render ---------------------------------------------------- */
-  return (
+  /* ---------------- render --------------------------------- */
+  return(
     <div className="h-[400px] w-full">
       <ResponsiveContainer>
-        <LineChart margin={{ top: 20, right: 20, bottom: 20, left: 40 }}>
-          <CartesianGrid className="chart-grid" strokeDasharray="3 3" />
-          <XAxis
-            className="chart-axis"
-            dataKey="day"
-            type="number"
-            domain={[1, 366]}
-            ticks={monthTicks}
-            tickFormatter={formatXAxisLabel}
-          />
-          <YAxis
-            className="chart-axis"
-            label={{ value: "Anomaly (10⁶ km²)", angle: -90, position: "insideLeft" }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          {/* 🖱️ Make legend items pressable */}
-          <Legend />
-          {/* <Legend onClick={handleLegendClick} /> */}
+        <LineChart margin={{top:20,right:20,bottom:20,left:40}}>
+          <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>
+          <XAxis dataKey="day" type="number" domain={[1,366]}
+                 ticks={monthTicks} tickFormatter={monthOf}
+                 className="chart-axis"/>
+          <YAxis label={{value:"Anomaly (10⁶ km²)",angle:-90,position:"insideLeft"}}
+                 className="chart-axis"/>
+          <Tooltip formatter={(v:number)=>v.toFixed(3)}
+                   labelFormatter={(d:number)=>`${monthOf(d)} (day ${d})`}/>
+          <Legend/>
 
-
-          {decadeSeries.map(({ decade, rows, color }) =>
-            hiddenDecades.includes(decade) ? null : (
-              <Line
-                key={decade}
-                data={rows}
-                dataKey="an"
-                type="monotone"
-                name={decade}
-                stroke={color}
-                strokeWidth={2}
-                dot={false}
-              />
-            )
-          )}
+          {series.slice(0,visible).map(({decade,rows,color})=>(
+            <Line key={decade} data={rows} dataKey="an"
+                  type="monotone" stroke={color} strokeWidth={2}
+                  name={decade} dot={false}/>
+          ))}
         </LineChart>
       </ResponsiveContainer>
     </div>
