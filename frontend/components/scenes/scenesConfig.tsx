@@ -181,17 +181,6 @@ export const scenes: SceneCfg[] = [
         </p>
       </>)
     },
-    {
-      captionSide:"right",
-      html:(<>
-        <h3 className="text-2xl font-display mb-2">Half a Century in One Glance</h3>
-        <p className="text-lg">
-          Layering all six decades reveals an unmistakable staircase downward:
-          each line finishes lower than the one before. The Arctic hasn’t just
-          lost ice, no, it’s accelerating toward ever deeper deficits.
-        </p>
-      </>)
-    }
   ],
 
   /* reveal one additional decade at each caption ------------- */
