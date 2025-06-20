@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import IntroHero from "@/components/IntroHero";
 import ChartScene from "@/components/scenes/ChartScene";
 import { scenes } from "@/components/scenes/scenesConfig";
+import ChatBot from "@/components/ChatBot";
 
 interface DataJSON{
   dailySeaIce:any[];
@@ -23,12 +24,12 @@ export default function Page(){
     <main className="bg-night-900 text-snow-50">
       <IntroHero/>
 
-      {scenes.map(sc=>(
-      <div id="firstChartAnchor" key={sc.key}>
-        <ChartScene key={sc.key} cfg={sc} globalData={data}/>
-      </div>
-      
-      ))}
+        {scenes.map(sc=>(
+        <div id="firstChartAnchor" key={sc.key}>
+          <ChartScene key={sc.key} cfg={sc} globalData={data}/>
+        </div>      
+        ))}
+       <ChatBot/>
     </main>
   );
 }

@@ -36,6 +36,7 @@ export const scenes: SceneCfg[] = [
     // axesOutIdx  : 2,
     helperInIdx : 2,
     // helperOutIdx: 2,
+    transition: "blur",
     captions : [
       {
         html:(<>
@@ -67,10 +68,10 @@ export const scenes: SceneCfg[] = [
     chart     : (d:DataBundle)=> <AnnualChart data={d.annualAnomaly}/>,
     axesSel   : AXES,
     axesInIdx : 0,
+    transition: "fade",
     captions : [
       {
         captionSide:"right",
-        at:0.15, out:0.85,
         html:(<>
           <h3 className="text-2xl font-display mb-2">Annual Anomalies</h3>
           <p className="text-lg">Bars above zero in blue show more ice than the historical baseline, while bars below zero in red represent years with less ice. The shift to predominantly red bars highlights a dramatic and sustained reduction of ice.
@@ -89,7 +90,6 @@ export const scenes: SceneCfg[] = [
     captions : [
       {
         captionSide:"left",
-        at:0.10, out:0.90,
         html:(<>
           <h3 className="text-2xl font-display mb-2">What&apos;s an IQR Envelope?</h3>
           <p className="text-lg">The shaded area marks the middle 50% of historic ice extents—our comfort zone. Drifting below this area signals troubling deviations from normal.
@@ -108,27 +108,102 @@ export const scenes: SceneCfg[] = [
   },
 
   /* 4 — Daily anomaly jump (2024→25) ------------------------- */
-  {
-    key       : "daily",
-    chart     : (d:DataBundle,api)=>
-                  <DailyChart data={d.dailySeaIce} chosenYear={2024} apiRef={api}/>,
-    axesSel   : AXES,
-    axesInIdx : 0,
-    captions : [
-      {
-        captionSide:"right",
-        at:0.15, out:0.55,
-        html:(<>
-          <h3 className="text-2xl font-display mb-2">A Daily Story</h3>
-          <p className="text-lg">This chart shows the daily ice anomalies for each decade. Recent decades show increasingly negative anomalies, clearly visualizing a persistent decline year-round.
-</p>
-        </>)
-      }
-    ],
-    actions : [
-      { captionIdx:0, call: api=>api?.nextYear?.() }
-    ]
-  },
+  /* 4 — Daily anomaly jump (decade tunnel) -------------------- */
+{
+  key   : "daily",
+  chart : (d:DataBundle, api) =>
+            <DailyChart data={d.dailySeaIce} apiRef={api} />,
+  axesSel   : AXES,
+  axesInIdx : 0,
+
+  /* one caption per decade + a wrap-up ----------------------- */
+  captions : [
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">1970s – A Gentle Start</h3>
+        <p className="text-lg">
+          The first decade rides mostly <em>above</em> the zero line, meaning
+          winter and summer extents were still higher than the long-term
+          average. A world with a small surplus of ice now feels distant.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">1980s – Slipping Toward Even</h3>
+        <p className="text-lg">
+          Add the 1980s and the curve drops a notch.  Mid-year values flirt
+          with zero, hinting that the balance is starting to tip.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">1990s – Crossing the Line</h3>
+        <p className="text-lg">
+          The 1990s line spends long stretches <em>below</em> zero, especially
+          in late summer.  Arctic ice is no longer gaining back what it loses.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">2000s – Negative Is the New Normal</h3>
+        <p className="text-lg">
+          A full decade of persistent negative anomalies.  Even winter peaks
+          can’t climb back to the baseline any more.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">2010s – Free-Fall</h3>
+        <p className="text-lg">
+          The curve dives deeper.  Values around -0.9&nbsp;million km² in
+          late summer show how quickly the “new normal” keeps shifting.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">2020s – Record Lows</h3>
+        <p className="text-lg">
+          The current decade sits at the bottom—virtually the almost entire year is
+          below -0.8&nbsp;million km². We are charting unknown territory. Layering all six decades reveals an unmistakable staircase downward:
+          each line finishes lower than the one before. The Arctic hasn’t just
+          lost ice, no, it’s accelerating toward ever deeper deficits.
+        </p>
+      </>)
+    },
+    {
+      captionSide:"right",
+      html:(<>
+        <h3 className="text-2xl font-display mb-2">Half a Century in One Glance</h3>
+        <p className="text-lg">
+          Layering all six decades reveals an unmistakable staircase downward:
+          each line finishes lower than the one before. The Arctic hasn’t just
+          lost ice, no, it’s accelerating toward ever deeper deficits.
+        </p>
+      </>)
+    }
+  ],
+
+  /* reveal one additional decade at each caption ------------- */
+actions : [
+    { captionIdx:0, call: api=>api?.showLevel?.(1) },
+    { captionIdx:1, call: api=>api?.showLevel?.(2) },
+    { captionIdx:2, call: api=>api?.showLevel?.(3) },
+    { captionIdx:3, call: api=>api?.showLevel?.(4) },
+    { captionIdx:4, call: api=>api?.showLevel?.(5) },
+    { captionIdx:5, call: api=>api?.showLevel?.(6) },
+  ]
+},
 
   // /* 4b — Horizontal daily time-tunnel ------------------------ */
   // dailyTimeTunnel,
@@ -233,7 +308,7 @@ export const scenes: SceneCfg[] = [
     {
       html: (
         <>
-          <h2 className="text-4xl font-bold mb-4">🚧 Beta Preview</h2>
+          <h2 className="text-4xl font-bold">🚧 Beta Preview</h2>
 
               <p className="text-lg max-w-prose mx-auto">
         Here ends the <strong>early-access beta</strong>. <br/>The experience is still
