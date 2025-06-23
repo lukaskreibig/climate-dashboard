@@ -53,7 +53,7 @@ export default function IntroHero() {
       /* idle shimmer – loops until scroll starts */
       const idle = gsap.timeline({ repeat: -1, yoyo: true });
       idle
-        .to(idleTurb.current, { attr: { baseFrequency: 0.0225 }, duration: 18, ease: "sine.inOut" }, 0)
+        .to(idleTurb.current, { attr: { baseFrequency: 0.125 }, duration: 18, ease: "sine.inOut" }, 0)
         .to(idleDisp.current, { attr: { scale: 6 },             duration: 18, ease: "sine.inOut" }, 0);
 
       /* main scroll‑driven sequence */
@@ -130,7 +130,8 @@ export default function IntroHero() {
 
   /* ─── JSX ─────────────────────────────────────────────────────────────── */
   return (
-    <section ref={wrap} className="relative h-screen overflow-hidden text-snow-50">
+    
+    <section ref={wrap}  className="relative h-screen overflow-hidden text-snow-50">
       {/* background photo */}
       <motion.img
         ref={photo}

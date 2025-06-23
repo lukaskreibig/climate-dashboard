@@ -301,8 +301,7 @@ actions : [
 
               <p className="text-lg max-w-prose mx-auto">
         Here ends the <strong>early-access beta</strong>. <br/>The experience is still
-        being refined, and new chapters are coming soon, including a&nbsp;
-        <em>Knud Rasmussen Gen-AI chatbot</em> that tells Inuit stories, Computer Vision
+        being refined, and new chapters are coming soon, including Computer Vision
         insights from AI processed Arctic satellite imagery, and new sea-ice change data.
         <br />
         <br />

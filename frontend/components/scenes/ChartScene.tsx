@@ -1,13 +1,14 @@
 "use client";
 
 /* ------------------------------------------------------------------
-   ChartScene (v12.5-shiftIntro)
+   ChartScene (v12.6-shiftIntro + progress-attrs)
 ------------------------------------------------------------------
    • Captions still begin one viewport earlier (v12.4 logic).
-   • ✨ NEW: on first entrance the chart renders *centered*, then
-     slides to its computed “left / right / center” position.
-     – Works for either `chartSide` prop or caption-driven shifts.
-   • Everything else untouched.
+   • On first entrance the chart renders *centered*, then slides to
+     its computed “left / right / center” position (v12.5).
+   • ✨ NEW:  Every <section> now carries
+       - data-scene  = cfg.key        ←  used by the progress rail
+       - data-title  = first caption  ←  optional tooltip fallback
 ------------------------------------------------------------------ */
 
 import React, { useLayoutEffect, useRef, useState } from "react";
@@ -24,9 +25,12 @@ const EXIT_END   = "bottom 90%";
 export interface CaptionCfg {
   html: React.ReactNode;
   captionSide?: "left" | "right";
-  at?: number;  out?: number;
-  axesInIdx?: number;   axesOutIdx?: number;
-  helperInIdx?: number; helperOutIdx?: number;
+  at?: number;
+  out?: number;
+  axesInIdx?: number;
+  axesOutIdx?: number;
+  helperInIdx?: number;
+  helperOutIdx?: number;
 }
 export interface SceneCfg {
   key: string;
@@ -35,8 +39,10 @@ export interface SceneCfg {
   helperSel?: string;
   captions: CaptionCfg[];
   chartSide?: "left" | "right" | "center" | "fullscreen";
-  axesInIdx?: number;   axesOutIdx?: number;
-  helperInIdx?: number; helperOutIdx?: number;
+  axesInIdx?: number;
+  axesOutIdx?: number;
+  helperInIdx?: number;
+  helperOutIdx?: number;
   actions?: { captionIdx: number; call: (api?: any) => void }[];
 }
 export const NO_MATCH = "*:not(*)";
@@ -72,11 +78,9 @@ export default function ChartScene({
       const hideOthers = () =>
         document
           .querySelectorAll<HTMLDivElement>(".chart-layer")
-          .forEach((el) =>
-            el === wrap.current
-              ? void 0
-              : (el.style.visibility = "hidden")
-          );
+          .forEach((el) => {
+            if (el !== wrap.current) el.style.visibility = "hidden";
+          });
 
       /* ---------- initial wrapper state --------------------- */
       gsap.set(wrap.current, { opacity: 1, xPercent: 0, visibility: "hidden" });
@@ -84,12 +88,12 @@ export default function ChartScene({
       /* ---------- life-cycle visibility --------------------- */
       ScrollTrigger.create({
         trigger: sec.current,
-        start: "top bottom",
-        end:   "bottom 90%",
+        start : "top bottom",
+        end   : "bottom 90%",
         onEnter:     () => { hideOthers(); setMounted(true);  wrap.current!.style.visibility = "visible"; },
         onEnterBack: () => { hideOthers(); wrap.current!.style.visibility = "visible"; },
-        onLeave:     () => (wrap.current!.style.visibility = "hidden"),
-        onLeaveBack: () => (wrap.current!.style.visibility = "hidden"),
+        onLeave:     () => { wrap.current!.style.visibility = "hidden"; },
+        onLeaveBack: () => { wrap.current!.style.visibility = "hidden"; },
       });
 
       /* ---------- exit tween -------------------------------- */
@@ -100,9 +104,9 @@ export default function ChartScene({
         ease: "none",
         scrollTrigger: {
           trigger: sec.current,
-          start: EXIT_START,
-          end:   EXIT_END,
-          scrub: true,
+          start : EXIT_START,
+          end   : EXIT_END,
+          scrub : true,
         },
       });
 
@@ -158,7 +162,7 @@ export default function ChartScene({
         return side === "left" ? -shift : shift;
       };
 
-      /* determine first wanted side ------------------------- */
+      /* determine first wanted side -------------------------- */
       const firstSide = cfg.captions.find(c => c.captionSide);
       const explicit  = cfg.chartSide && cfg.chartSide !== "fullscreen"
                           ? cfg.chartSide : undefined;
@@ -170,8 +174,8 @@ export default function ChartScene({
           ? "left"
           : "center");
 
-      /* ---------- new intro slide-in ------------------------ */
-      gsap.set(box.current, { x: 0 });                      // start centered
+      /* ---------- intro slide-in (center → side) ------------ */
+      gsap.set(box.current, { x: 0 });
       const firstShift = pxShift(current);
       if (firstShift !== 0) {
         gsap.to(box.current, {
@@ -180,7 +184,7 @@ export default function ChartScene({
           ease: "power2.out",
           scrollTrigger: {
             trigger: sec.current,
-            start: "top 10%",    // exactly when wrapper becomes visible
+            start: "top 10%",
             once: true,
           },
         });
@@ -191,46 +195,30 @@ export default function ChartScene({
         if (!c.captionSide || explicit) return;
         const desired = c.captionSide === "left" ? "right" : "left";
         if (desired === current) return;
-        const trg = sec.current!.querySelector<HTMLElement>(
-          `[data-cap-idx="${i}"] .caption-box`
-        )!;
+        const trg = sec.current!.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`)!;
         ScrollTrigger.create({
           trigger: trg,
           start: "top 92%",
           onEnter: () => {
             current = desired;
-            gsap.to(box.current, {
-              x: pxShift(desired),
-              duration: 0.5,
-              ease: "power2.out",
-            });
+            gsap.to(box.current, { x: pxShift(desired), duration: 0.5, ease: "power2.out" });
           },
           onLeaveBack: () => {
             current = desired;
-            gsap.to(box.current, {
-              x: pxShift(desired),
-              duration: 0.5,
-              ease: "power2.out",
-            });
+            gsap.to(box.current, { x: pxShift(desired), duration: 0.5, ease: "power2.out" });
           },
         });
       });
 
       /* ---------- caption slide-ins ------------------------- */
       cfg.captions.forEach((c, i) => {
-        const el = sec.current!.querySelector<HTMLElement>(
-          `[data-cap-idx="${i}"] .caption-box`
-        );
+        const el = sec.current!.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`);
         if (!el) return;
 
         const fromX =
-          c.captionSide === "left"
-            ? "-4rem"
-            : c.captionSide === "right"
-            ? "4rem"
-            : "0";
+          c.captionSide === "left"  ? "-4rem" :
+          c.captionSide === "right" ?  "4rem" : "0";
 
-        /* one viewport earlier than “at / out” fractions */
         const fracIn  = (c.at  ?? i * 0.05) - 1;
         const fracOut = (c.out ?? 1.01)     - 1;
 
@@ -266,14 +254,22 @@ export default function ChartScene({
     s === "left"
       ? "items-end justify-start pl-10 sm:pl-16 pr-6"
       : s === "right"
-      ? "items-end justify-end pr-10 sm:pr-16 pl-6"
+      ? "items-end justify-end pr-24 sm:pr-24 pl-6"
       : "items-center justify-center px-6";
 
   const capText = (s?: "left" | "right") => (s ? "text-left" : "text-center");
 
   /* ---------- render ---------------------------------------- */
   return (
-    <section ref={sec} className="relative">
+    <section
+      ref={sec}
+      className="relative"
+      data-scene={cfg.key}
+      data-title={
+        (cfg.captions[0]?.html as any)?.props?.children?.[0]?.props?.children ??
+        cfg.key
+      }
+    >
       {/* fixed chart layer */}
       <div
         ref={wrap}
@@ -289,9 +285,7 @@ export default function ChartScene({
         <div
           key={i}
           data-cap-idx={i}
-          className={`relative h-screen flex ${capFlex(
-            c.captionSide
-          )} pointer-events-none z-20`}
+          className={`relative h-screen flex ${capFlex(c.captionSide)} pointer-events-none z-20`}
         >
           <div
             className={`caption-box max-w-md p-6 bg-white/90 rounded-lg shadow-lg ${capText(

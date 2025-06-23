@@ -5,6 +5,7 @@ import IntroHero from "@/components/IntroHero";
 import ChartScene from "@/components/scenes/ChartScene";
 import { scenes } from "@/components/scenes/scenesConfig";
 import ChatBot from "@/components/ChatBot";
+import StoryProgress from "@/components/StoryProgress";
 
 interface DataJSON{
   dailySeaIce:any[];
@@ -21,6 +22,7 @@ export default function Page(){
   if(!data) return null;
 
   return(
+    <>
     <main className="bg-night-900 text-snow-50">
       <IntroHero/>
 
@@ -29,7 +31,12 @@ export default function Page(){
           <ChartScene key={sc.key} cfg={sc} globalData={data}/>
         </div>      
         ))}
+
        <ChatBot/>
     </main>
+   <StoryProgress />
+
+    </>
+
   );
 }
