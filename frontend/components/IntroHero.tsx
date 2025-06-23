@@ -81,7 +81,7 @@ export default function IntroHero() {
       tl.to([arrow.current, subtitle.current], { opacity: 0, duration: 0.15, ease: "none" }, "start");
 
       /* lift title block */
-      tl.to(block.current, { yPercent: 30, scale: 1.05, duration: 0.25, ease: "none" }, "start");
+      tl.to(block.current, { yPercent: 50, scale: 1.05, duration: 0.25, ease: "none" }, "start");
 
       /* darken photo / overlay / title colour  (0.25 s later) */
       tl.to(photo.current,   { opacity: 0, scale: 1.08, duration: 0.15, ease: "none" }, "+=0.25")
@@ -131,7 +131,7 @@ export default function IntroHero() {
   /* ─── JSX ─────────────────────────────────────────────────────────────── */
   return (
     
-    <section ref={wrap}  className="relative h-screen overflow-hidden text-snow-50">
+    <section ref={wrap} className="relative h-screen overflow-hidden text-snow-50">
       {/* background photo */}
       <motion.img
         ref={photo}
@@ -167,7 +167,7 @@ export default function IntroHero() {
         <motion.h2 ref={line1} className={`${bebasNeue.className} text-center text-6xl opacity-0 text-white`}>
           The Arctic is Warming Four Times Faster Than the Global Average
         </motion.h2>
-        <motion.h2 ref={line2} className={`${bebasNeue.className} text-center text-6xl opacity-0 text-white`}>
+        <motion.h2 ref={line2} className={`${bebasNeue.className} text-center text-6xl opacity-0 pb-4 text-white`}>
           In the Fast‑Warming Arctic, Sea Ice Melt Is Now a Constant Reality
         </motion.h2>
       </div>

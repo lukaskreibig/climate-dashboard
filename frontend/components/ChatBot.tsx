@@ -37,8 +37,7 @@ export default function ChatBot() {
     {
       fromUser: false,
       text:
-        "Greetings, traveler. I’m Knud Rasmussen, Danish-Greenlandic explorer and collector of Inuit legends. Through this digital journal, you may ask me about the folktales I once recorded, drawn directly from my book Eskimo Folk-Tales. Behind the scenes, modern technology helps me recall these stories: a local memory system stores my tales, advanced transformers retrieve the most relevant passages, and an AI model gives voice to my words in the spirit of my journeys, but with the clarity of today. Feel free to ask a question about the old tales of Greenland.",
-    },
+        "Greetings, traveller! I'm Knud Rasmussen, Danish-Greenlandic explorer and collector of Inuit legends. Ask me anything about the Greenlandic folktales I recorded in Eskimo Folk-Tales. Behind the scenes, modern technology helps me recall these stories clearly, blending the spirit of my journeys with today's AI." },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -171,7 +170,7 @@ export default function ChatBot() {
       <button
         type="button"
         onClick={() => setOpened(true)}
-        className="fixed bottom-6 right-6 z-40 rounded-full shadow-lg transition-transform hover:scale-110 animate-pulse"
+        className="fixed bottom-6 left-6 z-40 rounded-full shadow-lg transition-transform hover:scale-110 animate-pulse"
       >
         <Image
           src="/knud.jpg"

@@ -46,21 +46,25 @@ export default function StoryProgress() {
     setPoints(waypoints);
     pointsRef.current = waypoints;
 
-    /* fade-in when first chart arrives ---------------------- */
-    if (container.current) {
+        if (container.current) {
       gsap.set(container.current, { autoAlpha: 0, pointerEvents: "none" });
+
+      const fade = (show: boolean) => {
+        gsap.to(container.current!, {
+          autoAlpha : show ? 1 : 0,
+          duration  : .45,
+          onStart   : () => { container.current!.style.pointerEvents = show ? "auto" : "none"; }
+        });
+      };
+
       ScrollTrigger.create({
-        trigger : waypoints[0].el,
-        start   : "top 80%",
-        once    : true,
-        onEnter : () =>
-          gsap.to(container.current!, {
-            autoAlpha: 1,
-            duration : .45,
-            onStart  : () => (container.current!.style.pointerEvents = "auto")
-          })
+        trigger   : waypoints[0].el,
+        start     : "top 10%",     // same threshold as before
+        onEnter   : () => fade(true),
+        onLeaveBack: () => fade(false)   // ⇦ fade back out when you scroll above
       });
     }
+
 
     /* move knob per scene ----------------------------------- */
     waypoints.forEach((wp, idx) => {
@@ -103,7 +107,7 @@ export default function StoryProgress() {
   const scrollToScene = (idx: number) => {
     const target = pointsRef.current[idx]?.el;
     if (!target) return;
-    const y = target.offsetTop + window.innerHeight * 0.5;   // centre first caption
+    const y = target.offsetTop + window.innerHeight * 0.5; 
     gsap.to(window, { duration: .9, scrollTo: y, ease: "power2.inOut" });
   };
 
