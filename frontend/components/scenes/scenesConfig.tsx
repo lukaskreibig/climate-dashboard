@@ -26,7 +26,32 @@ interface DataBundle{
 }
 
 export const scenes: SceneCfg[] = [
-  /* 1 — Seasonal lines --------------------------------------- */
+  /* 0 — Project introduction (static backdrop) --------------------------- */
+{
+  key   : "about",  
+  wide  : true,            
+  chart : () => null,
+  axesSel: NO_MATCH,
+
+
+  captions: [
+    {
+     boxClass:"ice-card",
+      html: (
+        <>
+        <h2 className="text-4xl font-bold mb-5">The Arctic, By the Numbers</h2>
+          <p className="text-lg max-w-prose mx-auto">
+            <strong>arctic.rip</strong> is a data-journalism project visualizing the rapid changes <br /> occurring in the Arctic through interactive charts and narratives. <br /> <br /> Built on open satellite data processed by a self built Deep Learning Model Pipeline <br /> and public data sources like NASA, this is your window into one of the planet&apos;s <br /> most dramatic transformations.
+            <br /><br />
+            Move through the story at your own pace.
+            <br /><br />
+          </p>
+        </>
+      ),
+    },
+  ],
+},
+
   {
     key       : "seasonal",
     chart     : (d:DataBundle)=> <SeasonalChart data={d.dailySeaIce}/>,
@@ -36,7 +61,6 @@ export const scenes: SceneCfg[] = [
     // axesOutIdx  : 2,
     helperInIdx : 2,
     // helperOutIdx: 2,
-    transition: "blur",
     captions : [
       {
         html:(<>
@@ -68,7 +92,6 @@ export const scenes: SceneCfg[] = [
     chart     : (d:DataBundle)=> <AnnualChart data={d.annualAnomaly}/>,
     axesSel   : AXES,
     axesInIdx : 0,
-    transition: "fade",
     captions : [
       {
         captionSide:"right",

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -121,3 +120,24 @@
   }
 }
 
+/* =========================================================================
+   ICE-CARD  v2.5  – “free-floating” turquoise shard
+   - remove any parent `bg-white/… shadow-lg` classes in your SceneConfig
+   - keep the wrapper div but leave it transparent
+   ========================================================================= */
+.ice-card{
+  padding:2.75rem 2.25rem;
+  max-width:900px;
+  color:#ebf8ff; text-align:center;
+  font-weight:500; line-height:1.55;
+  background:oklch(62.982% 0.0761 256.496);
+  transform: none !important;
+  transition: none !important;
+  pointer-events: none;
+
+  /* ---- crisp glacier silhouette ---- */
+  clip-path:polygon(
+    10% 4%, 26% 0%, 74% 0%, 92% 4%,
+    100% 18%, 96% 82%, 86% 96%, 14% 96%, 4% 86%, 0% 32%
+  );
+}

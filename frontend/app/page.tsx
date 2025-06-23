@@ -6,6 +6,7 @@ import ChartScene from "@/components/scenes/ChartScene";
 import { scenes } from "@/components/scenes/scenesConfig";
 import ChatBot from "@/components/ChatBot";
 import StoryProgress from "@/components/StoryProgress";
+import IceTilt from "@/components/IceTilt";
 
 interface DataJSON{
   dailySeaIce:any[];
