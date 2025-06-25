@@ -4,6 +4,7 @@
 import dynamic      from "next/dynamic";
 import { SceneCfg } from "./ChartScene";
 import { NO_MATCH } from "./ChartScene";
+import NextChapterButton from "../NextChapterButton";
 
 /* lazy-loaded charts ------------------------------------------ */
 const SeasonalChart = dynamic(()=>import("@/components/Rechart/SeasonalLinesChartRecharts"),{ ssr:false });
@@ -318,21 +319,18 @@ actions : [
 
   captions: [
     {
+      boxClass: "ice-card pointer-events-auto",
       html: (
-        <>
-          <h2 className="text-4xl font-bold">🚧 Beta Preview</h2>
+  <>
+    <h2 className="text-3xl font-bold mb-4">End of Chapter 1</h2>
+    <p className="text-lg max-w-prose mx-auto">
+      Ready for a deeper dive?  Chapter 2 explores entirely new datasets
+      and fresh perspectives on Arctic change.
+    </p>
 
-              <p className="text-lg max-w-prose mx-auto">
-        Here ends the <strong>early-access beta</strong>. <br/>The experience is still
-        being refined, and new chapters are coming soon, including Computer Vision
-        insights from AI processed Arctic satellite imagery, and new sea-ice change data.
-        <br />
-        <br />
-        Thanks for exploring <strong>arctic.rip</strong>. Check back in a few weeks
-        for the next wave of features!
-      </p>
-        </>
-      ),
+    <NextChapterButton />
+  </>
+),
     }
   ],
   chartSide: "fullscreen"}
