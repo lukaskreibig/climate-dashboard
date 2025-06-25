@@ -1,11 +1,4 @@
-/* ============================================================================
-   components/IntroHero.tsx – idle shimmer ➜ melt ➜ text morph ➜ full-screen chart
-   (v3) — uses ScrollTrigger **snap-to-labels** for smooth, full‑page scrollTo
-   jumps between major beats (after the melt, Sentence 1, Sentence 2, etc.).
-   "Scrub" still lets the user scrub the animation while the trigger is active,
-   but the moment they release the wheel/trackpad the view animates to the next
-   label using the built‑in ScrollToPlugin. Best‑practice, minimal code.
-============================================================================ */
+
 "use client";
 
 import { useRef } from "react";

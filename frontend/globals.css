@@ -133,7 +133,6 @@
   background:oklch(62.982% 0.0761 256.496);
   transform: none !important;
   transition: none !important;
-  pointer-events: none;
 
   /* ---- crisp glacier silhouette ---- */
   clip-path:polygon(
