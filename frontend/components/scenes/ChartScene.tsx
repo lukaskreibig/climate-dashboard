@@ -151,7 +151,7 @@ export default function ChartScene({cfg,globalData}:{cfg:SceneCfg;globalData:any
       /* initial center ➜ side slide -------------------------- */
       gsap.set(box.current,{x:0});
       const firstShift = pxShift(current);
-      if(firstShift!==0){
+      if (cfg.chartSide!=="fullscreen" && firstShift!==0) {
         gsap.to(box.current,{
           x:firstShift,duration:.6,ease:"power2.out",
           scrollTrigger:{trigger:sec.current,start:"top 10%",once:true}
@@ -159,7 +159,7 @@ export default function ChartScene({cfg,globalData}:{cfg:SceneCfg;globalData:any
       }
 
       /* shift when captionSide toggles ----------------------- */
-      cfg.captions.forEach((c,i)=>{
+      if (cfg.chartSide!=="fullscreen") cfg.captions.forEach((c,i)=>{
         if(!c.captionSide || explicit) return;
         const desired = c.captionSide==="left"?"right":"left";
         if(desired===current) return;
@@ -207,7 +207,7 @@ export default function ChartScene({cfg,globalData}:{cfg:SceneCfg;globalData:any
   /* ---------- helpers -------------------------------------- */
   const chartW =
     cfg.chartSide==="fullscreen"
-      ? "w-full max-w-none"
+      ? "w-full h-screen max-w-none"
       : "w-[90%] sm:w-4/5 md:w-3/5 lg:w-2/3 max-w-[900px]";
 
   const capFlex = (s?:"left"|"right") =>

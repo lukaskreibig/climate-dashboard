@@ -1,156 +1,164 @@
-/* ------------------------------------------------------------------
-   chapter-2 · page.tsx    (fully working with summary_test.csv)
------------------------------------------------------------------- */
+/* app/page.tsx  ────────────────────────────────────────────────────────────
+   ▸ fetches the CLEANED CSV (`/summary_test_cleaned.csv`)
+   ▸ derives all secondary metrics client-side
+   ▸ hands a typed DataBundle to each <ChartScene/>
+   ------------------------------------------------------------------------ */
 "use client";
 
-import { useEffect, useState } from "react";
-import { csvParse }           from "d3-dsv";
-import { group, mean, quantile } from "d3-array";
-import { timeParse, timeFormat } from "d3-time-format";
+import { useEffect, useState }       from "react";
+import { csvParse }                  from "d3-dsv";
+import IntroHero                     from "@/components/IntroHero";
+import ChartScene                    from "@/components/scenes/ChartScene";
+import ChatBot                       from "@/components/ChatBot";
+import StoryProgress                 from "@/components/StoryProgress";
+import scenes2                       from "@/components/scenes/scenesConfig2";
 
-import ChartScene  from "@/components/scenes/ChartScene";
-import { scenes2 } from "@/components/scenes/scenesConfig2";
+/* ─── constants used throughout ─── */
+const SUN_START   = 45;     // 14-Feb
+const SUN_END     = 180;    // 29-Jun
+const SPRING_A    = 60;     //  1-Mar
+const SPRING_B    = 151;    // 31-May
+const THRESHOLD   = 0.15;   // 15 % ice = freeze/break marker
+const EARLY_YRS   = [2017, 2018, 2019, 2020];
+const LATE_YRS    = [2021, 2022, 2023, 2024, 2025];
+const FJORD_KM2   = 3450;   // ⚠️ update if you know the exact fjord area
 
-/* ─── typed rows & bundles ───────────────────────────────────── */
-interface DailyRec { date: Date; year: number; doy: number; frac: number }
+/* ─── helpers ─── */
+const mean = (arr: number[]) =>
+  arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : NaN;
 
-interface SpringRow  { year: number; anomaly: number }
-interface SeasonRow  { day: string; early: number; late: number; iqr25: number; iqr75: number }
-interface FracRow    { year: number; fraction: number }
-interface FreezeRow  { year: number; freeze: number; breakup: number }
+const pct = (arr: number[], q: number) => {
+  if (!arr.length) return NaN;
+  const s = [...arr].sort((a, b) => a - b);
+  const p = (s.length - 1) * q;
+  const lo = Math.floor(p), hi = Math.ceil(p);
+  return lo === hi ? s[lo] : s[lo] * (hi - p) + s[hi] * (p - lo);
+};
 
-interface Bundle { spring: SpringRow[]; season: SeasonRow[]; frac: FracRow[]; freeze: FreezeRow[] }
+/* ─── cleaned CSV → minimal row objects ─── */
+interface Row {
+  date: Date;
+  year: number;
+  doy : number;
+  frac: number;     // already smoothed by the notebook
 
-/* ─── constants matching the Python notebook ------------------ */
-const SUN_START   = 45;     // daylight window start (DOY)
-const SUN_END     = 180;    // daylight window end
-const FREEZE_THR  = 0.40;   // ≥ 40 % → land-fast build-up
-const BREAK_THR   = 0.15;   // ≤ 15 % → open water
-const PERSIST_D   = 10;     // break-up must persist this long
-const EARLY_EPOCH = [2017, 2020];        // inclusive
-const LATE_EPOCH  = [2021, 2025];        // inclusive
-const BASE_YEARS  = [2017, 2018, 2019, 2020];   // for spring anomaly
-
-/* ─── tiny helpers -------------------------------------------- */
-const pTS     = timeParse("%Y%m%dT%H%M%S");      // "20250623T155320"
-const fDOYStr = timeFormat("%d-%b");             // "14-Jun"
-const fDOY    = timeFormat("%j");                // "165"
-
-/* Parse one CSV row → DailyRec (returns null on malformed row) */
-function rowToDaily(r: any): DailyRec | null {
-  const ts  = (r.timestamp ?? "").trim();
-  const d   = pTS(ts);
-  if (!d || isNaN(d as unknown as number)) return null;
-
-  const frac = (+r.solid_pct || 0) + (+r.light_pct || 0);   // 0-1
-  return { date: d, year: d.getUTCFullYear(), doy: +fDOY(d), frac };
 }
 
-/* ─── BUILD ALL FOUR DATASETS from raw CSV rows  ────────────── */
-function buildDatasets(rows: any[]): Bundle {
-  /* --- 0 · daily mean across tiles -------------------------- */
-  const daily = [...group(
-    rows.map(rowToDaily).filter(Boolean) as DailyRec[],
-    r => r.date.toISOString().slice(0, 10)          // "YYYY-MM-DD"
-  )].map(([_, arr]) => {
-    const { year, doy } = arr[0];
-    return { year, doy, frac: mean(arr, d => d.frac)! };
-  });
+const parseCsv = (txt: string): Row[] =>
+  csvParse(txt, (d: any) => ({
+    date: new Date(d.date),
+    year: +d.year,
+    doy : +d.doy,
+    frac: +d.frac_smooth || NaN,
+  })) as unknown as Row[];
 
-  const windowDaily = daily.filter(d => d.doy >= SUN_START && d.doy <= SUN_END);
-
-  /* --- 1 · spring anomaly vs 2017-20 baseline --------------- */
-  const springByYear = group(
-    windowDaily.filter(d => d.doy >= 60 && d.doy <= 151),  // Mar-May roughly
-    d => d.year
-  );
-
-  const springMean = [...springByYear].map(([yr, arr]) =>
-    ({ year: yr, mean: mean(arr, d => d.frac)! })
-  );
-
-  const baseline = mean(
-    springMean.filter(r => BASE_YEARS.includes(r.year)).map(r => r.mean)
-  )!;
-
-  const spring: SpringRow[] = springMean.map(r => ({
-    year: r.year,
-    anomaly: r.mean - baseline,
-  }));
-
-  /* --- 2 · early- / late-epoch means + IQR by DOY ----------- */
-  const byDay = group(windowDaily, d => d.doy);   // 45-180
-
-  const season: SeasonRow[] = [...byDay].map(([doy, arr]) => {
-    const early = arr.filter(d => d.year >= EARLY_EPOCH[0] && d.year <= EARLY_EPOCH[1]);
-    const late  = arr.filter(d => d.year >= LATE_EPOCH [0] && d.year <= LATE_EPOCH [1]);
-    return {
-      day   : fDOYStr(new Date(Date.UTC(2020, 0, doy))),   // 2020-01-01 + doy
-      early : mean(early, d => d.frac)!,
-      late  : mean(late , d => d.frac)!,
-      iqr25 : quantile(arr.map(d => d.frac).sort((a,b)=>a-b), 0.25)!,
-      iqr75 : quantile(arr.map(d => d.frac).sort((a,b)=>a-b), 0.75)!,
-    };
-  }).sort((a,b)=> (a.day > b.day ? 1 : -1));
-
-  /* --- 3 · mean ice-fraction per year ----------------------- */
-  const frac: FracRow[] = [...group(windowDaily, d => d.year)].map(([yr, arr]) => ({
-    year: yr,
-    fraction: mean(arr, d => d.frac)!,
-  })).sort((a,b)=>a.year-b.year);
-
-  /* --- 4 · freeze-up & break-up timeline -------------------- */
-  const freeze: FreezeRow[] = [...group(windowDaily, d => d.year)].map(([yr, arr]) => {
-    const byDoy = arr.sort((a,b)=>a.doy-b.doy);
-
-    /* freeze-up = first DOY ≥ 0.4 */
-    const freezeRec = byDoy.find(d => d.frac >= FREEZE_THR);
-    const freezeDoy = freezeRec ? freezeRec.doy : byDoy[0]?.doy ?? NaN;
-
-    /* break-up = first DOY with frac ≤ 0.15 for ≥10 d consecutively */
-    let breakDoy = NaN;
-    for (let i = 0; i < byDoy.length - PERSIST_D; ++i) {
-      if (byDoy[i].frac <= BREAK_THR &&
-          byDoy.slice(i, i + PERSIST_D).every(d => d.frac <= BREAK_THR)) {
-        breakDoy = byDoy[i].doy;
-        break;
-      }
-    }
-
-    return { year: yr, freeze: freezeDoy, breakup: breakDoy };
-  }).sort((a,b)=>a.year-b.year);
-
-  return { spring, season, frac, freeze };
+/* ─── bundle shape expected by all scenes ─── */
+export interface SeasonRow {
+  day: string;
+  eMean: number; e25: number; e75: number;
+  lMean: number; l25: number; l75: number;
 }
 
-/* ─── React page component ─────────────────────────────────── */
+export interface DataBundle {
+  spring : { year: number; anomaly: number }[];
+  season : SeasonRow[];
+  frac   : { year: number; mean: number }[];
+  freeze : { year: number; freeze: number | null; breakup: number | null }[];
+ daily  : Row[];           
+}
+
+/* ─── page component ─── */
 export default function Page() {
-  const [bundle, setBundle] = useState<Bundle | null>(null);
+  const [data, setData] = useState<DataBundle | null>(null);
 
   useEffect(() => {
     (async () => {
-      /* fetch the *exact* CSV you placed in /public/data/ */
-      const txt = await fetch("/data/summary_test.csv").then(r => r.text());
+      /* 0 ▸ load CSV ----------------------------------------------------- */
+      const csvTxt = await fetch("data/summary_test_cleaned.csv").then(r => r.text());
+      const rows   = parseCsv(csvTxt);
 
-      const rows = csvParse(txt);
-      if (!rows.length) {
-        console.error("❌ summary_test.csv is empty or unreadable.");
-        return;
-      }
-      console.debug("[debug] CSV rows:", rows.length);
-      setBundle(buildDatasets(rows));
-    })().catch(err => console.error(err));
+      /* helper: DOY → "DD-Mon" ------------------------------------------ */
+      const labelForDOY = (doy: number) => {
+        const d = new Date(Date.UTC(2020, 0, doy));
+        return `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString(
+          "en-US", { month: "short", timeZone: "UTC" }
+        )}`;
+      };
+
+      /* 1 ▸ early-vs-late season table ---------------------------------- */
+      const buildSeason = (): SeasonRow[] => {
+        const out: SeasonRow[] = [];
+        for (let doy = SUN_START; doy <= SUN_END; doy++) {
+          const eVals = rows.filter(r => EARLY_YRS.includes(r.year) && r.doy === doy)
+                            .map(r => r.frac);
+          const lVals = rows.filter(r => LATE_YRS .includes(r.year) && r.doy === doy)
+                            .map(r => r.frac);
+          out.push({
+            day : labelForDOY(doy),
+            eMean: mean(eVals), e25: pct(eVals, .25), e75: pct(eVals, .75),
+            lMean: mean(lVals), l25: pct(lVals, .25), l75: pct(lVals, .75),
+          });
+        }
+        return out;
+      };
+
+      /* 2 ▸ spring (Mar-May) anomaly ------------------------------------ */
+      const springMean = (yr: number) => mean(
+        rows.filter(r => r.year === yr && r.doy >= SPRING_A && r.doy <= SPRING_B)
+            .map(r => r.frac)
+      );
+
+      const baseline = mean(EARLY_YRS.map(springMean));
+      const spring   = [...new Set(rows.map(r => r.year))].sort().map(yr => ({
+        year   : yr,
+        anomaly: +((springMean(yr) - baseline) * FJORD_KM2).toFixed(1), // km²
+      }));
+
+      /* 3 ▸ year-mean fraction (Feb-Jun window) -------------------------- */
+      const frac = [...new Set(rows.map(r => r.year))].sort().map(yr => {
+        const vals = rows.filter(r => r.year === yr &&
+                                      r.doy >= SUN_START &&
+                                      r.doy <= SUN_END)
+                         .map(r => r.frac);
+        return { year: yr, mean: +mean(vals).toFixed(4) };
+      });
+
+      /* 4 ▸ freeze / breakup DOYs --------------------------------------- */
+      const freeze = [...new Set(rows.map(r => r.year))].sort().map(yr => {
+        const yrRows = rows.filter(r => r.year === yr);
+        const frozen = yrRows.filter(r => r.frac >= THRESHOLD).map(r => r.doy);
+        return {
+          year   : yr,
+          freeze : frozen.length ? Math.min(...frozen) : null,
+          breakup: frozen.length ? Math.max(...frozen) : null,
+        };
+      });
+
+      /* 5 ▸ bundle & stash ---------------------------------------------- */
+      setData({
+        spring,
+        season: buildSeason(),
+        frac,
+        freeze,
+        daily: rows
+      });
+    })();
   }, []);
 
-  if (!bundle) return null;
+  if (!data) return null;      // still loading
 
+  /* ─── render ─── */
   return (
-    <main className="bg-night-900 text-snow-50">
-      {scenes2.map((sc, i) => (
-        <div key={sc.key} data-first-scene={i === 0}>
-          <ChartScene cfg={sc} globalData={bundle} />
-        </div>
-      ))}
-    </main>
+    <>
+      <main className="bg-night-900 text-snow-50">
+        {scenes2.map(sc => (
+          <div id="firstChartAnchor" key={sc.key}>
+            <ChartScene cfg={sc} globalData={data} />
+          </div>
+        ))}
+        <ChatBot />
+      </main>
+      <StoryProgress />
+    </>
   );
 }

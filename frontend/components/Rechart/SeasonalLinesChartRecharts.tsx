@@ -10,6 +10,9 @@ interface Row   { Year:number; DayOfYear:number; Extent?:number|null; }
 interface Props { data:Row[] }
 
 export default function SeasonalLinesChartRecharts({ data }:Props) {
+  if (!Array.isArray(data) || !data.length) return null;  // ★ NEW LINE ★
+
+  
   const byYear = useMemo(() =>{
     const m=new Map<number,Row[]>(); data.forEach(r=>m.get(r.Year)?.push(r)??m.set(r.Year,[r]));
     m.forEach(a=>a.sort((a,b)=>a.DayOfYear-b.DayOfYear));
