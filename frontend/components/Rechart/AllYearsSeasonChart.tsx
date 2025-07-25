@@ -22,6 +22,7 @@ interface Props {
 }
 
 /* ─── constants ──────────────────────────────────────────────────── */
+const COLS = 3;    
 const SUN_START = 45;   // 14‑Feb
 const SUN_END   = 180;  // 29‑Jun
 const MINI_W    = 200;
@@ -56,16 +57,6 @@ export default function AllYearsSeasonChart({data}:Props){
   /* monthly tick DOYs */
   const ticks = [45,74,105,135,166,180];
 
-  /* summary drop */
-  const meanYear = (y:number) => {
-    const vals = dense.filter(r=>r.year===y && !Number.isNaN(r.frac)).map(r=>r.frac);
-    return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : NaN;
-  };
-  const dropPct = (() => {
-    const a = meanYear(years[0]), b = meanYear(years[years.length-1]);
-    return a && b ? +(((a-b)/a)*100).toFixed(1) : NaN;
-  })();
-
   /* GSAP stagger ---------------------------------------------------- */
   const gridRef = useRef<HTMLDivElement>(null);
   useEffect(()=>{
@@ -79,7 +70,8 @@ export default function AllYearsSeasonChart({data}:Props){
 
   /* layout styles */
   const gridStyle:React.CSSProperties = {
-    display:"grid", gridTemplateColumns:`repeat(auto-fill,minmax(${MINI_W}px,1fr))`,
+    display:"grid", gridTemplateColumns: `repeat(${COLS}, 1fr)`,
+    
     gap:24, justifyItems:"center", paddingTop:96,
   };
 
@@ -112,14 +104,6 @@ export default function AllYearsSeasonChart({data}:Props){
 
       {/* mini-chart grid */}
       <div ref={gridRef} style={gridStyle}>{years.map(Mini)}</div>
-
-      {/* summary finding */}
-      {!Number.isNaN(dropPct) && (
-        <div style={{marginTop:48,textAlign:"center"}}>
-          <div style={{fontSize:42,fontWeight:700,color:"#dc2626"}}>{dropPct}%</div>
-          <div style={{fontSize:14,color:"#64748b"}}>drop in mean ice cover since {years[0]}</div>
-        </div>
-      )}
     </div>
   );
 }

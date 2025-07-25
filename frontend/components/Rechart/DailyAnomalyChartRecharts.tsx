@@ -37,6 +37,9 @@ const colorOf = (dec:string)=>({
   "2020s":"#b91c1c",  // dark-red
 }[dec] || "#6b7280");
 
+const HEADLINE = "Arctic Sea Ice Anomaly (in million km²) over the decades";
+
+
 /* ============================================================ */
 export default function DailyAnomalyChart({ data, apiRef }: Props) {
   /* ---- build decades & baseline --------------------------- */
@@ -77,7 +80,11 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
 
   /* ---------------- render --------------------------------- */
   return(
+    
     <div className="h-[400px] w-full">
+         <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
+        {HEADLINE}
+      </div>
       <ResponsiveContainer>
         <LineChart margin={{top:20,right:20,bottom:20,left:40}}>
           <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>

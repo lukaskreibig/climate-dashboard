@@ -39,7 +39,7 @@ export default function MeanIceFractionChart({ data }: Props) {
   /* animate headline */
   useEffect(() => {
     gsap.fromTo("#pctLoss", { innerText: 0 }, {
-      innerText: pctDrop,
+      innerText: 3,
       duration: 1.4,
       ease: "power2.out",
       snap: { innerText: 0.1 },
@@ -56,7 +56,7 @@ export default function MeanIceFractionChart({ data }: Props) {
         position: "absolute", left: 80, top: TITLE_Y, zIndex: 5,
         fontSize: 28, fontWeight: 600, color: "#0f172a", pointerEvents: "none",
       }}>
-        Year‑average Sea‑Ice Fraction
+        Average Sea‑Ice Fraction Trend:
       </div>
 
       {/* finding */}
@@ -64,11 +64,8 @@ export default function MeanIceFractionChart({ data }: Props) {
         position: "absolute", right: 20, top: TITLE_Y, zIndex: 5,
         display: "flex", flexDirection: "column", alignItems: "flex-end",
       }}>
-        <div style={{ fontSize: 42, fontWeight: 600, color: "#d62929" }}>
-          <span id="pctLoss">0</span>%
-        </div>
-        <div style={{ fontSize: 14, color: "#64748b" }}>
-          drop&nbsp;since&nbsp;2017
+        <div style={{ fontSize: 32, fontWeight: 600, color: "#d62929" }}>
+          -<span id="pctLoss">0</span>% per year
         </div>
       </div>
 
@@ -86,7 +83,7 @@ export default function MeanIceFractionChart({ data }: Props) {
             tickFormatter={d => `${(d * 100).toFixed(0)} %`}
             tick={{ fill: "#94a3b8" }}
             label={{
-              value: "ice-covered fjord area",
+              value: "ice-covered area in",
               angle: -90,
               position: "insideLeft",
               fill: "#94a3b8",

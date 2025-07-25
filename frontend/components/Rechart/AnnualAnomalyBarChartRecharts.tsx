@@ -21,6 +21,8 @@ interface Props {
   data: Row[];
 }
 
+const HEADLINE = "Yearly Arctic Sea ice Anomaly (in million km²) compared to the long-term average";
+
 export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
   const valid = data
     .filter((d) => d.Year != null && d.AnnualAnomaly != null)
@@ -32,6 +34,9 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
 
   return (
     <div style={{ width: "100%", height: 400 }}>
+       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
+        {HEADLINE}
+      </div>
       <ResponsiveContainer>
         <BarChart data={valid} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
           <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />

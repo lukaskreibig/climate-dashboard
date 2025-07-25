@@ -22,6 +22,16 @@ interface Props {
   data: AnnualRowBar[];
 }
 
+const HEADLINE = (
+  <>
+      Comparing Arctic Temperature Anomaly&nbsp;
+    <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
+    &nbsp;and Mean Global Temperature Anomaly&nbsp;
+    <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
+        &nbsp;in 2024
+  </>
+);
+
 export default function BarChart2024Recharts({ data }: Props) {
   // Find row for 2024
   const row2024 = data.find(d => d.Year === 2024);
@@ -37,6 +47,9 @@ export default function BarChart2024Recharts({ data }: Props) {
 
   return (
     <div style={{ width: "100%", height: 400 }}>
+       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
+        {HEADLINE}
+      </div>
       <ResponsiveContainer>
         <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
           <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />

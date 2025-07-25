@@ -77,7 +77,7 @@
 }
 
 .dark {
-  --background: rgb(248,250,252);
+  --background: oklch(98.415% 0.00352 248.585);
   --foreground: oklch(0.984 0.003 247.858);
   /* --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858); */
@@ -219,4 +219,9 @@
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+.mapboxgl-canvas-container,
+.mapboxgl-map {
+  background: #1e293b;       /* same slate-700 you already use */
 }
