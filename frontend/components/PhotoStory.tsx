@@ -1,17 +1,22 @@
+/* ------------------------------------------------------------------
+   PhotoStory.tsx   (client component)
+   ------------------------------------------------------------------ */
 "use client";
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
+import { motion } from "framer-motion";
 
-/* ─── API for scene integration ─── */
+/* ────────────────────────── TYPES ────────────────────────── */
 export interface PhotoStoryApi {
-  nextPhoto?: () => void;
-  prevPhoto?: () => void;
-  goToPhoto?: (index: number) => void;
+  goToPhoto?: (i: number) => void;
 }
 
-/* ─── Photo data structure ─── */
 interface Photo {
   src: string;
   alt: string;
@@ -20,193 +25,372 @@ interface Photo {
   year?: string;
 }
 
-interface Props {
-  photos: Photo[];
-  autoplay?: boolean;
-  autoplayDelay?: number;
-  showNavigation?: boolean;
-  variant?: "single" | "comparison" | "slideshow";
-  className?: string;
+export interface FullscreenQuoteOpts {
+  fadeInAt?: number;        // default 0.10   (start 10 % into scene)
+  fadeOutAt?: number;       // default 0.80   (start 80 % into scene)
+  bgParallax?: number;      // default 0.10   (image drifts 10 % of VH)
+    bgZoom?: number;           // NEW – default 0 | extra scale across scene (0 – 1)
+  quoteParallax?: number;   // default 0.25
+  quoteOffsetVH?: number;   // default 30     (VH from top)
+  bgXAlign?: number;
 }
 
-const PhotoStory = forwardRef<PhotoStoryApi, Props>(({
-  photos,
-  autoplay = false,
-  autoplayDelay = 4000,
-  showNavigation = true,
-  variant = "single",
-  className = ""
-}, ref) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(autoplay);
+interface Props {
+  photos: Photo[];
 
-  /* ─── API methods ─── */
+  variant?: "single" | "scroll-story" | "fullscreen" | "fullscreen-split";
+  imageSide?: "left" | "right";
+  className?: string;
+
+  /* scroll-story knobs */
+  parallaxIntensity?: number;
+
+  /* narrative */
+  mainCaption?: string;
+  author?: string;
+  authorSubtitle?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  quote?: boolean;
+
+  /* fullscreen knobs */
+  fullscreenQuoteOpts?: FullscreenQuoteOpts;
+  fullscreenImageFit?: "contain" | "cover";
+}
+
+/* ───────────────────── CONSTANTS ─────────────────────────── */
+const BACKGROUND_HEX   = "#f8fafc";
+const MAX_IMAGE_WIDTH  = 900;
+
+/* ─────────────────────── HELPERS ─────────────────────────── */
+const Figure = ({ p }: { p: Photo }) => (
+  <figure
+    className="relative flex items-center justify-center rounded-3xl shadow-xl overflow-hidden"
+    style={{ maxWidth: MAX_IMAGE_WIDTH }}
+  >
+    <img
+      src={p.src}
+      alt={p.alt}
+      className="max-h-[80vh] w-auto max-w-full h-auto object-contain"
+    />
+    {(p.location || p.year) && (
+      <figcaption className="absolute top-3 left-3 text-xs font-medium bg-black/60 text-white px-2 py-1 rounded-sm backdrop-blur-sm">
+        {p.location}
+        {p.location && p.year && <span className="mx-1">·</span>}
+        {p.year}
+      </figcaption>
+    )}
+  </figure>
+);
+
+const clamp01       = (v: number) => Math.max(0, Math.min(1, v));
+const easeOutCubic  = (t: number) => 1 - (1 - t) ** 3;
+
+const sideStyle = (side:"left"|"right") => ({
+  imgWrap : `absolute top-0 bottom-0 ${side === "left" ? "left-0" : "right-0"} w-1/2`,
+
+  /* occupy the free half of the flex row */
+  quoteBox: `relative z-40 flex items-center w-1/2 px-8
+             ${side === "left"
+               ? "ml-auto justify-start"   /* image left → text right  */
+               : "mr-auto justify-end"}`   /* image right → text left  */
+});
+
+
+/* ──────────────────── MAIN COMPONENT ─────────────────────── */
+const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
+  /* destructuring just once keeps the code short below */
+  const {
+    photos,
+    variant               = "single",
+    imageSide             = "left",
+    className             = "",
+    mainCaption,
+    author,
+    authorSubtitle,
+    parallaxIntensity     = 1,
+    fullscreenQuoteOpts,
+    fullscreenImageFit,
+    backgroundColor,
+    textColor = "black",
+    quote = true,
+  } = props;
+
+  const BG = backgroundColor ?? BACKGROUND_HEX; 
+
+  /* internal state */
+  const [idx,   setIdx]   = useState(0);
+  const wrapRef           = useRef<HTMLDivElement>(null);
+  const [scrollProg, setScrollProg] = useState(0);          // 0 … 1
+  
+
+
+  /* expose tiny API */
   useImperativeHandle(ref, () => ({
-    nextPhoto: () => setCurrentIndex(prev => (prev + 1) % photos.length),
-    prevPhoto: () => setCurrentIndex(prev => (prev - 1 + photos.length) % photos.length),
-    goToPhoto: (index: number) => setCurrentIndex(Math.max(0, Math.min(index, photos.length - 1)))
+    goToPhoto: (i: number) =>
+      setIdx(Math.max(0, Math.min(i, photos.length - 1))),
   }));
+  /* ───────────── Variant-agnostic quote block ───────────── */
+  const Quote = (
+        <div
+      className={`prose prose-slate max-w-prose text-lg md:text-xl lg:text-2xl leading-relaxed ${quote ? "italic" : ""}`}
+      style={{ color: textColor }}
+    >
+      {mainCaption && (quote ? `“${mainCaption}”` : mainCaption)}
+       {author && (
+      <div className="not-italic mt-6 font-semibold text-base lg:text-lg">
+        {author}
+      </div>)}
+      {authorSubtitle && (
+        <div className="text-sm tracking-wide text-slate-600">
+          {authorSubtitle}
+        </div>
+      )}
+    </div>
+  );
 
-  /* ─── Autoplay logic ─── */
-  useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % photos.length);
-    }, autoplayDelay);
-    return () => clearInterval(interval);
-  }, [isPlaying, autoplayDelay, photos.length]);
+  /* ───────────── VARIANT A – single ───────────── */
+  const Single = () => (
+    <section
+      className={`w-full py-20 px-6 flex flex-col md:flex-row items-center justify-center gap-12 ${className}`}
+      style={{ background: BG }}
+    >
+      {imageSide === "left" && <Figure p={photos[idx]} />}
+      <div className="flex-shrink-0">{Quote}</div>
+      {imageSide === "right" && <Figure p={photos[idx]} />}
+    </section>
+  );
 
-  const currentPhoto = photos[currentIndex] || photos[0];
-  if (!currentPhoto) return null;
+  /* ───────────── VARIANT B – scroll-story ───────────── */
+  const ScrollStory = () => {
+    /* track progress inside the local section ---------------- */
+    useEffect(() => {
+      const host = wrapRef.current?.closest("[data-scene]") as HTMLElement | null;
+      if (!host) return;
 
-  /* ─── Render variants ─── */
-  const renderSingle = () => (
-    <div className={`relative w-full h-full ${className}`}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
-          className="absolute inset-0"
+      const onScroll = () => {
+        const r  = host.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const raw = (vh - r.top) / (r.height + vh);
+        setScrollProg(clamp01((raw - 0.02) / 0.70));
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+    const minVH = 140 + photos.length * 80;
+
+    return (
+      <section
+        ref={wrapRef}
+        className={`min-h-[${minVH}vh]`}
+        style={{ background: BG }}
+      >
+        {/* quote */}
+        <div
+          className="sticky top-0 h-screen flex items-center justify-center px-6"
+          style={{
+            opacity : 1 - clamp01(scrollProg) * 1.1,
+            transform: `translateY(${(1 - scrollProg) * 50}px)`,
+            transition: "opacity .12s ease-out, transform .12s ease-out",
+          }}
         >
-          <img
-            src={currentPhoto.src}
-            alt={currentPhoto.alt}
-            className="w-full h-full object-cover rounded-lg"
-          />
-          
-          {/* Photo metadata overlay */}
-          {(currentPhoto.location || currentPhoto.year) && (
-            <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
-              {currentPhoto.location && <span>{currentPhoto.location}</span>}
-              {currentPhoto.location && currentPhoto.year && <span className="mx-2">•</span>}
-              {currentPhoto.year && <span>{currentPhoto.year}</span>}
-            </div>
-          )}
+          {Quote}
+        </div>
 
-          {/* Caption overlay */}
-          {currentPhoto.caption && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-              <p className="text-white text-lg leading-relaxed">{currentPhoto.caption}</p>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Navigation */}
-      {showNavigation && photos.length > 1 && (
-        <>
-          <button
-            onClick={() => setCurrentIndex(prev => (prev - 1 + photos.length) % photos.length)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 text-white transition-colors"
+        {/* images */}
+        <div className="sticky top-0 h-screen flex items-center justify-center">
+          <div
+            className={`flex ${photos.length === 2 ? "gap-12" : "gap-8"} items-center justify-center max-w-7xl px-6`}
           >
-            <ChevronLeft size={24} />
-          </button>
-          <button
-            onClick={() => setCurrentIndex(prev => (prev + 1) % photos.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 text-white transition-colors"
-          >
-            <ChevronRight size={24} />
-          </button>
-
-          {/* Dots indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {photos.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-white' : 'bg-white/50'
-                }`}
-              />
+            {photos.map((p, i) => (
+              <motion.div
+                key={p.src}
+                style={{
+                  y:
+                    -scrollProg *
+                    window.innerHeight *
+                    parallaxIntensity *
+                    (0.7 + 0.3 * i),
+                }}
+                transition={{ type: "spring", stiffness: 60, damping: 20 }}
+              >
+                <Figure p={p} />
+              </motion.div>
             ))}
           </div>
-        </>
-      )}
-    </div>
-  );
+        </div>
+      </section>
+    );
+  };
 
-  const renderComparison = () => (
-    <div className={`relative w-full h-full ${className}`}>
-      <div className="grid grid-cols-2 gap-4 h-full">
-        {photos.slice(0, 2).map((photo, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: index === 0 ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.2 }}
-            className="relative"
-          >
-            <img
-              src={photo.src}
-              alt={photo.alt}
-              className="w-full h-full object-cover rounded-lg"
+  /* ───────────── VARIANT C – fullscreen ───────────── */
+  const Fullscreen = () => {
+    const {
+      fadeInAt      = 0.10,
+      fadeOutAt     = 0.80,
+      bgParallax    = 0.10,
+      quoteParallax = 0.25,
+      quoteOffsetVH = 30,
+      bgXAlign = 0.5,
+      bgZoom     = 0, 
+    } = fullscreenQuoteOpts ?? {};
+
+    const secRef           = useRef<HTMLDivElement>(null);
+    const [progress, setProgress] = useState(0);
+
+    /* robust scroll tracker (no framer hooks needed) --------- */
+    useEffect(() => {
+      const host = secRef.current?.closest<HTMLElement>('[data-scene]');
+      if (!host) return;
+
+      const onScroll = () => {
+        const r  = host.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const raw = (vh - r.top) / (vh + r.height);
+        setProgress(clamp01(raw));
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+    /* eased opacity (fast in → slow settle) ------------------ */
+    const lin  = clamp01((progress - fadeInAt) / (fadeOutAt - fadeInAt));
+    const opacity = progress < fadeInAt
+      ? 0
+      : progress >= fadeOutAt
+      ? 1 - clamp01((progress - fadeOutAt) / (1 - fadeOutAt))
+      : easeOutCubic(lin);
+
+    const bgY    = -progress * window.innerHeight * bgParallax;
+    const quoteY = -progress * window.innerHeight * quoteParallax;
+    const fit    = fullscreenImageFit === "cover" ? "object-cover" : "object-contain";
+
+    const baseScale   = 1 + Math.abs(bgParallax);
+
+    // ► optional zoom (positive = zoom-in, negative = zoom-out)
+    const zoomScale =
+    bgZoom === 0
+        ? baseScale
+        : baseScale + bgZoom * progress;   // linear for simplicity
+
+
+    return (
+      <section
+        ref={secRef}
+        className={`relative h-screen w-full overflow-hidden ${className}`}
+        style={{ background: BG }}
+      >
+        {/* background */}
+        <motion.img
+            src={photos[0].src}
+            alt={photos[0].alt}
+            className={`absolute inset-0 w-full h-full ${fit} object-center`}
+            style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
+
+            transition={{ type: "spring", stiffness: 40, damping: 15 }}
             />
-            {photo.year && (
-              <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md font-semibold">
-                {photo.year}
-              </div>
-            )}
-            {photo.caption && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <p className="text-white text-sm">{photo.caption}</p>
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
 
-  const renderSlideshow = () => (
-    <div className={`relative w-full h-full ${className}`}>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 h-full p-4">
-        {photos.map((photo, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            className="relative cursor-pointer group"
-            onClick={() => setCurrentIndex(index)}
-          >
-            <img
-              src={photo.src}
-              alt={photo.alt}
-              className="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-md" />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Large preview */}
-      {currentIndex >= 0 && (
+        {/* quote */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute top-4 right-4 w-1/3 h-1/2 bg-black/90 rounded-lg p-2"
+          className="absolute left-0 right-0 flex justify-center px-6 z-40"
+          style={{
+            top: `${quoteOffsetVH}vh`,
+            opacity,
+            y: quoteY,
+          }}
+          transition={{ type: "spring", stiffness: 40, damping: 15 }}
         >
-          <img
-            src={currentPhoto.src}
-            alt={currentPhoto.alt}
-            className="w-full h-full object-cover rounded"
-          />
+          {Quote}
         </motion.div>
-      )}
-    </div>
-  );
+      </section>
+    );
+  };
 
-  /* ─── Render based on variant ─── */
+  /* ───────────── VARIANT D – fullscreen-split ───────────── */
+const FullscreenSplit = () => {
+  const {
+    fadeInAt   = 0.10,
+    fadeOutAt  = 0.80,
+    bgParallax = 0.10,
+    bgZoom     = 0,        // optional
+    quoteParallax = 0,
+     quoteOffsetVH = 30,
+     bgXAlign = 0.5,
+  } = fullscreenQuoteOpts ?? {};
+
+  const secRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+
+   useEffect(() => {
+      const host = secRef.current?.closest<HTMLElement>('[data-scene]');
+      if (!host) return;
+
+      const onScroll = () => {
+        const r  = host.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const raw = (vh - r.top) / (vh + r.height);
+        setProgress(clamp01(raw));
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+  const lin      = clamp01((progress - fadeInAt) / (fadeOutAt - fadeInAt));
+  const opacity  = progress < fadeInAt
+      ? 0
+      : progress >= fadeOutAt
+      ? 1 - clamp01((progress - fadeOutAt) / (1 - fadeOutAt))
+      : easeOutCubic(lin);
+
+  const bgY      = -progress * window.innerHeight * bgParallax;
+  const quoteY   = -progress * window.innerHeight * quoteParallax;
+  const { imgWrap, quoteBox } = sideStyle(imageSide === "right" ? "right" : "left");
+  const fit      = "object-contain";
+   const baseScale = 1 + Math.abs(bgParallax);
+  const zoomScale = bgZoom === 0 ? baseScale
+                                 : baseScale + bgZoom * progress;
+
+  return (
+    <section ref={secRef} className={`relative h-screen w-full overflow-hidden flex ${className}`} style={{ background: BG }}>
+      {/* picture (half screen) */}
+      <motion.div className={imgWrap}>
+        <motion.img
+          src={photos[0].src}
+          alt={photos[0].alt}
+          className={`w-full h-full ${fit} object-center`}
+          style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
+          transition={{ type:"spring", stiffness:40, damping:15 }}
+        />
+      </motion.div>
+
+      {/* quote (other half) */}
+      <motion.div
+        className={quoteBox}
+        style={{ opacity, y: quoteY, top: `${quoteOffsetVH}vh`, }}
+        transition={{ type:"spring", stiffness:40, damping:15 }}
+      >
+        {Quote}
+      </motion.div>
+    </section>
+  );
+};
+
+
+  /* ───────────── RENDER SWITCH ───────────── */
   switch (variant) {
-    case "comparison": return renderComparison();
-    case "slideshow": return renderSlideshow();
-    default: return renderSingle();
+    case "scroll-story": return <ScrollStory />;
+    case "fullscreen":   return <Fullscreen  />;
+    case "fullscreen-split": return <FullscreenSplit/>;
+    default:             return <Single      />;
   }
 });
 
 PhotoStory.displayName = "PhotoStory";
-
 export default PhotoStory;

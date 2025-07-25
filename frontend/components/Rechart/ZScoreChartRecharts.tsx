@@ -5,7 +5,6 @@ import {
   LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend
 } from "recharts";
-import { Switch } from "@/components/ui/switch";
 
 /* ------------- types -------------------------------------------- */
 export interface RowZ {
@@ -20,6 +19,17 @@ interface Props {
   inverted?: boolean;
   apiRef? : React.MutableRefObject<any>;
 }
+
+const HEADLINE = (
+  <>
+    Comparing atmospheric&nbsp;CO₂&nbsp;
+    <span className="inline-block w-3 h-3 bg-green-500 align-baseline rounded-sm" />
+    &nbsp;exhaust&nbsp;with&nbsp;arctic sea ice extend&nbsp;
+    <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
+    &nbsp;and&nbsp;Arctic&nbsp;temperature&nbsp;
+    <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
+  </>
+);
 
 /* ------------- component ---------------------------------------- */
 export default function ZScoreChartRecharts({
@@ -43,15 +53,11 @@ export default function ZScoreChartRecharts({
   /* ------------- render ----------------------------------------- */
   return(
     <div className="w-full">
-      {/* invert switch */}
-      <div className="mb-4 flex justify-center items-center gap-2">
-        <label htmlFor="inv" className="text-sm select-none">
-          Invert Sea-Ice
-        </label>
-        {/* <Switch id="inv" checked={inv} onCheckedChange={setInv}/> */}
-      </div>
 
       <div className="h-[400px] w-full">
+         <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
+        {HEADLINE}
+      </div>
         <ResponsiveContainer>
           <LineChart data={plotted} margin={{top:20,right:20,bottom:20,left:0}}>
             <CartesianGrid className="chart-grid" strokeDasharray="3 3"/>
@@ -72,7 +78,7 @@ export default function ZScoreChartRecharts({
                   stroke="#3b82f6"
                   hide={hidden.includes("SeaIceFinal")} dot={false}/>
             <Line type="monotone" dataKey="GlobCO2Mean_z"
-                  name="CO₂ (z)" stroke="#fb923c"
+                  name="CO₂ (z)" stroke=" #48bb78"
                   hide={hidden.includes("GlobCO2Mean_z")} dot={false}/>
           </LineChart>
         </ResponsiveContainer>

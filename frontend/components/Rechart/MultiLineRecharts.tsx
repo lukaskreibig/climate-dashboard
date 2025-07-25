@@ -3,7 +3,6 @@ import React from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -33,12 +32,25 @@ const tooltipFormatter = (value: any, name: string) => {
   return [typeof value === "number" ? value.toFixed(2) : value, name];
 };
 
+const HEADLINE = (
+  <>
+    Comparing atmospheric&nbsp;CO₂&nbsp;
+    <span className="inline-block w-3 h-3 bg-green-500 align-baseline rounded-sm" />
+    &nbsp;with&nbsp;global&nbsp;
+    <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
+    &nbsp;and&nbsp;Arctic&nbsp;temperature&nbsp;
+    <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
+  </>
+);
 export default function MultiLineChartRecharts({ data }: Props) {
   // Filter valid data and sort by Year
   const valid = data.filter((d) => d.Year != null).sort((a, b) => a.Year - b.Year);
 
   return (
     <div style={{ width: "100%", height: 400 }}>
+       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
+        {HEADLINE}
+      </div>
       <ResponsiveContainer>
         <ComposedChart data={valid} margin={{ top: 20, right: 30, bottom: 40, left: 0 }}>
           <CartesianGrid  className="chart-grid" strokeDasharray="3 3" />

@@ -116,14 +116,14 @@ export default function StoryProgress() {
     <div
       ref={container}
       className="
-        fixed right-2 top-1/2 -translate-y-1/2 lg:right-4
+        fixed top-1/2 -translate-y-1/2 lg:right-4
         hidden sm:flex flex-col items-center z-50
       "
       aria-label="Story progress"
     >
     
     <div className="text-slate-800 mb-5"> 
-    Chapter 1
+    Progress
     </div>
       
       {/* vertical rail */}

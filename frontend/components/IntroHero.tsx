@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRef } from "react";
@@ -9,21 +8,18 @@ import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-/*  dynamic import (client‑only) – Recharts version is light & responsive      */
-
-/*  web font (display)  */
+/* ───────────  font  ─────────── */
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
 
-/*  register GSAP plugins  */
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-/* =========================================================================== */
+/* ===================================================================== */
 export default function IntroHero() {
-  /* ─── element refs ──────────────────────────────────────────────────────── */
+  /* ─── DOM refs ─────────────────────────────────────────────────────── */
   const wrap     = useRef<HTMLDivElement>(null);
   const photo    = useRef<HTMLImageElement>(null);
   const overlay  = useRef<HTMLDivElement>(null);
+  const bgFade   = useRef<HTMLDivElement>(null);   /* NEW */
   const block    = useRef<HTMLDivElement>(null);
   const title    = useRef<HTMLHeadingElement>(null);
   const subtitle = useRef<HTMLHeadingElement>(null);
@@ -32,114 +28,100 @@ export default function IntroHero() {
   const arrow    = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
-  /* SVG‑filter refs */
+  /* SVG-filter refs */
   const idleTurb = useRef<SVGFETurbulenceElement>(null);
   const idleDisp = useRef<SVGFEDisplacementMapElement>(null);
   const meltTurb = useRef<SVGFETurbulenceElement>(null);
   const meltDisp = useRef<SVGFEDisplacementMapElement>(null);
 
-  
-
-  /* ─── GSAP timeline ─────────────────────────────────────────────────────── */
+  /* ─── GSAP ─────────────────────────────────────────────────────────── */
   useGSAP(() => {
     const ctx = gsap.context(() => {
-      /* idle shimmer – loops until scroll starts */
+      /* idle shimmer (unchanged) */
       const idle = gsap.timeline({ repeat: -1, yoyo: true });
       idle
         .to(idleTurb.current, { attr: { baseFrequency: 0.125 }, duration: 18, ease: "sine.inOut" }, 0)
         .to(idleDisp.current, { attr: { scale: 6 },             duration: 18, ease: "sine.inOut" }, 0);
 
-      /* main scroll‑driven sequence */
+      /* main, scroll-driven TL */
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: wrap.current,
-          start: "top top",
-          end: "+=500%",           // 5× viewport height
-          scrub: true,
-          pin: true,
+          trigger : wrap.current,
+          start   : "top top",
+          end     : "+=500%",           // 5 × viewport
+          scrub   : true,
+          pin     : true,
           onUpdate: self => { if (self.progress > 0 && idle.isActive()) idle.kill(); },
-          /* snap to labelled beats – uses ScrollToPlugin under the hood */
-          snap: {
-            snapTo: "labelsDirectional", // next/prev label depending on scroll direction
-            duration: 0.6,
-            ease: "power2.inOut"
-          }
+          snap    : { snapTo: "labelsDirectional", duration: .6, ease: "power2.inOut" }
         }
       });
 
-      /* ── labels make snap points ──────────────────────────────────────── */
-      tl.addLabel("start", 0.0);   // 0
+      /* ── INTRO BEATS (unchanged) ─────────────────────────── */
+      tl.addLabel("start");
+      tl.to([arrow.current, subtitle.current], { opacity: 0, duration: .15, ease: "none" }, "start");
+      tl.to(block.current, { yPercent: 50, scale: 1.05, duration: .25, ease: "none" }, "start");
+      tl.to(photo.current,   { opacity: 0, scale: 1.08, duration: .15, ease: "none" }, "+=.25")
+        .to(title.current,   { color: "white",           duration: .15, ease: "none" }, "<")
+        .to(overlay.current, { opacity: 1,               duration: .15, ease: "none" }, "<");
 
-      /* fade arrow + subtitle */
-      tl.to([arrow.current, subtitle.current], { opacity: 0, duration: 0.15, ease: "none" }, "start");
-
-      /* lift title block */
-      tl.to(block.current, { yPercent: 50, scale: 1.05, duration: 0.25, ease: "none" }, "start");
-
-      /* darken photo / overlay / title colour  (0.25 s later) */
-      tl.to(photo.current,   { opacity: 0, scale: 1.08, duration: 0.15, ease: "none" }, "+=0.25")
-        .to(title.current,   { color: "white",           duration: 0.15, ease: "none" }, "<")
-        .to(overlay.current, { opacity: 1,               duration: 0.15, ease: "none" }, "<");
-
-      /* melt effect (0.40 → 1.40) */
-      tl.to(meltTurb.current, { attr: { baseFrequency: 0.025 }, duration: 1.0, ease: "none" }, "+=0.15")
-        .to(meltDisp.current, { attr: { scale: 150 },           duration: 1.0, ease: "none" }, "<")
-        .to(title.current,    { filter: "url(#scrollMelt)", scale: 1.5, duration: 1.0, ease: "none" }, "<")
+      tl.to(meltTurb.current, { attr: { baseFrequency: .025 }, duration: 1, ease: "none" }, "+=.15")
+        .to(meltDisp.current, { attr: { scale: 150 },          duration: 1, ease: "none" }, "<")
+        .to(title.current,    { filter: "url(#scrollMelt)", scale: 1.5, duration: 1, ease: "none" }, "<")
         .addLabel("meltDone");
 
-      /* fade out title */
-      tl.to(title.current, { opacity: 0, duration: 0.25, ease: "none" }, "+=0.15");
+      tl.to(title.current, { opacity: 0, duration: .25, ease: "none" }, "+=.15");
 
-      /* ── Sentence 1 ────────────────────────────────────────────────────── */
       tl.fromTo(line1.current,
         { opacity: 0, y: 20, filter: "blur(4px)" },
-        { opacity: 1, y: -170, filter: "blur(0px)", duration: 0.30, ease: "power2.out" })
+        { opacity: 1, y: -170, filter: "blur(0)", duration: .30, ease: "power2.out" })
         .addLabel("sent1");
-
-      /* short dwell (keeps label centred for a moment) */
-      tl.to({}, { duration: 0.35, ease: "none" });
-
-      /* ── Sentence swap to Sentence 2 ──────────────────────────────────── */
-      tl.to(line1.current,  { opacity: 0, y: -300, filter: "blur(4px)", duration: 0.20, ease: "power2.out" })
+      tl.to({}, { duration: .35 });
+      tl.to(line1.current, { opacity: 0, y: -300, filter: "blur(4px)", duration: .20, ease: "power2.out" })
         .fromTo(line2.current,
           { opacity: 0, y: 20, filter: "blur(4px)" },
-          { opacity: 1, y: -210, filter: "blur(0px)", duration: 0.30, ease: "power2.out" }, "<")
+          { opacity: 1, y: -210, filter: "blur(0)", duration: .30, ease: "power2.out" }, "<")
         .addLabel("sent2");
+      tl.to({}, { duration: .35 });
+      tl.to(line2.current, { opacity: 0, y: -300, filter: "blur(4px)", duration: .20, ease: "power2.out" });
 
-      /* dwell on sentence 2 */
-      tl.to({}, { duration: 0.35, ease: "none" });
-
-      /* fade sentence 2 away */
-      tl.to(line2.current, { opacity: 0, y: -300, filter: "blur(4px)", duration: 0.20, ease: "power2.out" });
-
+      /* snap point just before leaving */
       tl.addLabel("end");
 
-      /* chart fade‑in (behind copy) */
-      tl.to(chartRef.current, { opacity: 1, duration: 0.6, ease: "none" }, "sent2+=0.35");
+      /* ─── NEW CROSS-FADE TO SCENE GRADIENT ───────────────── */
+      tl.to(overlay.current, { opacity: 0, duration: .45, ease: "none" }, "end")
+        .to(bgFade.current,   { opacity: 1, duration: .45, ease: "none" }, "end");
+
+      /* chart fade-in behind copy (unchanged) */
+      tl.to(chartRef.current, { opacity: 1, duration: .6, ease: "none" }, "sent2+=.35");
     }, wrap);
 
     return () => ctx.revert();
   }, []);
 
-  /* ─── JSX ─────────────────────────────────────────────────────────────── */
+  /* ─── JSX ────────────────────────────────────────────────── */
   return (
-    
     <section ref={wrap} className="relative h-screen overflow-hidden text-snow-50">
       {/* background photo */}
       <motion.img
         ref={photo}
         src="/heartofaseal-28.jpg"
         alt="Arctic panorama"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover"
         initial={{ opacity: 1 }}
       />
 
-      {/* dark overlay */}
-      <div ref={overlay} className="absolute inset-0 bg-slate-400 opacity-0" />
+      {/* dark overlay that appears during intro */}
+      <div ref={overlay} className="absolute inset-0 bg-slate-500 opacity-0" />
 
-      {/* headline block */}
+      {/* NEW – gradient layer that fades IN as overlay fades OUT */}
+      <div
+        ref={bgFade}
+        className="absolute inset-0 bg-neutral-950 opacity-0"
+
+      />
+
+      {/* headline block, sentences, arrow (unchanged) */}
       <div ref={block} className="relative z-10 flex flex-col items-center pt-5 pointer-events-none">
-        {/* shimmering headline */}
         <motion.h1
           ref={title}
           style={{ filter: "url(#idleShimmer)" }}
@@ -148,25 +130,22 @@ export default function IntroHero() {
           THE BIG MELT
         </motion.h1>
 
-        {/* subtitle */}
         <motion.h2
           ref={subtitle}
           className="text-xl font-medium text-slate-400 -translate-y-14"
         >
-          A data‑driven story of sea‑ice decline by Lukas Kreibig
+          A data-driven story of sea-ice decline by Lukas Kreibig
         </motion.h2>
 
-        {/* morphing sentences */}
         <motion.h2 ref={line1} className={`${bebasNeue.className} text-center text-6xl opacity-0 text-white`}>
           The Arctic is Warming Four Times Faster Than the Global Average
         </motion.h2>
         <motion.h2 ref={line2} className={`${bebasNeue.className} text-center text-6xl opacity-0 pb-4 text-white`}>
-          In the Fast‑Warming Arctic, Sea Ice Melt Is Now a Constant Reality
+          In the Fast-Warming Arctic, Sea-Ice Melt Is Now a Constant Reality
         </motion.h2>
       </div>
 
-
-      {/* blinking scroll indicator */}
+      {/* blinking arrow */}
       <motion.div
         ref={arrow}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-700"
@@ -178,15 +157,13 @@ export default function IntroHero() {
         </svg>
       </motion.div>
 
-      {/* SVG filters – idle shimmer + scroll‑time melt */}
+      {/* SVG filters (unchanged) */}
       <svg className="pointer-events-none absolute h-0 w-0">
-        {/* idle shimmer */}
         <filter id="idleShimmer">
           <feTurbulence ref={idleTurb} type="turbulence" baseFrequency="0.00015" numOctaves="3" seed="2" />
           <feDisplacementMap ref={idleDisp} in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
         </filter>
 
-        {/* melt distortion (larger bbox so blur extends beyond) */}
         <filter id="scrollMelt" x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox">
           <feTurbulence ref={meltTurb} type="turbulence" baseFrequency="0.0001" numOctaves="3" seed="7" result="turb" />
           <feDisplacementMap ref={meltDisp} in="SourceGraphic" in2="turb" scale="0" xChannelSelector="R" yChannelSelector="G" />

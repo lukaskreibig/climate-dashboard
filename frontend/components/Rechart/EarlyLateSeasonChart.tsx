@@ -35,7 +35,9 @@ export interface SeasonRow {
 }
 
 /* ——— GSAP handle ——— */
-export type EarlyLateApi = { nextStep: () => void };
+export type EarlyLateApi = { 
+  nextStep: () => void 
+  highlight: (which: "early" | "late" | "both") => void };
 interface Props {
   data: SeasonRow[];
   apiRef?: MutableRefObject<EarlyLateApi | null>;
@@ -138,13 +140,16 @@ const MeanOnlyTooltip = ({
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef }: Props) {
-  /* 0 ▸ blue mean | 1 ▸ +blue IQR | 2 ▸ +red mean | 3 ▸ +red IQR */
-  const [stage, setStage] = useState(0);
-  useImperativeHandle(
-    apiRef,
-    () => ({ nextStep: () => setStage((s) => Math.min(3, s + 1)) }),
-    []
-  );
+  /* reveal sequence (unchanged) */
+const [stage, setStage] = useState(0);
+
+/* which epoch is “in focus”?                */
+const [focus, setFocus] = useState<"early" | "late" | "both">("both");
+
+useImperativeHandle(apiRef, () => ({
+nextStep:   () => setStage((s) => Math.min(3, s + 1)),
+highlight:  (which) => setFocus(which),
+}), []);
 
   const dense = useMemo(() => buildDense(data), [data]);
   const meanLossPct = useMemo(() => deriveLoss(dense), [dense]);
@@ -165,64 +170,87 @@ export default function EarlyLateSeasonChart({ data, apiRef }: Props) {
     }
   }, [stage, meanLossPct]);
 
+  useEffect(() => {
+  const allEarly = ".early-epoch";
+  const allLate  = ".late-epoch";
+
+  if (focus === "both") {
+    gsap.to([allEarly, allLate], { opacity: 1, duration: 0.6, ease: "power2.out" });
+  } else if (focus === "early") {
+    gsap.to(allEarly, { opacity: 1,   duration: 0.6, ease: "power2.out" });
+    gsap.to(allLate,  { opacity: 0.15, duration: 0.6, ease: "power2.out" });
+  } else if (focus === "late") {
+    gsap.to(allLate,  { opacity: 1,   duration: 0.6, ease: "power2.out" });
+    gsap.to(allEarly, { opacity: 0.15, duration: 0.6, ease: "power2.out" });
+  }
+}, [focus]);
+
   const AxisStyle = {
     tick: { fill: "#94a3b8", fontSize: 12 },
     className: "chart-axis",
   };
 
-  const Panel = (
-    which: "early" | "late",
-    color: string,
-    label: string,
-    showBand: boolean
-  ) => (
-    <ResponsiveContainer width="100%" height={HEIGHT / 2}>
-      <ComposedChart
-        data={dense}
-        syncId="epoch"
-        margin={{ top: 10, right: 20, bottom: 30, left: 20 }}
-      >
-        <CartesianGrid strokeDasharray="1 1" className="chart-grid" />
-        <XAxis dataKey="day" {...AxisStyle} />
-        <YAxis
-          domain={[0, 1]}
-          tickFormatter={(v) => `${(v * 100).toFixed(0)} %`}
-          {...AxisStyle}
-        />
-        <Tooltip content={<MeanOnlyTooltip />} />
-        {/* <Legend wrapperStyle={{ paddingTop: 4 }} {...AxisStyle} /> */}
-        {/* baseline – transparent (for stacking the band) */}
+ const Panel = (
+  which: "early" | "late",
+  color: string,
+  label: string,
+  showBand: boolean
+) => (
+  <ResponsiveContainer width="100%" height={HEIGHT / 2}>
+    <ComposedChart
+      data={dense}
+      syncId="epoch"
+      margin={{ top: 10, right: 20, bottom: 30, left: 20 }}
+    >
+      <CartesianGrid strokeDasharray="1 1" className="chart-grid" />
+      <XAxis dataKey="day" {...AxisStyle} />
+      <YAxis
+        domain={[0, 1]}
+        tickFormatter={(v) => `${(v * 100).toFixed(0)} %`}
+        {...AxisStyle}
+      />
+      <Tooltip content={<MeanOnlyTooltip />} />
+
+      {/* transparent baseline for band stacking */}
+      <Area
+        dataKey={`${which[0]}25`}
+        stackId={which}
+        stroke="none"
+        fillOpacity={0}
+        className={`${which}-epoch`}
+      />
+
+      {/* inter-quartile range */}
+      {showBand && (
         <Area
-          dataKey={`${which[0]}25`}
+          dataKey={`${which[0]}Band`}
           stackId={which}
+          name={`${label} IQR`}
           stroke="none"
-          fillOpacity={0}
+          fill={
+            which === "late"
+              ? "rgba(214,41,41,0.20)"
+              : "rgba(66,135,245,0.25)"
+          }
+          className={`${which}-epoch`}
         />
-        {showBand && (
-          <Area
-            dataKey={`${which[0]}Band`}
-            stackId={which}
-            name={`${label} IQR`}
-            stroke="none"
-            fill={
-              which === "late"
-                ? "rgba(214,41,41,0.20)"
-                : "rgba(66,135,245,0.25)"
-            }
-          />
-        )}
-        <Line
-          type="monotone"
-          dataKey={`${which[0]}Mean`}
-          name={`${label} mean`}
-          stroke={color}
-          strokeWidth={3}
-          connectNulls
-          dot={false}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
+      )}
+
+      {/* mean line */}
+      <Line
+        type="monotone"
+        dataKey={`${which[0]}Mean`}
+        name={`${label} mean`}
+        stroke={color}
+        strokeWidth={3}
+        connectNulls
+        dot={false}
+        className={`${which}-epoch`}
+      />
+    </ComposedChart>
+  </ResponsiveContainer>
+);
+
 
   /* bands are always on (adjust if you re-enable stages) */
   const showEarlyBand = true;
