@@ -4,7 +4,5 @@ pydantic
 python-dotenv
 openai
 chromadb
-
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2+cpu
-sentence-transformers==2.2.2
+torch
+sentence-transformers
