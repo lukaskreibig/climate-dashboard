@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic
+accelerate
+pandas
+requests
+openpyxl
+openai
+chromadb
+torch
+sentence-transformers

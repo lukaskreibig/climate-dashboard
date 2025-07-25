@@ -1,11 +1,11 @@
-fastapi
-uvicorn[standard]
-pydantic
-accelerate
-pandas
-requests
-openpyxl
-openai
-chromadb
-torch
-sentence-transformers
+fastapi==0.116.0
+uvicorn[standard]==0.34.3
+pydantic==2.11.6
+python-dotenv==1.0.1
+openai==1.22.0
+chromadb==0.4.25
+
+# If you still need embeddings at runtime *and* accept the CPU wheel:
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+sentence-transformers==2.2.2
