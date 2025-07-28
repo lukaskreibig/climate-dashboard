@@ -57,34 +57,51 @@ export default function StoryProgress() {
       el,
       f    : (pageTop(el) - spanStart) / spanPx,
     }));
-    
+
     pointsRef.current = wps;
     setPoints(wps);                  // ← löst das Rendern der Dots aus
 
-    initFade(scenes[0]);
+    const first = scenes[0];
+    const last  = scenes[scenes.length - 1];
+    initFade(first, last);;
     initProgress(spanStart, spanEnd);
   }
 
-  /* ───────── fade-in/out ───────── */
-  function initFade(first: HTMLElement) {
-    if (!container.current) return;
-    gsap.set(container.current, { autoAlpha: 0, pointerEvents: "none" });
+  function initFade(first: HTMLElement, last: HTMLElement) {
+  if (!container.current) return;
 
-    const toggle = (show: boolean) =>
-      gsap.to(container.current!, {
-        autoAlpha: show ? 1 : 0,
-        duration : 0.35,
-        onStart  : () =>
-          (container.current!.style.pointerEvents = show ? "auto" : "none"),
-      });
-
-    ScrollTrigger.create({
-      trigger : first,
-      start   : "top 10%",
-      onEnter : () => toggle(true),
-      onLeaveBack: () => toggle(false),
+  /* Helper */
+  const fade = (show: boolean) =>
+    gsap.to(container.current!, {
+      autoAlpha : show ? 1 : 0,
+      duration  : .35,
+      onStart   : () => {
+        container.current!.style.pointerEvents = show ? "auto" : "none";
+      }
     });
-  }
+
+  /* ----- ❶ sofortiger Zustand beim Page-Load ---------------- */
+  const topGap   = 0.10 * innerHeight;            // gleiche Schwelle wie Trigger
+  const shouldBeVisible = first.getBoundingClientRect().top <= topGap;
+  gsap.set(container.current, { autoAlpha: shouldBeVisible ? 1 : 0 });
+
+  /* ----- ❷ Fade-in am Story-Anfang -------------------------- */
+  ScrollTrigger.create({
+    trigger : first,
+    start   : "top 10%",
+    onEnter : () => fade(true),
+    onLeaveBack: () => fade(false)
+  });
+
+  /* ----- ❸ Fade-out am Story-Ende --------------------------- */
+  ScrollTrigger.create({
+    trigger : last,
+    start   : "bottom bottom",
+    onLeave : () => fade(false),
+    onEnterBack: () => fade(true)
+  });
+}
+
 
   /* ───────── knob & fill ───────── */
   function initProgress(start: number, end: number) {
@@ -146,10 +163,9 @@ export default function StoryProgress() {
         background : "#98bdf8",
         borderColor: "#98bdf8",
         boxShadow  : "0 0 2px rgba(56,189,248,.6)",
-        duration   : 0.24,
-      },
+        duration   : 0.24,      },
       "<"
-    );
+    )
 };
 
 

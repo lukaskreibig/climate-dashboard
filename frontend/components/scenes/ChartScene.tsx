@@ -247,56 +247,70 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       }
 
       /* ---------- axes / helper fades ----------------------- */
-      (async () => {
-        await waitFor(wrap.current!, cfg.axesSel);
-        if (cfg.helperSel) await waitFor(wrap.current!, cfg.helperSel);
+      /* ---------- axes / helper fades ----------------------- */
+(async () => {
+  await waitFor(wrap.current!, cfg.axesSel);
+  if (cfg.helperSel) await waitFor(wrap.current!, cfg.helperSel);
 
-        if (cfg.axesSel !== NO_MATCH) gsap.set(cfg.axesSel, { opacity: 0 });
-        if (cfg.helperSel) gsap.set(cfg.helperSel, { opacity: 0 });
+  /* ▸▸ nur Elemente dieser Szene selektieren ◂◂ */
+  const axesEls =
+    cfg.axesSel === NO_MATCH ? [] : wrap.current!.querySelectorAll(cfg.axesSel);
+  const helperEls = cfg.helperSel
+    ? wrap.current!.querySelectorAll(cfg.helperSel)
+    : [];
 
-        const N = cfg.captions.length,
-          capEl = (i: number) =>
-            sec.current!.querySelector<HTMLElement>(
-              `[data-cap-idx="${i}"] .caption-box`
-            )!,
-          clamp = (n: number) => Math.max(0, Math.min(N - 1, n));
+  /* anfangs verbergen – nur lokale Nodes, nicht global! */
+  gsap.set(axesEls,   { opacity: 0 });
+  gsap.set(helperEls, { opacity: 0 });
 
-        const axesIn = clamp(cfg.axesInIdx ?? 1);
-        const axesOut = cfg.axesOutIdx ?? N;
-        const helpIn = clamp(cfg.helperInIdx ?? axesIn);
-        const helpOut = cfg.helperOutIdx ?? axesOut;
+  const N      = cfg.captions.length;
+  const capEl  = (i: number) =>
+    sec.current!.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`)!;
+  const clamp  = (n: number) => Math.max(0, Math.min(N - 1, n));
 
-        const fade = (sel: string, v: number) =>
-          gsap.to(sel, { opacity: v, duration: 0.4, paused: true });
-        const bind = (sel: string, iIn: number, iOut: number) => {
-          ScrollTrigger.create({
-            trigger: capEl(iIn),
-            start: "top 80%",
-            animation: fade(sel, 1),
-            toggleActions: "play none none none",
-          });
-          if (iOut >= 0 && iOut < N) {
-            ScrollTrigger.create({
-              trigger: capEl(iOut),
-              start: "bottom top",
-              animation: fade(sel, 0),
-              toggleActions: "play none reverse none",
-            });
-          }
-        };
-        if (cfg.axesSel !== NO_MATCH) bind(cfg.axesSel, axesIn, axesOut);
-        if (cfg.helperSel) bind(cfg.helperSel, helpIn, helpOut);
+  const axesIn  = clamp(cfg.axesInIdx   ?? 1);
+  const axesOut = cfg.axesOutIdx        ?? N;
+  const helpIn  = clamp(cfg.helperInIdx ?? axesIn);
+  const helpOut = cfg.helperOutIdx      ?? axesOut;
 
-        cfg.actions?.forEach((a) => {
-          const trg = capEl(clamp(a.captionIdx));
-          ScrollTrigger.create({
-            trigger: trg,
-            start: "top 90%",
-            onEnter: () => a.call(api.current),
-            onEnterBack: () => a.call(api.current),
-          });
-        });
-      })();
+  const fade = (els: NodeListOf<HTMLElement>, v: number) =>
+    gsap.to(els, { opacity: v, duration: 0.4, paused: true });
+
+  const bind = (
+    els: NodeListOf<HTMLElement>,
+    iIn: number,
+    iOut: number
+  ) => {
+    ScrollTrigger.create({
+      trigger : capEl(iIn),
+      start   : "top 80%",
+      animation: fade(els, 1),
+      toggleActions: "play none none none",
+    });
+    if (iOut >= 0 && iOut < N) {
+      ScrollTrigger.create({
+        trigger : capEl(iOut),
+        start   : "bottom top",
+        animation: fade(els, 0),
+        toggleActions: "play none reverse none",
+      });
+    }
+  };
+
+  if (axesEls.length)   bind(axesEls,   axesIn,  axesOut);
+  if (helperEls.length) bind(helperEls, helpIn,  helpOut);
+
+  /* evtl. benutzerdefinierte Aktionen der Szene -------------- */
+  cfg.actions?.forEach(a => {
+    const trg = capEl(clamp(a.captionIdx));
+    ScrollTrigger.create({
+      trigger : trg,
+      start   : "top 90%",
+      onEnter      : () => a.call(api.current),
+      onEnterBack  : () => a.call(api.current),
+    });
+  });
+})();
 
       /* ─── chart x-shift helpers (zurück-geholt) ─────────── */
       if (cfg.chartSide !== "fullscreen") {

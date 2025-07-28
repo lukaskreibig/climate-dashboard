@@ -86,15 +86,38 @@ const Figure = ({ p }: { p: Photo }) => (
 const clamp01       = (v: number) => Math.max(0, Math.min(1, v));
 const easeOutCubic  = (t: number) => 1 - (1 - t) ** 3;
 
-const sideStyle = (side:"left"|"right") => ({
-  imgWrap : `absolute top-0 bottom-0 ${side === "left" ? "left-0" : "right-0"} w-1/2`,
 
-  /* occupy the free half of the flex row */
-  quoteBox: `relative z-40 flex items-center w-1/2 px-8
-             ${side === "left"
-               ? "ml-auto justify-start"   /* image left → text right  */
-               : "mr-auto justify-end"}`   /* image right → text left  */
-});
+
+/* ───────── helper für Half-&-Half Layout ───────── */
+const GAP_VW   = "6vw";          // Innenabstand Bild-Rand  (≈ 6 % Viewportbreite)
+const GAP_MIN  = 24;             // min 24 px
+const GAP_MAX  = 96;             // max 96 px
+const BAR_SAFE = 120;            // Abstand zur Progress-Bar
+
+const clampGap =
+  `clamp(${GAP_MIN}px,${GAP_VW},${GAP_MAX}px)`;   // CSS clamp()
+
+const sideStyle = (side: "left" | "right") => {
+  /* 1 ▸ Bild-Container – halbe Breite, aber um clampGap eingerückt */
+  const imgWrap =
+    side === "left"
+      ? `absolute inset-y-0 left-0 pr-[${clampGap}] w-1/2`
+      : `absolute inset-y-0 right-0 pl-[${clampGap}] w-1/2`;
+
+  /* 2 ▸ Textbox direkt daneben, +BAR_SAFE Abstand zur Progress-Leiste */
+  const quoteBoxBase =
+    "relative z-40 flex items-center max-w-[40rem] leading-snug";
+
+  const quoteBox =
+    side === "left"
+      ? `${quoteBoxBase} ml-auto pl-[${clampGap}] pr-[${BAR_SAFE}px] justify-start`
+      : `${quoteBoxBase} mr-auto pr-[${clampGap}] pl-[${BAR_SAFE}px] justify-end`;
+
+  return { imgWrap, quoteBox };
+};
+
+
+
 
 
 /* ──────────────────── MAIN COMPONENT ─────────────────────── */
@@ -311,76 +334,104 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
     );
   };
 
-  /* ───────────── VARIANT D – fullscreen-split ───────────── */
+/* ───────────── VARIANT D – fullscreen-split ───────────── */
 const FullscreenSplit = () => {
   const {
     fadeInAt   = 0.10,
     fadeOutAt  = 0.80,
     bgParallax = 0.10,
-    bgZoom     = 0,        // optional
+    bgZoom     = 0,
     quoteParallax = 0,
-     quoteOffsetVH = 30,
-     bgXAlign = 0.5,
+    quoteOffsetVH = 30,
+    bgXAlign   = 0.5,
   } = fullscreenQuoteOpts ?? {};
 
-  const secRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
+  /* ── Hilfswerte ───────────────────────────────────────── */
+  const offsetPx  = (quoteOffsetVH / 100) * innerHeight;     // VH → px
+  const GAP_VW    = 6;   // Seiten-Einrückung in vw
+  const GAP_MIN   = 24;  // min  px
+  const GAP_MAX   = 96;  // max  px
+  const SAFE_BAR  = 140; // Abstand zur Progress-Leiste
 
-   useEffect(() => {
-      const host = secRef.current?.closest<HTMLElement>('[data-scene]');
-      if (!host) return;
+  /* Einrückungen – Bild bekommt auf der Bar-Seite extra Puffer */
+  const imgPadStyle =
+    imageSide === "left"
+      ? { paddingLeft: 0,
+          paddingRight: `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)` }
+      : { paddingRight: SAFE_BAR,
+          paddingLeft : `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)` };
 
-      const onScroll = () => {
-        const r  = host.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const raw = (vh - r.top) / (vh + r.height);
-        setProgress(clamp01(raw));
-      };
+  const textPadStyle =
+    imageSide === "left"
+      ? { paddingLeft : `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)`,
+          paddingRight: SAFE_BAR }
+      : { paddingRight: `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)`,
+          paddingLeft : SAFE_BAR };
 
-      window.addEventListener("scroll", onScroll, { passive: true });
-      onScroll();
-      return () => window.removeEventListener("scroll", onScroll);
-    }, []);
+  /* ── Scroll-Progress (bleibt wie zuvor) ───────────────── */
+  const secRef        = useRef<HTMLDivElement>(null);
+  const [progress,setProgress] = useState(0);
+  useEffect(()=>{ const h=secRef.current?.closest<HTMLElement>('[data-scene]');
+    if(!h) return;
+    const on=()=>{const r=h.getBoundingClientRect(),vh=innerHeight;
+      setProgress(clamp01((vh-r.top)/(vh+r.height)));};
+    addEventListener('scroll',on,{passive:true});on();
+    return()=>removeEventListener('scroll',on);},[]);
 
-  const lin      = clamp01((progress - fadeInAt) / (fadeOutAt - fadeInAt));
-  const opacity  = progress < fadeInAt
-      ? 0
-      : progress >= fadeOutAt
-      ? 1 - clamp01((progress - fadeOutAt) / (1 - fadeOutAt))
-      : easeOutCubic(lin);
+  const lin      = clamp01((progress-fadeInAt)/(fadeOutAt-fadeInAt));
+  const opacity  = progress<fadeInAt?0:progress>=fadeOutAt
+                   ?1-clamp01((progress-fadeOutAt)/(1-fadeOutAt))
+                   :easeOutCubic(lin);
+  const bgY      = -progress*innerHeight*bgParallax;
+  const quoteY   = -progress*innerHeight*quoteParallax;
+  const baseScale=1+Math.abs(bgParallax);
+  const zoomScale=bgZoom===0?baseScale:baseScale+bgZoom*progress;
 
-  const bgY      = -progress * window.innerHeight * bgParallax;
-  const quoteY   = -progress * window.innerHeight * quoteParallax;
-  const { imgWrap, quoteBox } = sideStyle(imageSide === "right" ? "right" : "left");
-  const fit      = "object-contain";
-   const baseScale = 1 + Math.abs(bgParallax);
-  const zoomScale = bgZoom === 0 ? baseScale
-                                 : baseScale + bgZoom * progress;
-
+  /* ── Render ───────────────────────────────────────────── */
   return (
-    <section ref={secRef} className={`relative h-screen w-full overflow-hidden flex ${className}`} style={{ background: BG }}>
-      {/* picture (half screen) */}
-      <motion.div className={imgWrap}>
-        <motion.img
-          src={photos[0].src}
-          alt={photos[0].alt}
-          className={`w-full h-full ${fit} object-center`}
-          style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
-          transition={{ type:"spring", stiffness:40, damping:15 }}
-        />
-      </motion.div>
+    <section
+      ref={secRef}
+      className={`relative h-screen w-full overflow-hidden flex items-center ${className}`}
+      style={{ background: BG }}
+    >
 
-      {/* quote (other half) */}
+      {/* Bild links */}
+      {imageSide==="left"&&(
+        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+          <motion.img
+            src={photos[0].src} alt={photos[0].alt}
+            className="max-h-[90vh] w-auto object-contain"
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30 }}
+            transition={{ type:"spring", stiffness:40, damping:15 }}
+          />
+        </div>
+      )}
+
+      {/* Text */}
       <motion.div
-        className={quoteBox}
-        style={{ opacity, y: quoteY, top: `${quoteOffsetVH}vh`, }}
+        className="flex-1 flex items-center"
+        style={{ ...textPadStyle, opacity, y: quoteY + offsetPx }}
         transition={{ type:"spring", stiffness:40, damping:15 }}
       >
         {Quote}
       </motion.div>
+
+      {/* Bild rechts */}
+      {imageSide==="right"&&(
+        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+          <motion.img
+            src={photos[0].src} alt={photos[0].alt}
+            className="max-h-[90vh] w-auto object-contain"
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign }}
+            transition={{ type:"spring", stiffness:40, damping:15 }}
+          />
+        </div>
+      )}
     </section>
   );
 };
+
+
 
 
   /* ───────────── RENDER SWITCH ───────────── */
