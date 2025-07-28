@@ -72,29 +72,29 @@ export default function BetaDialog({ loading, progress, onClose }: { loading, pr
                 <div className="mt-8 w-full">
                   <div className="h-2 w-full rounded bg-slate-700">
                     <motion.div
+                      initial={{ width: 0 }}  
                       className="h-full rounded bg-blue-400"
                       animate={{ width: `${progress}%` }}
                       transition={{ ease: "easeOut", duration: 0.25 }}
                     />
                   </div>
                   <p className="mt-2 text-xs opacity-80">
-                    Loading assets … {Math.round(progress)} %
+                    Loading assets … {progress} %
                   </p>
                 </div>
               )}
                 {!loading && progress >= 100 && (
                 <div className="mt-10">
                   <button
-                    onClick={close}
-                    className="inline-flex items-center justify-center
-                               rounded-md bg-blue-600 px-6 py-3 font-semibold
-                               text-white transition
-                               hover:bg-blue-500 focus-visible:outline
-                               focus-visible:outline-2 focus-visible:outline-offset-2
-                               focus-visible:outline-blue-500"
-                  >
-                    Enter
-                  </button>
+                  onClick={(close)}
+                disabled={progress < 100}
+                className={`px-6 py-3 font-semibold transition rounded-4xl
+                            ${progress < 100
+                              ? "bg-slate-600 cursor-wait"
+                              : "bg-blue-600 hover:bg-blue-500"}`}
+              >
+                Enter
+              </button>
                 </div>
               )}
               </motion.div>
