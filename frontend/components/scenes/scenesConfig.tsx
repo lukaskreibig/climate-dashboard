@@ -53,6 +53,7 @@ export const scenes: SceneCfg[] = [
    {
       key: "geographic-journey",
       chartSide: "fullscreen",
+      progressPoint: true,
       parallax: false,
       slideIn: false,
       fadeOut: true,
@@ -74,12 +75,11 @@ export const scenes: SceneCfg[] = [
   
       captions: [
         {
-          captionSide: "center",
           boxClass: "ice-card",
           html: (
             <>
               <h2 className="text-4xl font-bold mb-5">
-                Chapter&nbsp;1<br />How the Ice is Vanishing
+                How the Ice is Vanishing
               </h2>
               <p className="text-lg max-w-prose mx-auto">
                 In the Arctic, entire communities depend on sea ice for survival. 
@@ -143,6 +143,7 @@ export const scenes: SceneCfg[] = [
 
     {
   key: "changeclimate",
+  progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
@@ -178,7 +179,7 @@ export const scenes: SceneCfg[] = [
      ],
 },
     {
-  key: "motorsledge",
+  key: "Winter Months",
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
@@ -205,7 +206,6 @@ export const scenes: SceneCfg[] = [
     captionSide: "right",
     html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Heart of a Seal</h3>
               <p className="text-lg max-w-sm">
                 In the winter months, the sea ice around Uummannaq starts to freeze and connects it to the mainland. Inhabitants can travel freely around and are not restricted to the island anymore. 
               </p>
@@ -213,7 +213,7 @@ export const scenes: SceneCfg[] = [
           ), }],
 },
     {
-  key: "fishing",
+  key: "Fishing Town",
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
@@ -240,7 +240,6 @@ export const scenes: SceneCfg[] = [
     captionSide: "left",
     html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Heart of a Seal</h3>
               <p className="text-lg max-w-sm">
                 Fishing is a crucial part of this town, most people live from this industry. Traditionally fisherman go ice-fishing on the sea ice. But all of this is in danger...
               </p>
@@ -249,6 +248,7 @@ export const scenes: SceneCfg[] = [
 },
  {
   key: "ummannaqview",
+  progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -290,7 +290,7 @@ export const scenes: SceneCfg[] = [
 ],
 },
     {
-  key: "icegone",
+  key: "Ice Disappears",
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -319,7 +319,7 @@ export const scenes: SceneCfg[] = [
 },
 
 {
-  key: "storms",
+  key: "Unstable Climate",
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -353,7 +353,7 @@ export const scenes: SceneCfg[] = [
 },
 
     {
-  key: "Motorsledgeee",
+  key: "Motorsledge",
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
@@ -381,6 +381,7 @@ export const scenes: SceneCfg[] = [
 },
 {
   key: "introcharts",
+  progressPoint: true, 
   chartSide: "fullscreen",
   wide: true,
   fadeIn: true,
@@ -476,6 +477,7 @@ export const scenes: SceneCfg[] = [
   {
     key: "visual-proof",
     chart: (d: DataBundle, api) => <AllYearsSeasonChart data={d.daily} apiRef={api} />,
+    progressPoint: true,
     axesSel: AXES,
 
     captions: [
@@ -597,7 +599,8 @@ export const scenes: SceneCfg[] = [
     ],
   },
   {
-  key: "ice free",
+  key: "Downwards Trend",
+  progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -636,7 +639,7 @@ export const scenes: SceneCfg[] = [
       },],
 },
 {
-  key: "Kids",
+  key: "Only a Memory",
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -713,6 +716,7 @@ export const scenes: SceneCfg[] = [
  {
   key: "Arctic Sea Ice",
   chartSide: "fullscreen",
+  progressPoint: true, 
   fadeIn: true,
   fadeOut: true,
   parallax: false,
@@ -845,6 +849,7 @@ export const scenes: SceneCfg[] = [
     /* 5 — Multi-decade view (enhanced drama) ------------------- */
   {
     key       : "multi-decade",
+    progressPoint: true,
     plainCaptions: true,
     chart : (d:DataBundle, api) =>
             <DailyChart data={d.dailySeaIce} apiRef={api} />,
@@ -993,7 +998,8 @@ export const scenes: SceneCfg[] = [
 
   /* ─────  BRIDGE · “Anomalies → Drivers”  ───── */
 {
-  key: "bridge-bars-to-drivers",
+  key: "Climate Change Drivers",
+  progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -1100,6 +1106,7 @@ export const scenes: SceneCfg[] = [
   },
   {
     key      : "2024-focus",
+    progressPoint: true,
     chart    : (d:DataBundle)=> <Bar24Chart data={d.annual}/>,
     axesSel  : AXES,
     plainCaptions: true,

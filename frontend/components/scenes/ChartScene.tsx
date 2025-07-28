@@ -55,6 +55,7 @@ export interface SceneCfg {
   fadeOut?: boolean;
   bgClass?: string;
   bgColor?: string;
+  progressPoint?: boolean;
 
   /** whether the snow layer should be visible (default true) */
   snow?: boolean;
@@ -424,6 +425,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       className={`relative ${cfg.bgClass ?? ""}`}
       style={cfg.bgColor ? { background: cfg.bgColor } : undefined}
       data-scene={cfg.key}
+      data-progress={cfg.progressPoint ? "true" : undefined}
       data-title={
         (cfg.captions[0]?.html as any)?.props?.children?.[0]?.props?.children ??
         cfg.key
