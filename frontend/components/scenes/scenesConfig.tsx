@@ -35,7 +35,25 @@ const MeanIceFractionChart = dynamic(() => import("@/components/Rechart/MeanIceF
 const FreezeBreakTimelineChart = dynamic(() => import("@/components/Rechart/FreezeBreakTimelineChart"), { ssr: false });
 const AllYearsSeasonChart = dynamic(() => import("@/components/Rechart/AllYearsSeasonChart"), { ssr: false });
 
-
+export const dynamicModules = [
+  SeasonalChart,
+  AnnualChart,
+  IQRChart,
+  DailyChart,
+  MultiChart,
+  ZScoreChart,
+  Bar24Chart,
+  ScatterChart,
+  MeanSpringAnomalyChart,
+  EarlyLateSeasonChart,
+  MeanIceFractionChart,
+  FreezeBreakTimelineChart,
+  AllYearsSeasonChart,
+  WhyArcticExplainer,
+  MapFlyScene,
+  SatelliteScene,
+  PhotoStory,           // forwardRef-komponente, aber preloadbar
+];
 
 
 /* helper ------------------------------------------------------- */
@@ -298,7 +316,7 @@ export const scenes: SceneCfg[] = [
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/heartofaseal_website11.jpg", alt: "Pushing a sled" }]}
+      photos={[{ src: "/images/heartofaseal_website11.jpg", alt: "Pushing a sled" }]}
       variant="fullscreen"
       mainCaption="When I was a child, the ice was gone in June and July, now it is gone in April and May."
       author="Interview participant, Uummannaq"

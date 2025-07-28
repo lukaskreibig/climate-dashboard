@@ -110,7 +110,7 @@ export default function IntroHero() {
       {/* background photo */}
       <motion.img
         ref={photo}
-        src="/heartofaseal-28.jpg"
+        src="/images/heartofaseal-28.jpg"
         alt="Arctic panorama"
         className="absolute inset-0 w-full h-full object-cover"
         initial={{ opacity: 1 }}

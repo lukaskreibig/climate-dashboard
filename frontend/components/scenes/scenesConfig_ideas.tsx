@@ -157,7 +157,7 @@ export const scenesChapter1: SceneCfg[] = [
           caption: "Ancient ice, now unpredictable and dangerous",
         },
         {
-          src: "/heartofaseal-28.jpg",
+          src: "/images/heartofaseal-28.jpg",
           alt: "Daily life in Uummannaq",
           caption: "A community adapting faster than ever before",
         }
