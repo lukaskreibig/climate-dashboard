@@ -29,6 +29,7 @@ export interface SceneCfg {
   axesInIdx?   : number; axesOutIdx?  : number;
   helperInIdx? : number; helperOutIdx?: number;
   actions?     : { captionIdx:number; call:(api?:any)=>void }[];
+  progressPoint? : boolean;
 }
 
 export const NO_MATCH="*:not(*)";
@@ -153,7 +154,7 @@ export default function FlowChartScene(
 
   /* ---------- render --------------------------------------- */
   return(
-    <section ref={sec} data-scene={cfg.key} className="relative py-[40vh]">
+    <section ref={sec}   data-progress={cfg.progressPoint ? "true" : "false"} data-scene={cfg.key} className="relative py-[40vh]">
       {/* chart + caption blocks stacked inside normal flow ----- */}
       {cfg.captions.map((c,i)=>(
         <div key={i} className={`mb-[80vh] flex flex-col ${chartAlign}`} data-cap-idx={i}>
