@@ -1020,7 +1020,16 @@ export const scenes: SceneCfg[] = [
       mainCaption="What's pushing the ice away? We’ve seen declining
             coverage and record anomalies. Next, we layer the drivers, CO₂, global
             and Arctic temperatures, on the same scale."
-      fullscreenQuoteOpts={{ bgParallax: 0.02, quoteOffsetVH: 25 }}
+            fullscreenQuoteOpts={{
+        bgParallax: 0.00,          // background fixed
+        bgZoom: 0.02,
+        quoteParallax: 0.3,    // gentle drift on the quote
+        quoteOffsetVH: 10,      // vertically centred-ish
+        fadeInAt: .01,
+        fadeOutAt: .90,
+        bgXAlign: -22,
+        
+      }}
     />
   ),
   axesSel: NO_MATCH,

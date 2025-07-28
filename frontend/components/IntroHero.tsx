@@ -51,7 +51,7 @@ export default function IntroHero() {
           end     : "+=500%",           // 5 × viewport
           scrub   : true,
           pin     : true,
-          onUpdate: self => { if (self.progress > 0 && idle.isActive()) idle.kill(); },
+          onUpdate: self => { if (self.progress > 0.02 && idle.isActive()) idle.kill(); },
           snap    : { snapTo: "labelsDirectional", duration: .6, ease: "power2.inOut" }
         }
       });
@@ -160,7 +160,7 @@ export default function IntroHero() {
       {/* SVG filters (unchanged) */}
       <svg className="pointer-events-none absolute h-0 w-0">
         <filter id="idleShimmer">
-          <feTurbulence ref={idleTurb} type="turbulence" baseFrequency="0.00015" numOctaves="3" seed="2" />
+          <feTurbulence ref={idleTurb} result="noise" type="turbulence" baseFrequency="0.00015" numOctaves="3" seed="2" />
           <feDisplacementMap ref={idleDisp} in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
         </filter>
 
