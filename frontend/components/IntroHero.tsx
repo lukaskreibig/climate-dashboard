@@ -51,7 +51,13 @@ export default function IntroHero() {
           end     : "+=500%",           // 5 × viewport
           scrub   : true,
           pin     : true,
-          onUpdate: self => { if (self.progress > 0.02 && idle.isActive()) idle.kill(); },
+          onUpdate: self => {                 // NEU: pause / resume
+                              if (self.progress > 0.02) {
+                                idle.pause();                   // während des Scrollens anhalten
+                              } else {
+                                idle.resume();                  // ganz oben wieder abspielen
+                              }
+                            },
           snap    : { snapTo: "labelsDirectional", duration: .6, ease: "power2.inOut" }
         }
       });
