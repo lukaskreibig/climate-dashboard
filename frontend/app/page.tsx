@@ -10,10 +10,10 @@ import IntroHero from "@/components/IntroHero";
 import ArcticBackgroundSystem, {
   SnowApi,
 } from "@/components/ArcticBackgroundSystem";
-import MapboxPreloader from "@/components/MapboxPreloader";
+import MapboxPreloader, { preloadTiles } from "@/components/MapboxPreloader";
 
 import ChartScene from "@/components/scenes/ChartScene";
-import { scenes } from "@/components/scenes/scenesConfig";
+import { dynamicModules, scenes } from "@/components/scenes/scenesConfig";
 
 import StoryProgress from "@/components/StoryProgress";
 import ChatBot from "@/components/ChatBot";
@@ -73,6 +73,7 @@ const EARLY_YRS = [2017, 2018, 2019, 2020];
 const LATE_YRS = [2021, 2022, 2023, 2024, 2025];
 const FJORD_KM2 = 3450;
 
+
 /* simple helpers */
 const mean = (arr: number[]) =>
   arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : NaN;
@@ -107,7 +108,10 @@ const parseCsv = (txt: string): CsvRow[] =>
 export default function Page() {
   const [data, setData] = useState<CombinedData | null>(null);
   const [loading, setLoading] = useState(true);
-    const [showDisclaimer,setShowDisclaimer] = useState(true);
+  const [showDialog, setShowDialog] = useState(true);   // steuert BetaDialog
+
+  const [progress, setProgress] = useState(0);
+
 
 
   /* ★ keep a ref to the snowfall system so scenes can toggle it */
@@ -119,16 +123,30 @@ export default function Page() {
       try {
         setLoading(true);
 
+        await Promise.all(
+                          dynamicModules.map((mod) =>
+                            // ► Hard-cast auf any, damit TS nicht nörgelt
+                            typeof (mod as any).preload === "function"
+                              ? (mod as any).preload()      // Chunk vorladen
+                              : Promise.resolve()           // nichts zu tun
+                          )
+                        );
+        setProgress(20);
+
+
         /* —— 1. JSON for legacy chapter-1 charts —— */
         const baseJson: DataJSON = await fetch("/api/data").then((r) =>
           r.json()
         );
+        setProgress(35);
+
 
         /* —— 2. CSV & derived series for new charts —— */
         const csvTxt = await fetch("/data/summary_test_cleaned.csv").then((r) =>
           r.text()
         );
         const rows = parseCsv(csvTxt);
+        setProgress(55);
 
         /* 2a. season band */
         const season: SeasonRow[] = [];
@@ -194,6 +212,39 @@ export default function Page() {
             };
           });
 
+            /* 3 — große Bilder vorladen (optional) */
+   const imgList = [
+    "/images/heartofaseal_town.jpg",
+    "/images/motorsledge.jpg",
+    "/images/heartofaseal_fishing.jpg",
+    "/images/heartofaseal_voices.jpg",
+    "/images/heartofaseal_website11.jpg",
+    "/images/heartofaseal-28.jpg",
+    "/images/heartofaseal_wind.jpg",
+    "/images/heartofaseal_iceberg.jpg",
+    "/images/kids_drumdance.jpg",
+    "/images/dogs.jpg",
+    "/images/seaice_greenland.jpg",
+    "/images/heartofaseal_fisherboat.jpg",
+    "/images/community-bonds.jpg",
+    "/images/satellite.png",
+    "/images/overlay.png",
+   ];
+
+   await Promise.all(
+      imgList.map(src => new Promise<void>(res => {
+        const img = new Image();
+        img.src = src;
+        img.onload = img.onerror = () => res();
+      }))
+    );
+  setProgress(75);
+
+     /* ---- 3 · Mapbox Runtime + erste Tiles ---- */
+    import("mapbox-gl")          // JS
+    preloadTiles();  
+    setProgress(95);
+
         /* — 3. bundle everything — */
         setData({
           ...baseJson,
@@ -206,22 +257,13 @@ export default function Page() {
       } catch (err) {
         console.error("Data-load error:", err);
       } finally {
+        setProgress(100); 
         setLoading(false);
-      }
+    }
     })();
   }, []);
 
-  /* —— simple loader —— */
-  if (loading || !data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-night-900 text-snow-50">
-        <div className="space-y-4 text-center">
-          <div className="h-12 w-12 border-b-2 border-blue-400 rounded-full animate-spin mx-auto" />
-          <p className="text-lg">Loading Arctic data …</p>
-        </div>
-      </div>
-    );
-  }
+
 
   /* —— render full story —— */
   return (
@@ -233,10 +275,16 @@ export default function Page() {
       <ArcticBackgroundSystem ref={snowRef} />
 
 
-      {/* 2 ▸ BETA DISCLAIMER  */}
-      {showDisclaimer && (
-        <BetaDialog onClose={() => setShowDisclaimer(false)} />
-      )}
+      { /* BETA + Loader */ }
+    {showDialog && (
+      <BetaDialog
+        loading={loading}
+        progress={progress}
+        onFinished={() => setShowDialog(false)}
+      />
+    )}
+
+
 
 
       {/* 2 ▸ story */}
@@ -260,7 +308,7 @@ export default function Page() {
       </main>
 
       <StoryProgress />
-              <LegalFooter />
+      <LegalFooter />
 
     </>
   );

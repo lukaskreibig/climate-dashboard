@@ -1,8 +1,5 @@
 /* ------------------------------------------------------------------
-   components/MapboxPreloader.tsx
-   – builds an *invisible* map once, as soon as the page mounts.
-     All fonts, shaders, style JSON, and the very first satellite
-     tiles are fetched and live in the browser cache afterwards.
+   MapboxPreloader.tsx   – einmal pro Tab die Mapbox-Runtime vorwärmen
 ------------------------------------------------------------------ */
 "use client";
 
@@ -12,10 +9,18 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
-/* keep one singleton map instance per tab – even if the
-   Preloader is mounted/un-mounted several times */
-let warmed = false;
+/* Singleton innerhalb eines Browser-Tabs */
+let warmed   = false;
 let warmMap: mapboxgl.Map | null = null;
+
+/** externe Helper-Fn für page.tsx  */
+export async function preloadTiles(): Promise<void> {
+  return new Promise(res => {
+    if (warmed) return res();           // schon erledigt
+    const check = () => warmed ? res() : requestAnimationFrame(check);
+    check();
+  });
+}
 
 export default function MapboxPreloader() {
   const box = useRef<HTMLDivElement>(null);
@@ -23,43 +28,33 @@ export default function MapboxPreloader() {
   useEffect(() => {
     if (warmed || !box.current) return;
 
-    /** 1 ▸ spin up workers + core libs (Mapbox helper) */
-    if (mapboxgl.prewarm) mapboxgl.prewarm();
+    /* 1 — Worker + WebGL Kontext booten */
+    mapboxgl.prewarm?.();
 
-    /** 2 ▸ create a *real* map (fully off-screen) */
+    /* 2 — Unsichtbare Karte anlegen */
     warmMap = new mapboxgl.Map({
       container : box.current,
-      /** same style you’ll use later */
       style     : "mapbox://styles/mapbox/satellite-streets-v12",
-      center    : [ 0, 90 ],   // any point is fine – we only cache resources
+      center    : [0, 90],
       zoom      : 1.3,
       interactive: false,
       attributionControl: false,
     });
 
-    /** 3 ▸ once the first frame is rendered we’re done */
-    warmMap.once("idle", () => {
-      warmed = true;
-      // don’t remove the map – keeping it around means the workers
-      // and WebGL context stay warm for later scenes
-    });
-
-    return () => {
-      /** never destroy this map – it has done its job */
-    };
+    /* 3 — Erstes ‘idle’ ⇒ alles Wesentliche ist gecacht  */
+    warmMap.once("idle", () => { warmed = true; });
   }, []);
 
-  /** absolutely invisible, but present in the DOM */
+  /* 1 × 1 px, komplett unsichtbar */
   return (
     <div
       ref={box}
       style={{
         position : "fixed",
+        inset    : 0,
         width    : 1,
         height   : 1,
         overflow : "hidden",
-        top      : 0,
-        left     : 0,
         pointerEvents: "none",
       }}
     />
