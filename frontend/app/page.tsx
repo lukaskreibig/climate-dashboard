@@ -111,7 +111,7 @@ export default function Page() {
   const [showDialog, setShowDialog] = useState(true);   // steuert BetaDialog
 
   const [progress, setProgress] = useState(0);
-
+  const goTo = (pct: number) => setProgress(p => Math.max(p, pct));
 
 
   /* ★ keep a ref to the snowfall system so scenes can toggle it */
@@ -131,14 +131,14 @@ export default function Page() {
                               : Promise.resolve()           // nichts zu tun
                           )
                         );
-        setProgress(20);
+        goTo(15)
 
 
         /* —— 1. JSON for legacy chapter-1 charts —— */
         const baseJson: DataJSON = await fetch("/api/data").then((r) =>
           r.json()
         );
-        setProgress(35);
+        goTo(30)
 
 
         /* —— 2. CSV & derived series for new charts —— */
@@ -146,7 +146,7 @@ export default function Page() {
           r.text()
         );
         const rows = parseCsv(csvTxt);
-        setProgress(55);
+        goTo(50);
 
         /* 2a. season band */
         const season: SeasonRow[] = [];
@@ -238,12 +238,12 @@ export default function Page() {
         img.onload = img.onerror = () => res();
       }))
     );
-  setProgress(75);
+  goTo(75)
 
      /* ---- 3 · Mapbox Runtime + erste Tiles ---- */
     import("mapbox-gl")          // JS
     preloadTiles();  
-    setProgress(95);
+    goTo(95)
 
         /* — 3. bundle everything — */
         setData({
@@ -254,6 +254,7 @@ export default function Page() {
           freeze,
           daily: rows,
         });
+        goTo(100);
       } catch (err) {
         console.error("Data-load error:", err);
       } finally {
@@ -263,6 +264,7 @@ export default function Page() {
     })();
   }, []);
 
+  useEffect(() => {console.log("progress", progress)}, [progress])
 
 
   /* —— render full story —— */
@@ -280,7 +282,7 @@ export default function Page() {
       <BetaDialog
         loading={loading}
         progress={progress}
-        onFinished={() => setShowDialog(false)}
+        onClose={() => setShowDialog(false)}
       />
     )}
 
