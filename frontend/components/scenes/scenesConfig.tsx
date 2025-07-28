@@ -6,8 +6,10 @@ import dynamic      from "next/dynamic";
 import { SceneCfg } from "./ChartScene";
 import { NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
+import MapFlyScene from "../MapFlyScene";
+import SatelliteScene from "@/components/SatelliteScene";
 
-const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
+// const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
 
 /* lazy-loaded charts ------------------------------------------ */
@@ -23,7 +25,8 @@ const ScatterChart  = dynamic(()=>import("@/components/Rechart/ScatterChartRecha
 /* NEW: Why Arctic explainer component */
 const WhyArcticExplainer = dynamic(()=>import("@/components/WhyArcticExplainer"),{ ssr:false });
 
-const SatelliteScene = dynamic(()=>import("@/components/SatelliteScene"),{ssr:false});
+// const SatelliteScene = dynamic(()=>import("@/components/SatelliteScene"),{ssr:false});
+
 
 /* ─── Chart components ─── */
 const MeanSpringAnomalyChart = dynamic(() => import("@/components/Rechart/MeanSpringAnomalyChart"), { ssr: false });
