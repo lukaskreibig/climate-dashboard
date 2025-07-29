@@ -1,0 +1,248 @@
+{
+  "arctic": {
+    "title": "Die Arktis: Frühwarnsystem unseres Planeten",
+    "heroTitle": "DAS GROSSE SCHMELZEN",
+    "heroSubtitle": "Eine datenbasierte Geschichte über das Verschwinden des Meereises von Lukas Kreibig",
+    "heroLine1": "Die Arktis erwärmt sich viermal schneller als der globale Durchschnitt",
+    "heroLine2": "In der rasant erwärmenden Arktis ist das Schmelzen des Meereises zur Realität geworden",
+    "heroLine3": "Forscher prognostizieren eisfreie Sommer in der Arktis noch vor 2050",
+    "heroLine4": "Die Arktis ist das Frühwarnsystem unseres Planeten.",
+    "heroLine5": "Hören wir rechtzeitig hin?"
+  },
+  "scenes": {
+    "geographic": {
+      "title": "Wie das Eis verschwindet",
+      "intro": "In der Arktis hängen ganze Gemeinschaften vom Meereis ab. Doch was passiert, wenn dieses Eis schneller denn je schwindet?",
+      "greenland": {
+        "title": "Grönland",
+        "description": "Die größte Insel der Welt. Zu 80 % mit Eis bedeckt, 20 % felsige Küstenlinie. Tief eingeschnittene Fjorde reichen Hunderte Kilometer ins Inland und bieten geschützte Häfen, wo arktische Gemeinschaften seit Jahrtausenden leben."
+      },
+      "uummannaqBay": {
+        "title": "Uummannaq-Bucht",
+        "description": "600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der spektakulärsten Fjordsysteme Grönlands. In den meisten Monaten des Jahres verwandelt sich das Wasser hier in gefrorene Straßen."
+      },
+      "uummannaqIsland": {
+        "title": "Insel Uummannaq",
+        "description": "Heimat von 1.300 Menschen, die unter einem markanten, herzförmigen Berg leben. Sie steht stellvertretend für hunderte arktische Siedlungen, deren Existenz vollkommen von verlässlichem Meereis abhängt.",
+        "changing": "Doch diese Verlässlichkeit schwindet …"
+      }
+    },
+    "heartOfSeal": {
+      "title": "Herz einer Robbe",
+      "description": "Die arktische Insel Uummannaq verdankt ihren Namen dem ikonischen, robbenherzförmigen Berg, unter dem sich gleichnamige Stadt befindet."
+    },
+    "winterMonths": {
+      "description": "In den Wintermonaten friert das Meereis rund um Uummannaq und verbindet die Insel mit dem Festland. Die Einwohner können sich frei bewegen und sind nicht mehr auf die Insel beschränkt."
+    },
+    "fishing": {
+      "description": "Der Fischfang ist das Rückgrat dieser Gemeinschaft, die meisten leben davon. Traditionell fischen die Menschen direkt auf dem Meereis – doch diese Lebensweise ist bedroht …"
+    },
+    "voices": {
+      "title": "Stimmen aus der Gemeinschaft",
+      "description": "In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Hören wir ihnen zu.",
+      "learnMore": "Mehr erfahren"
+    },
+    "quotes": {
+      "iceDisappears": "Als ich ein Kind war, verschwand das Eis erst im Juni oder Juli. Heute ist es bereits im April oder Mai weg.",
+      "unstableClimate": "Die wichtigste Veränderung ist, dass das Klima viel instabiler geworden ist und der Wind immer stärker und unberechenbarer weht.",
+      "motorsledge": "Viele Jäger bevorzugen heute Motorschlitten statt Hundeschlitten, weil die Winter zu kurz geworden sind und sie ihre Fänge schneller transportieren müssen.",
+      "participant": "Interviewteilnehmer, Uummannaq",
+      "source": "Baztan et al. 2017"
+    },
+    "measurement": {
+      "title": "Wie misst man Eis?",
+      "intro": "Aber wie lässt sich das Gefühl der Bewohner wissenschaftlich messen? Die Antwort liegt im Weltall: Satelliten liefern uns verlässliche Daten.",
+      "step1": "Zuerst der Blick des Satelliten von oben.",
+      "step2": "Nun das unbearbeitete Winterbild, das wir analysieren. Solch ein Bild entsteht jeden Tag.",
+      "step3": "Ein Bild pro Tag seit 2017. Das sind enorm viele Aufnahmen. Wie automatisieren wir das?",
+      "step4": "Die Lösung: Künstliche Intelligenz. Eine selbstentwickelte Computer-Vision-Pipeline, die Wolken und Land erkennt und berechnet, wie viel Eis ein Bild enthält.",
+      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten. Wollen wir sie sehen?"
+    },
+    "visualProof": {
+      "title": "Ein Jahrzehnt der Jahreszeiten",
+      "description": "Hier die Ergebnisse: Jede Grafik zeigt eine Saison Meereis von Februar bis Juni.",
+      "numbersTitle": "Die Zahlen sprechen Klartext",
+      "numbersDescription": "Wenn wir alle Jahre betrachten, erkennen wir bereits einen Trend:",
+      "trend": "Kürzere Meereis-Winter",
+      "conclusion": "Die Aussage ‚Früher verschwand das Eis erst im Juni oder Juli, heute schon im April oder Mai‘ trifft exakt zu."
+    },
+    "newAbnormal": {
+      "title": "Wenn das Normale verschoben wird",
+      "description": "Verdichten wir die Daten zu zwei Zeiträumen: Vor und nach 2021. Wir vergleichen 2017–2020 mit 2021–2025.",
+      "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017–2020: Das, was vor vier Jahren noch normal war. Der blaue Bereich zeigt saisonale Schwankungen.",
+      "livingOutsideTitle": "Leben außerhalb der Norm",
+      "livingOutside": "Die rote Linie zeigt den Mittelwert 2021–2025: die neue Realität.",
+      "percentage": "11,9 % weniger Eisfläche",
+      "consequence": "bedeutet, dass die Gemeinschaft nun dauerhaft außerhalb der einst normalen Schwankungen lebt.",
+      "result": "Die Folge: Motorschlitten statt Hundeschlitten, Boote statt Eisstraßen."
+    },
+    "trajectory": {
+      "title": "Wohin führt das?",
+      "rate": "Aktuelle Veränderung: Jährlicher Verlust von 3 % Eis."
+    },
+    "future": {
+      "trend": "Hält dieser Trend an, erlebt Uummannaq in 15 Jahren eisfreie Bedingungen.",
+      "memory": "Die Arktis, die ihre Großeltern kannten, wird dann nur noch Erinnerung sein.",
+      "traditions": "Traditionen wie Hundeschlitten werden Geschichte."
+    },
+  "toArctic": {
+    "title": "Von Uummannaq zur gesamten Arktis",
+    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Situation dort besser zu verstehen."
+  },
+  "seasonal": {
+    "title": "Ein Gewirr schlechter Nachrichten",
+    "description": "Jede Linie zeichnet ein Jahr arktischen Meereises nach – vom Minimum zum Maximum und zurück. Blaue Linien stehen für kältere Jahre, rote für wärmere Jahre.",
+    "early": {
+      "title": "1979–2000: Die (noch) kalte Hälfte",
+      "description": "Konzentrieren wir uns zunächst auf die erste Hälfte der Aufzeichnungen von 1979 bis 2000. Die blauen Linien liegen deutlich höher."
+    },
+    "late": {
+      "title": "2000–2025: Die heiße Hälfte",
+      "description": "Jetzt steht das jüngste Vierteljahrhundert im Mittelpunkt. Die roten Linien drängen sich immer weiter nach unten."
+    },
+    "current": {
+      "title": "Dieses Jahr, genau jetzt",
+      "description": "Zuletzt isolieren wir das aktuelle Jahr. Wo liegt es? Spoiler: erneut unter dem historischen Durchschnitt."
+    },
+    "breaking": {
+      "title": "Im freien Fall",
+      "description": "Das ist keine natürliche Schwankung, sondern ein System im freien Fall."
+    }
+  },
+  "decades": {
+    "title": "Sechs Jahrzehnte, eine Richtung",
+    "description": "Jedes farbige Band repräsentiert ein Jahrzehnt Messungen des arktischen Meereises. Wir beginnen mit den 1970er-Jahren und verfolgen, wie sie sich treppenartig nach unten bewegen.",
+    "1980s": {
+      "title": "Die 1980er: Das alte Normal",
+      "description": "Dieses hellblaue Band zeigt, wie das arktische Eis aussah, als viele von uns geboren wurden. Werte um null Millionen km² waren im Spätsommer üblich."
+    },
+    "1990s": {
+      "title": "Die 1990er: Erste Risse",
+      "description": "Jedes Jahrzehnt sinkt etwas tiefer als das vorherige. Die Veränderungen scheinen langsam, gewinnen aber an Fahrt."
+    },
+    "2000s": {
+      "title": "Die 2000er: Der Abstieg setzt sich fort",
+      "description": "Die Abwärtsspirale hält an."
+    },
+    "2010s": {
+      "title": "Die 2010er: Beschleunigung",
+      "description": "Der Abwärtstrend verschärft sich. Werte um -0,6 Millionen km² werden üblich – ein Gebiet, das wenige Jahrzehnte zuvor noch unvorstellbar war."
+    },
+    "2020s": {
+      "title": "Die 2020er: Freier Fall",
+      "description": "Das aktuelle Jahrzehnt liegt ganz unten. Werte um -0,9 Millionen km² zeigen, wie schnell sich das „neue Normal“ nach unten verschiebt.",
+      "acceleration": "Wir verlieren nicht nur Eis – wir beschleunigen ins Unbekannte."
+    }
+  },
+  "bridge": {
+    "decades": "Jedes Jahrzehnt sank tiefer als das davor. Doch wie verhalten sich einzelne Jahre innerhalb dieser Stufen?"
+  },
+  "annual": {
+    "title": "Der Kipppunkt",
+    "description": "Jeder Balken zeigt, wie weit das jeweilige Jahr über (blau) oder unter (rot) dem langfristigen Durchschnitt endete. Null markiert die „normale“ Linie.",
+    "analysis": "Die 1980er und 1990er pendelten noch um die Norm. Die 2000er zeigten bereits negative Tendenzen. Die 2010er und 2020er? Fast komplett rot.",
+    "conclusion": "Wir haben eine Grenze überschritten – und es gibt kein Zurück."
+  },
+  "drivers": {
+    "intro": "Was treibt das Eis weg? Wir haben sinkende Eisflächen und Rekordanomalien gesehen. Nun legen wir die Ursachen – CO₂, globale und arktische Temperaturen – auf dieselbe Skala."
+  },
+  "connections": {
+    "title": "Der eindeutige Beweis",
+    "description": "Drei Linien, eine Geschichte: CO₂-Konzentration in der Atmosphäre (grün), globale Temperatur (blau) und Temperatur in der Arktis (rot) steigen seit Jahrzehnten parallel an.",
+    "causation": "Dies ist keine Korrelation, sondern eine kausale Beziehung. Mehr CO₂ bedeutet mehr Wärme, und die Arktis spürt dies zuerst und am stärksten.",
+    "conclusion": "Der Zusammenhang ist unbestreitbar."
+  },
+  "zscore": {
+    "title": "Alles auf einer Skala",
+    "description": "Wie vergleicht man CO₂-Werte (in ppm) mit Temperatur (in Grad) und Eisausdehnung (in Quadratkilometern)?",
+    "method": "Indem man alles auf dieselbe Skala setzt: wie viele Standardabweichungen jeder Messwert vom historischen Durchschnitt entfernt liegt. So werden Muster klar sichtbar.",
+    "mirror": {
+      "title": "Das Spiegelbild",
+      "description": "Drehen wir die Eisverluste um, erscheint etwas Erstaunliches: Der Anstieg von CO₂ und Temperatur spiegelt perfekt den Eisverlust wider.",
+      "conclusion": "Drei verschiedene Messgrößen, eine Geschichte. So sieht Klimawandel in Daten aus."
+    }
+  },
+  "2024": {
+    "title": "2024: Der dramatische Höhepunkt",
+    "description": "Während globale Temperaturen 2024 Rekorde brachen, stiegen die Temperaturen in der Arktis doppelt so stark.",
+    "warning": "Dieser enorme rote Balken ist nicht bloß eine Zahl – er ist eine Warnung. Klimafolgen sind nicht gleichmäßig verteilt, sondern treffen die Arktis zuerst und besonders hart.",
+    "conclusion": "Was in der Arktis geschieht, bleibt nicht in der Arktis."
+  }},
+  "legal": {
+    "info": "Rechtliche Informationen",
+    "title": "Rechtliches",
+    "imprintLink": "Impressum",
+    "privacyLink": "Datenschutzerklärung",
+    "close": "Schließen",
+    "imprint": {
+      "dsgInfo": "Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)",
+      "responsible": "Verantwortlich",
+      "contact": "Kontakt",
+      "phone": "Tel.",
+      "email": "E-Mail",
+      "disputeResolution": "Streitbeilegung",
+      "euCommission": "Die EU-Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:",
+      "disputeDisclaimer": "Wir sind weder verpflichtet noch bereit, an einem Streitbeilegungs­verfahren vor einer Verbraucher­schlichtungsstelle teilzunehmen."
+    },
+    "privacy": {
+      "intro": "Nachfolgend informieren wir Sie gemäß Art. 13 ff. DSGVO über Art, Umfang und Zweck der Verarbeitung personenbezogener Daten auf dieser Website.",
+      "responsible": {
+        "title": "1. Verantwortlicher",
+        "details": "vollständige Kontaktdaten siehe Impressum"
+      },
+      "dataProcessing": {
+        "title": "2. Welche Daten verarbeiten wir & warum?",
+        "category": "Datenkategorie",
+        "purpose": "Zweck",
+        "legalBasis": "Rechts­grundlage",
+        "duration": "Speicher­dauer",
+        "serverLogs": "Server-Logfiles",
+        "serverLogsDetails": "(IP-Adresse, Zeitstempel, URL, Referrer, User-Agent)",
+        "websiteOperation": "Betrieb & Sicher­heit der Website",
+        "legitimateInterest": "(berechtigtes Interesse)",
+        "days": "7 Tage",
+        "cookies": "Technisch not­wen­dige Cookies",
+        "sessionControl": "Sitzungs­steuerung (z. B. bevorzugte Sprache)",
+        "browserEnd": "Bis Browser-Ende bzw. max. 1 Jahr",
+        "emailContent": "E-Mail-Inhalte / Kontakt­daten",
+        "requestProcessing": "Bearbeitung Ihrer Anfrage",
+        "contractCompletion": "Bis Abschluss des Vorgangs + gesetzl. Aufbewahrung"
+      },
+      "thirdParty": {
+        "title": "3. Eingesetzte Dritt­dienste",
+        "mapbox": "Für Karten-Darstellungen wird Mapbox Inc. (USA) eingesetzt. Dabei wird die IP-Adresse nur in gekürzter Form übertragen. Rechts­grundlage ist unser berechtigtes Interesse an einer ansprechenden Darstellung (Art. 6 Abs. 1 lit. f DSGVO).",
+        "moreInfo": "Weitere Informationen:"
+      },
+      "rights": {
+        "title": "4. Ihre Rechte",
+        "access": "Auskunft – Art. 15 DSGVO",
+        "rectification": "Berichtigung – Art. 16 DSGVO",
+        "erasure": "Löschung – Art. 17 DSGVO",
+        "restriction": "Einschränkung der Verarbeitung – Art. 18 DSGVO",
+        "portability": "Daten­übertrag­barkeit – Art. 20 DSGVO",
+        "objection": "Widerspruch – Art. 21 DSGVO",
+        "complaint": "Beschwerde bei einer Aufsichtsbehörde – Art. 77 DSGVO"
+      },
+      "changes": {
+        "title": "5. Änderungen dieser Erklärung",
+        "description": "Wir behalten uns vor, diese Datenschutzerklärung anzupassen, um sie an geänderte Rechts­lagen oder neue Dienste anzupassen. Bitte prüfen Sie daher regelmäßig den aktuellen Stand."
+      }
+    }
+  },
+  "chatbot": {
+    "greeting": "Willkommen, Reisender! Ich bin Knud Rasmussen, dänisch-grönländischer Forscher und Sammler von Inuit-Legenden. Frage mich gern zu den grönländischen Geschichten, die ich in den ‚Eskimo Folk-Tales‘ gesammelt habe. Moderne Technologie hilft mir heute, diese Erzählungen lebendig zu halten und mit KI zu verbinden.",
+    "error": "Ein Fehler ist aufgetreten. Die Geister schweigen gerade. Bitte versuche es später erneut.",
+    "chatWith": "Sprich mit Knud",
+    "chatWithFull": "Sprich mit Knud Rasmussen",
+    "closeChat": "Chat schließen",
+    "placeholder": "Frage zu grönländischen Legenden …",
+    "send": "Senden"
+},
+  "beta": {
+    "title": "Beta-Vorschau",
+    "description": "Diese interaktive Arktis-Geschichte ist noch in Entwicklung. Möglicherweise treten Fehler, visuelle Probleme oder fehlende Funktionen auf, während ich weiter daran arbeite.",
+    "feedback": "Ich freue mich über dein Feedback!",
+    "loading": "Lade Inhalte … {{progress}} %",
+    "enter": "Start"
+  }
+}

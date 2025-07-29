@@ -8,6 +8,7 @@ import { NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
 import MapFlyScene from "../MapFlyScene";
 import SatelliteScene from "@/components/SatelliteScene";
+import { useTranslation } from 'react-i18next';
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
@@ -66,7 +67,10 @@ interface DataBundle{
   annual        : any[];
 }
 
-export const scenes: SceneCfg[] = [
+export const useScenesWithTranslation = () => {
+  const { t } = useTranslation();
+  
+  const scenes: SceneCfg[] = [
 
    {
       key: "geographic-journey",
@@ -97,11 +101,10 @@ export const scenes: SceneCfg[] = [
           html: (
             <>
               <h2 className="text-4xl font-bold mb-5">
-                How the Ice is Vanishing
+                {t('scenes.geographic.title')}
               </h2>
               <p className="text-lg max-w-prose mx-auto">
-                In the Arctic, entire communities depend on sea ice for survival. 
-                But what happens when that ice starts disappearing faster than ever before?
+                {t('scenes.geographic.intro')}
               </p>
             </>
           ),
@@ -110,11 +113,9 @@ export const scenes: SceneCfg[] = [
           captionSide: "left",
           html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Greenland</h3>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.geographic.greenland.title')}</h3>
               <p className="text-lg max-w-sm">
-                The world's largest island. 80% ice sheet, 20% rugged coastline. 
-                Along this coast, deep fjords carve hundreds of kilometers inland, 
-                creating sheltered harbors where Arctic communities have thrived for millennia.
+                {t('scenes.geographic.greenland.description')}
               </p>
             </>
           ),
@@ -123,11 +124,9 @@ export const scenes: SceneCfg[] = [
           captionSide: "right",
           html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Uummannaq Bay</h3>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.geographic.uummannaqBay.title')}</h3>
               <p className="text-lg max-w-sm">
-                600 kilometers north of the Arctic Circle, this bay opens into one of 
-                Greenland's most dramatic fjord systems. For most of the year, 
-                sea ice turns these waters into frozen highways.
+                {t('scenes.geographic.uummannaqBay.description')}
               </p>
             </>
           ),
@@ -136,13 +135,11 @@ export const scenes: SceneCfg[] = [
           captionSide: "left",
           html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Uummannaq Island</h3>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.geographic.uummannaqIsland.title')}</h3>
               <p className="text-lg max-w-lg">
-                Home to 1,300 people living beneath a distinctive heart-shaped mountain. 
-                This community represents hundreds of Arctic settlements whose existence 
-                depends entirely on predictable sea ice patterns.
+                {t('scenes.geographic.uummannaqIsland.description')}
                 <br/><br/>
-                <span className="text-blue-400 font-semibold">But those patterns are changing...</span>
+                <span className="text-blue-400 font-semibold">{t('scenes.geographic.uummannaqIsland.changing')}</span>
               </p>
             </>
           ),
@@ -188,9 +185,9 @@ export const scenes: SceneCfg[] = [
     captionSide: "left",
     html: (
             <>
-              <h3 className="text-2xl font-display mb-2">Heart of a Seal</h3>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.heartOfSeal.title')}</h3>
               <p className="text-lg max-w-sm">
-                The Arctic island of Uummannaq is named after its iconic mountain that is shaped like the Heart of a Seal. Beneath it lies the town with the same name: Uummannaq.
+                {t('scenes.heartOfSeal.description')}
               </p>
             </>
           ), },     
@@ -225,7 +222,7 @@ export const scenes: SceneCfg[] = [
     html: (
             <>
               <p className="text-lg max-w-sm">
-                In the winter months, the sea ice around Uummannaq starts to freeze and connects it to the mainland. Inhabitants can travel freely around and are not restricted to the island anymore. 
+                {t('scenes.winterMonths.description')}
               </p>
             </>
           ), }],
@@ -259,7 +256,7 @@ export const scenes: SceneCfg[] = [
     html: (
             <>
               <p className="text-lg max-w-sm">
-                Fishing is a crucial part of this town, most people live from this industry. Traditionally fisherman go ice-fishing on the sea ice. But all of this is in danger...
+                {t('scenes.fishing.description')}
               </p>
             </>
           ), }],
@@ -296,11 +293,11 @@ export const scenes: SceneCfg[] = [
   captions: [     {
       html: (
         <>
-         <h2 className="text-3xl font-bold mb-3">Voices from the Community</h2>
+         <h2 className="text-3xl font-bold mb-3">{t('scenes.voices.title')}</h2>
 <p className="text-lg text-center max-w-2xl mx-auto">
-  In interviews gathered for the <em>Life on Thin Ice</em> study, Uummannaq residents explain how fast-shrinking winter ice is altering travel, hunting and tradition. Lets listen to their problems.
+  {t('scenes.voices.description')}
   <br/>
-  “Learn more Button”
+  {t('scenes.voices.learnMore')}
 </p>
         </>
       ),
@@ -318,9 +315,9 @@ export const scenes: SceneCfg[] = [
       ref={api}
       photos={[{ src: "/images/heartofaseal_website11.jpg", alt: "Pushing a sled" }]}
       variant="fullscreen"
-      mainCaption="When I was a child, the ice was gone in June and July, now it is gone in April and May."
-      author="Interview participant, Uummannaq"
-      authorSubtitle="Baztan et al. 2017"
+      mainCaption={t('scenes.quotes.iceDisappears')}
+      author={t('scenes.quotes.participant')}
+      authorSubtitle={t('scenes.quotes.source')}
       fullscreenImageFit="cover"    
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
@@ -347,9 +344,9 @@ export const scenes: SceneCfg[] = [
       ref={api}
       photos={[{ src: "/images/heartofaseal_wind.jpg", alt: "Heavy Snowstorm" }]}
       variant="fullscreen-split"
-      mainCaption="The most important change, is that the climate has become more instable now and the wind is more unpredictable and stronger."
-      author="Interview participant, Uummannaq"
-      authorSubtitle="Baztan et al. 2017"
+      mainCaption={t('scenes.quotes.unstableClimate')}
+      author={t('scenes.quotes.participant')}
+      authorSubtitle={t('scenes.quotes.source')}
       fullscreenImageFit="contain" 
       imageSide="right" 
       backgroundColor="#90a9bf"
@@ -380,9 +377,9 @@ export const scenes: SceneCfg[] = [
       ref={api}
       photos={[{ src: "/images/motorsledge.jpg", alt: "Motorsledge" }]}
       variant="fullscreen"
-      mainCaption="A lot of hunters prefer the motorsledge over dogsledding, because the winters are too short, the snowmobiles are faster to transport the catch."
-      author="Interview participant, Uummannaq"
-      authorSubtitle="Baztan et al. 2017"
+      mainCaption={t('scenes.quotes.motorsledge')}
+      author={t('scenes.quotes.participant')}
+      authorSubtitle={t('scenes.quotes.source')}
       fullscreenImageFit="cover"    
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
@@ -433,40 +430,40 @@ export const scenes: SceneCfg[] = [
   captions: [
     {
       html: <>
-        <h2 className="text-3xl font-bold mb-3">How to measure ice?</h2>
+        <h2 className="text-3xl font-bold mb-3">{t('scenes.measurement.title')}</h2>
         <p className="text-lg text-center max-w-2xl mx-auto">
-          But how can we measure this feeling of the Uummannaq residents? The answer lies in space: Satellite photos can provide us with reliable information.
+          {t('scenes.measurement.intro')}
         </p>
       </>
     },
     {
       captionSide:"left",
       html:<p className="text-lg max-w-sm">
-        First, here’s the top-down view our satellite sees.
+        {t('scenes.measurement.step1')}
       </p>
     },
     {
       captionSide:"left",
       html:<p className="text-lg max-w-sm">
-        Now the raw winter image we analyse. One of those for every day.
+        {t('scenes.measurement.step2')}
       </p>
     },
     {
       captionSide:"left",
       html:<p className="text-lg max-w-sm">
-        One picture a day since 2017. Thats a LOT of pictures. So how do we automatize that and make the images into? 
+        {t('scenes.measurement.step3')}
       </p>
     },
     {
       captionSide:"left",
       html:<p className="text-lg max-w-sm">
-        The answer AI: A self built Computer Vision pipeline that detects Clouds, Land and calculates how much Ice is in a picture.
+        {t('scenes.measurement.step4')}
       </p>
     },
      {
       captionSide:"left",
       html:<p className="text-lg max-w-sm">
-        This is how the results look like. After computer-vision processing, ice (yellow and turquoise) pops out. Now if we do this for every day we have data for we can look at almost a decade of data. Shall we?
+        {t('scenes.measurement.step5')}
       </p>
     },
   ],
@@ -503,10 +500,9 @@ export const scenes: SceneCfg[] = [
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">A Decade of Seasons</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.visualProof.title')}</h3>
             <p className="text-lg">
-              Here our results:
-              Each small chart shows one season of sea ice from February to June. 
+              {t('scenes.visualProof.description')}
             </p>
           </>
         ),
@@ -515,14 +511,13 @@ export const scenes: SceneCfg[] = [
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">The Numbers Don&apos;t Lie</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.visualProof.numbersTitle')}</h3>
             <p className="text-lg">
-              When we look at all the years, we can already see a trend here: 
+              {t('scenes.visualProof.numbersDescription')}
               <br/><br/>
-              <span className="text-red-400 font-bold">Shorter Sea Ice Winters</span>
+              <span className="text-red-400 font-bold">{t('scenes.visualProof.trend')}</span>
               <br/><br/>
-              The statement: &quot;When I was a child, the ice was gone in June and July, 
-              now it is gone in April and May&quot; is precisely correct.
+              {t('scenes.visualProof.conclusion')}
             </p>
           </>
         ),
@@ -546,9 +541,9 @@ export const scenes: SceneCfg[] = [
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">When "Normal" Shifts</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.title')}</h3>
             <p className="text-lg">
-             Lets compress our collected data into two comparable timeframes: Before 2021 and after. We look here at the average (mean) of 2017 to 2020 and 2021 to 2025.
+             {t('scenes.newAbnormal.description')}
             </p>
           </>
         ),
@@ -557,10 +552,9 @@ export const scenes: SceneCfg[] = [
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">When "Normal" Shifts</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.title')}</h3>
             <p className="text-lg">
-              The blue line shows the 2017-2020 mean: what was considered normal just four years ago. 
-              The light blue band represents typical seasonal variation.
+              {t('scenes.newAbnormal.earlyPeriod')}
             </p>
           </>
         ),
@@ -569,13 +563,12 @@ export const scenes: SceneCfg[] = [
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">Living Outside the Lines</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
             <p className="text-lg">
-              The red line shows 2021-2025 mean: the new reality. 
-              <span className="text-red-400 font-bold">11.9% less ice coverage</span> means 
-              the community now lives permanently outside what was once normal variation.
+              {t('scenes.newAbnormal.livingOutside')}
+              <span className="text-red-400 font-bold">{t('scenes.newAbnormal.percentage')}</span> {t('scenes.newAbnormal.consequence')}
               <br/><br/>
-              Hence: motorsleds replacing dog teams, boats replacing ice roads.
+              {t('scenes.newAbnormal.result')}
             </p>
           </>
         ),
@@ -607,9 +600,9 @@ export const scenes: SceneCfg[] = [
         captionSide: "left",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">Where This Is Heading</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.trajectory.title')}</h3>
             <p className="text-lg max-w-lg">
-              Current rate of change: <span className="text-red-500 font-bold">3% loss per year.</span>
+              {t('scenes.trajectory.rate')}
             </p>
           </>
         ),
@@ -631,8 +624,7 @@ export const scenes: SceneCfg[] = [
       fullscreenImageFit="contain" 
       imageSide="left" 
       backgroundColor="#4b677a"
-      mainCaption="If this trend continues, the people in Uuummannaq will experience completely ice-free conditions 
-              within 15 years."
+      mainCaption={t('scenes.future.trend')}
       quote={false}
       textColor="white"
       fullscreenQuoteOpts={{
@@ -670,7 +662,7 @@ export const scenes: SceneCfg[] = [
       fullscreenImageFit="contain" 
       imageSide="right" 
       backgroundColor="#90a9bf"
-      mainCaption="The Arctic their grandparents knew will exist only in memory."
+      mainCaption={t('scenes.future.memory')}
       quote={false}
       textColor="white"
       fullscreenQuoteOpts={{
@@ -708,7 +700,7 @@ export const scenes: SceneCfg[] = [
       fullscreenImageFit="contain" 
       imageSide="left" 
       backgroundColor="#fcfcfa"
-      mainCaption="Century old traditions like Dogsledding will only be stories of the past. Greenland Dogs will have no use anymore."
+      mainCaption={t('scenes.future.traditions')}
       quote={false}
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
@@ -764,12 +756,11 @@ export const scenes: SceneCfg[] = [
   captions: [     {
       html: (
         <>
-         <h2 className="text-3xl font-bold mb-3">From Uummannaq to Arctic</h2>
+         <h2 className="text-3xl font-bold mb-3">{t('scenes.toArctic.title')}</h2>
 <p className="text-lg text-center max-w-2xl mx-auto">
-  The Data showed us Sea Ice loss in Uummannaq is imminent. But what about the arctic in general? Lets look at some more comprehend data that
-  explains the whole arctic situation.
+  {t('scenes.toArctic.description')}
   <br/>
-  “Learn more Button”
+  {t('scenes.voices.learnMore')}
 </p>
         </>
       ),
@@ -796,10 +787,9 @@ export const scenes: SceneCfg[] = [
       captionSide: "right",
       html: (
         <>
-          <h3 className="text-2xl font-display mb-2">A Spaghetti Bowl of Bad News</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.title')}</h3>
           <p className="text-lg">
-            Each line traces a year of Arctic sea ice from minimum to maximum and back
-            again. Blue lines show colder years, red lines show warmer years.
+            {t('scenes.seasonal.description')}
           </p>
         </>
       ),
@@ -809,9 +799,9 @@ export const scenes: SceneCfg[] = [
       captionSide: "right",
       html: (
         <>
-          <h3 className="text-2xl font-display mb-2">1979 - 2000: The Cold(er) Half</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.early.title')}</h3>
           <p className="text-lg">
-            Let's focus on the first half of our record, from 1979 to 2000. Hover and notice how much higher the blue lines sit.
+            {t('scenes.seasonal.early.description')}
           </p>
         </>
       ),
@@ -821,10 +811,9 @@ export const scenes: SceneCfg[] = [
       captionSide: "right",
       html: (
         <>
-          <h3 className="text-2xl font-display mb-2">2000 - 2025: The Hot Half</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.late.title')}</h3>
           <p className="text-lg">
-            Now the most recent century takes the centre‑stage. The red lines cluster lower
-            and lower.
+            {t('scenes.seasonal.late.description')}
           </p>
         </>
       ),
@@ -834,10 +823,9 @@ export const scenes: SceneCfg[] = [
       captionSide: "right",
       html: (
         <>
-          <h3 className="text-2xl font-display mb-2">This Year, Right Now</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.current.title')}</h3>
           <p className="text-lg">
-            Finally, isolate the current year. Where does it sit? Spoiler: below the
-            historical average once again.
+            {t('scenes.seasonal.current.description')}
           </p>
         </>
       ),
@@ -846,9 +834,9 @@ export const scenes: SceneCfg[] = [
       captionSide: "right",
       html: (
         <>
-          <h3 className="text-2xl font-display mb-2">Breaking Through the Floor</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.breaking.title')}</h3>
           <p className="text-lg">
-            This isn't natural variation, it's a system in free fall.
+            {t('scenes.seasonal.breaking.description')}
           </p>
         </>
       ),
@@ -878,63 +866,56 @@ export const scenes: SceneCfg[] = [
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">Six Decades, One Direction</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
           <p className="text-lg">
-            Each colored band represents a decade of Arctic ice measurements. 
-            Watch as we reveal them one by one—and notice the unmistakable 
-            staircase downward. We start with the 1970s.
+            {t('scenes.decades.description')}
           </p>
         </>)
       },
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The 1980s: The Old Normal</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1980s.title')}</h3>
           <p className="text-lg">
-            This light blue band shows what Arctic ice looked like when many of us were born. 
-            Values around zero million km² were typical for late summer.
+            {t('scenes.decades.1980s.description')}
           </p>
         </>)
       },
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The 1990s: First Cracks</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1990s.title')}</h3>
           <p className="text-lg">
-            Each new decade settles slightly lower than the last. 
-            The changes seem gradual, but they're building momentum.
+            {t('scenes.decades.1990s.description')}
           </p>
         </>)
       },
             {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The 2000s: Going Down</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2000s.title')}</h3>
           <p className="text-lg">
-            The downward spiral holding on. (replace)
+            {t('scenes.decades.2000s.description')}
           </p>
         </>)
       },
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The 2010s: Acceleration</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2010s.title')}</h3>
           <p className="text-lg">
-            The decline steepens. Values around -0.6 million km² become common—
-            territory that was unthinkable just decades earlier.
+            {t('scenes.decades.2010s.description')}
           </p>
         </>)
       },
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The 2020s: Free Fall</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2020s.title')}</h3>
           <p className="text-lg">
-            The current decade sits at the bottom of the stack. 
-            Values around -0.9 million km² show how quickly the "new normal" 
-            keeps shifting downward.
+            {t('scenes.decades.2020s.description')}
             <br/><br/>
-            We're not just losing ice—we're accelerating into unknown territory.
+            {t('scenes.decades.2020s.acceleration')}
           </p>
         </>)
       },
@@ -949,7 +930,7 @@ export const scenes: SceneCfg[] = [
       { captionIdx:5, call: api=>api?.showLevel?.(6) }
     ]
   },
-  /* ─────  BRIDGE · “Decades → Annual Extremes”  ───── */
+  /* ─────  BRIDGE · "Decades → Annual Extremes"  ───── */
   {
   key: "Fisherboat in Harbor",
   chartSide: "fullscreen",
@@ -962,7 +943,7 @@ export const scenes: SceneCfg[] = [
       variant="fullscreen-split"
       imageSide="right" 
       backgroundColor=""
-      mainCaption="Each new decade stepped lower. But how did single years behave inside those stair-steps?"
+      mainCaption={t('scenes.bridge.decades')}
       quote={false}
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
@@ -999,22 +980,20 @@ export const scenes: SceneCfg[] = [
       {
         captionSide:"right",
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The Tipping Point</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.annual.title')}</h3>
           <p className="text-lg">
-            Each bar shows how much above (blue) or below (red) the long-term average 
-            that year finished. Think of zero as the "normal" line.
+            {t('scenes.annual.description')}
             <br/><br/>
-            The 1980s and 90s danced around normal. The 2000s leaned negative. 
-            The 2010s and 2020s? <strong>Almost entirely red.</strong>
+            {t('scenes.annual.analysis')}
             <br/><br/>
-            We've crossed a threshold, and there's no going back.
+            {t('scenes.annual.conclusion')}
           </p>
         </>)
       }
     ]
   },
 
-  /* ─────  BRIDGE · “Anomalies → Drivers”  ───── */
+  /* ─────  BRIDGE · "Anomalies → Drivers"  ───── */
 {
   key: "Climate Change Drivers",
   progressPoint: true, 
@@ -1035,9 +1014,7 @@ export const scenes: SceneCfg[] = [
       fullscreenImageFit="contain"
       backgroundColor="#0f1e2c"
       textColor="white"
-      mainCaption="What's pushing the ice away? We’ve seen declining
-            coverage and record anomalies. Next, we layer the drivers, CO₂, global
-            and Arctic temperatures, on the same scale."
+      mainCaption={t('scenes.drivers.intro')}
             fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
         bgZoom: 0.02,
@@ -1074,15 +1051,13 @@ export const scenes: SceneCfg[] = [
         captionSide:"right",
         at:0.15, out:0.85,
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The Smoking Gun</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.connections.title')}</h3>
           <p className="text-lg">
-            Three lines, one story: atmospheric CO₂ (green), global temperature (blue), 
-            and Arctic temperature (red) have marched in lockstep for decades.
+            {t('scenes.connections.description')}
             <br/><br/>
-            This isn't correlation—it's causation. More CO₂ traps more heat, 
-            and the Arctic feels it first and fastest.
+            {t('scenes.connections.causation')}
             <br/><br/>
-            The connection is undeniable.
+            {t('scenes.connections.conclusion')}
           </p>
         </>)
       }
@@ -1099,14 +1074,11 @@ export const scenes: SceneCfg[] = [
         captionSide:"left",
         at:0.15, out:0.55,
         html:(<>
-          <h3 className="text-2xl font-display mb-2">Apples to Apples</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.zscore.title')}</h3>
           <p className="text-lg">
-            How do you compare CO₂ levels (measured in parts per million) 
-            with temperature (degrees) and ice extent (square kilometers)?
+            {t('scenes.zscore.description')}
             <br/><br/>
-            By converting everything to the same scale: how many standard deviations 
-            each measurement is from its historical average. Now we can see 
-            the patterns clearly.
+            {t('scenes.zscore.method')}
           </p>
         </>)
       },
@@ -1114,13 +1086,11 @@ export const scenes: SceneCfg[] = [
         captionSide:"left",
         at:0.55, out:0.85,
         html:(<>
-          <h3 className="text-2xl font-display mb-2">The Mirror Image</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.zscore.mirror.title')}</h3>
           <p className="text-lg">
-            When we flip the ice loss data upside down, something remarkable appears: 
-            the rise in CO₂ and temperature perfectly mirrors the loss of ice.
+            {t('scenes.zscore.mirror.description')}
             <br/><br/>
-            Three different measurements, one unified story. 
-            This is what climate change looks like in data.
+            {t('scenes.zscore.mirror.conclusion')}
           </p>
         </>)
       }
@@ -1142,16 +1112,13 @@ export const scenes: SceneCfg[] = [
         captionSide:"right",
         at:0.15, out:1,
         html:(<>
-          <h3 className="text-2xl font-display mb-2">2024: The Exclamation Point</h3>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.2024.title')}</h3>
           <p className="text-lg">
-            While global temperatures broke records in 2024, Arctic temperatures 
-            soared even higher—rising at roughly twice the global rate.
+            {t('scenes.2024.description')}
             <br/><br/>
-            That towering red bar isn't just data—it's a warning. 
-            Climate impacts don't spread evenly across our planet. 
-            They hit the Arctic first, and they hit it hardest.
+            {t('scenes.2024.warning')}
             <br/><br/>
-            What happens in the Arctic doesn't stay in the Arctic.
+            {t('scenes.2024.conclusion')}
           </p>
         </>)
       }
@@ -1215,3 +1182,6 @@ export const scenes: SceneCfg[] = [
 // }
   
 ]
+
+  return scenes;
+};

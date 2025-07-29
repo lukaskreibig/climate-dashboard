@@ -432,6 +432,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
   const capText = (s?: "left" | "right") => (s ? "text-left" : "text-center");
 
+
+  console.log("rerender in Chartscene?")
+
+
   /* ---------- render --------------------------------------- */
   return (
     <section
