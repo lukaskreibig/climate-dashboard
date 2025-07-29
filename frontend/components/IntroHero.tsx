@@ -7,6 +7,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
+import { useTranslation } from 'react-i18next';
 
 /* ───────────  font  ─────────── */
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
@@ -15,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 /* ===================================================================== */
 export default function IntroHero() {
+  const { t } = useTranslation();
   /* ─── DOM refs ─────────────────────────────────────────────────────── */
   const wrap     = useRef<HTMLDivElement>(null);
   const photo    = useRef<HTMLImageElement>(null);
@@ -133,21 +135,21 @@ export default function IntroHero() {
           style={{ filter: "url(#idleShimmer)" }}
           className={`${bebasNeue.className} text-[clamp(6rem,10vw,12rem)] text-slate-400`}
         >
-          THE BIG MELT
+          {t('arctic.heroTitle')}
         </motion.h1>
 
         <motion.h2
           ref={subtitle}
           className="text-xl font-medium text-slate-400 -translate-y-14"
         >
-          A data-driven story of sea-ice decline by Lukas Kreibig
+          {t('arctic.heroSubtitle')}
         </motion.h2>
 
         <motion.h2 ref={line1} className={`${bebasNeue.className} text-center text-6xl opacity-0 text-white`}>
-          The Arctic is Warming Four Times Faster Than the Global Average
+          {t('arctic.heroLine1')}
         </motion.h2>
         <motion.h2 ref={line2} className={`${bebasNeue.className} text-center text-6xl opacity-0 pb-4 text-white`}>
-          In the Fast-Warming Arctic, Sea-Ice Melt Is Now a Constant Reality
+          {t('arctic.heroLine2')}
         </motion.h2>
       </div>
 

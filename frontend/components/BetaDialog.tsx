@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from 'react-i18next';
 
-export default function BetaDialog({ loading, progress, onClose }: { loading, progress, onClose: () => void }) {
+export default function BetaDialog({ loading, progress, onClose }: { loading: boolean, progress: number, onClose: () => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const close = () => {
     setOpen(false);
@@ -48,7 +50,7 @@ export default function BetaDialog({ loading, progress, onClose }: { loading, pr
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2">
                   <div className="inline-flex items-center rounded-0 gap-2 text-night-900
                                   px-6 py-2 font-bold text-base">
-                    Beta&nbsp;Preview
+                    {t('beta.title')}
                   </div>
                 </div>
 
@@ -57,13 +59,11 @@ export default function BetaDialog({ loading, progress, onClose }: { loading, pr
 
                 {/* copy */}
                 <p className="leading-relaxed text-sm sm:text-base">
-                  This interactive Arctic story is still under development.
-                  You might encounter rough edges, visual hiccups or missing
-                  features while I smooth things out.
+                  {t('beta.description')}
                 </p>
 
                 <p className="mt-5 text-sm sm:text-base">
-                  I’d love your feedback on the way!
+                  {t('beta.feedback')}
                 </p>
 
                 {/* CTA */}
@@ -79,7 +79,7 @@ export default function BetaDialog({ loading, progress, onClose }: { loading, pr
                     />
                   </div>
                   <p className="mt-2 text-xs opacity-80">
-                    Loading assets … {progress} %
+                    {t('beta.loading', { progress })}
                   </p>
                 </div>
               )}
@@ -93,7 +93,7 @@ export default function BetaDialog({ loading, progress, onClose }: { loading, pr
                               ? "bg-slate-600 cursor-wait"
                               : "bg-blue-600 hover:bg-blue-500"}`}
               >
-                Enter
+                {t('beta.enter')}
               </button>
                 </div>
               )}

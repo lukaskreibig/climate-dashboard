@@ -7,6 +7,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
+import { useTranslation } from 'react-i18next';
 
 /* ───────────  font  ─────────── */
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
@@ -15,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 /* ===================================================================== */
 export default function IntroHero() {
+  const { t } = useTranslation();
   /* ─── DOM refs ─────────────────────────────────────────────────────── */
   const wrap     = useRef<HTMLDivElement>(null);
   const photo    = useRef<HTMLImageElement>(null);
@@ -130,13 +132,13 @@ export default function IntroHero() {
       <div ref={block} className="relative z-10 flex flex-col items-center pt-5 pointer-events-none">
        
         <motion.h2 ref={line4} className={`${bebasNeue.className} text-center text-6xl opacity-0 text-white`}>
-            Scientists forecast ice-free Arctic summers before 2050
+            {t('arctic.heroLine3')}
         </motion.h2>
         <motion.h2 ref={line5} className={`${bebasNeue.className} text-center text-6xl opacity-0 pb-4 text-white`}>
-             The Arctic is the planet’s canary.
+             {t('arctic.heroLine4')}
         </motion.h2>
         <motion.h2 ref={line6} className={`${bebasNeue.className} text-center text-6xl opacity-0 pb-4 text-black`}>
-             Will we listen?
+             {t('arctic.heroLine5')}
         </motion.h2>
       </div>
 
