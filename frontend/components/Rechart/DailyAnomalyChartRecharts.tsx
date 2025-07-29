@@ -18,6 +18,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { useTranslation } from 'react-i18next';
 
 /* ---------- types ------------------------------------------- */
 export interface Row { Year: number; DayOfYear: number; Extent: number|null; }
@@ -25,8 +26,6 @@ export interface Props { data: Row[]; apiRef?: React.MutableRefObject<any>; }
 
 /* ---------- helpers ----------------------------------------- */
 const monthTicks = [1,32,60,91,121,152,182,213,244,274,305,335];
-const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const monthOf = (d:number)=>months[ monthTicks.findLastIndex(t=>d>=t) ] ?? "";
 
 const colorOf = (dec:string)=>({
   "1970s":"#0f766e",  // teal
@@ -37,11 +36,14 @@ const colorOf = (dec:string)=>({
   "2020s":"#b91c1c",  // dark-red
 }[dec] || "#6b7280");
 
-const HEADLINE = "Arctic Sea Ice Anomaly (in million km²) over the decades";
-
 
 /* ============================================================ */
 export default function DailyAnomalyChart({ data, apiRef }: Props) {
+  const { t, i18n } = useTranslation();
+  
+  const months = t('common.months.short', { returnObjects: true }) as string[];
+  const monthOf = (d:number)=>months[ monthTicks.findLastIndex(t=>d>=t) ] ?? "";
+  
   /* ---- build decades & baseline --------------------------- */
   const series = useMemo(()=>{
     /* baseline - mean extent for each day -------------------- */
@@ -83,7 +85,7 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
     
     <div className="h-[400px] w-full">
          <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {HEADLINE}
+        {t('charts.dailyAnomaly.title')}
       </div>
       <ResponsiveContainer>
         <LineChart margin={{top:20,right:20,bottom:20,left:40}}>
@@ -91,10 +93,10 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
           <XAxis dataKey="day" type="number" domain={[1,366]}
                  ticks={monthTicks} tickFormatter={monthOf}
                  className="chart-axis"/>
-          <YAxis label={{value:"Anomaly (10⁶ km²)",angle:-90,position:"insideLeft"}}
+          <YAxis label={{value:t('charts.dailyAnomaly.yAxisLabel'),angle:-90,position:"insideLeft"}}
                  className="chart-axis"/>
           <Tooltip formatter={(v:number)=>v.toFixed(3)}
-                   labelFormatter={(d:number)=>`${monthOf(d)} (day ${d})`}/>
+                   labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}/>
           <Legend/>
 
           {series.slice(0,visible).map(({decade,rows,color})=>(

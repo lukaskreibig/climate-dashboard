@@ -244,5 +244,70 @@
     "feedback": "Ich freue mich über dein Feedback!",
     "loading": "Lade Inhalte … {{progress}} %",
     "enter": "Start"
-  }
+  },
+  "charts": {
+      "allYearsSeason": {
+        "title": "Täglicher Eisanteil, jede Saison"
+      },
+      "dailyAnomaly": {
+        "title": "Arktische Meereis-Anomalie (in Millionen km²) über die Jahrzehnte",
+        "yAxisLabel": "Anomalie (10⁶ km²)"
+      },
+      "earlyLateSeason": {
+        "earlyTitle": "2017-20 Meereis (Mittelwert)",
+        "lateTitle": "2021-25 Meereis (Mittelwert)",
+        "lessIce": "weniger Eisbedeckung",
+        "iqrSuffix": " IQR",
+        "meanSuffix": " Mittelwert"
+      },
+      "seasonal": {
+        "title": "Arktische Meereisausdehnung (Millionen km²)",
+        "xAxisLabel": "Monat",
+        "yAxisLabel": "Meereisausdehnung"
+      },
+      "annualAnomaly": {
+        "title": "Jährliche arktische Meereis-Anomalie (in Millionen km²) im Vergleich zum langfristigen Durchschnitt",
+        "noData": "Keine Anomaliedaten gefunden.",
+        "anomaly": "Anomalie"
+      },
+      "multiLine": {
+        "title": "Vergleich von atmosphärischem CO₂ mit globaler und arktischer Temperatur",
+        "tempAxisLabel": "Temp.-Anomalie (°C)",
+        "co2AxisLabel": "CO₂ (Gt)",
+        "yearPrefix": "Jahr: ",
+        "arctic": "Arktis",
+        "global": "Global",
+        "co2": "CO₂"
+      },
+      "zScore": {
+        "title": "Vergleich von atmosphärischem CO₂-Ausstoß mit arktischer Meereisausdehnung und arktischer Temperatur",
+        "arcticTemp": "Arktische Temp. (z)",
+        "seaIce": "Meereis (z)",
+        "seaIceInv": "Meereis (inv., z)",
+        "co2": "CO₂ (z)"
+      },
+      "bar2024": {
+        "title": "Vergleich der arktischen Temperaturanomalie und der mittleren globalen Temperaturanomalie im Jahr 2024",
+        "noData": "Keine 2024-Daten für Arktis/Global gefunden.",
+        "arctic": "Arktis",
+        "global": "Global",
+        "meanAnomaly": "Mittlere Anomalie"
+      },
+      "meanIceFraction": {
+        "title": "Durchschnittlicher Meereis-Anteil Trend:",
+        "perYear": "% pro Jahr",
+        "yAxisLabel": "eisbedeckte Fläche in",
+        "yearPrefix": "Jahr ",
+        "yearMean": "Jahresmittel",
+        "trend": "Trend"
+      }
+    },
+  "common": {
+  "months": {
+    "short": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
+    "long": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+  },
+  "dayOfYear": "Tag des Jahres",
+  "day": "Tag"
+}
 }

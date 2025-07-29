@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import * as d3 from "d3";
+import { useTranslation } from 'react-i18next';
 
 /* ------------------------------------------------------------------
    SeasonalLinesChartRecharts – headline, highlight API, delta badge
@@ -31,7 +32,6 @@ interface Props {
 
 /* ─── tweakables ───────────────────────────────────────────── */
 const POINT_EVERY_N_DAYS = 6;
-const HEADLINE = "Arctic Sea Ice Extent (million km²)";
 const SPLIT_YEAR = 2000; // early <2000   late ≥2000
 
 type HighlightMode =
@@ -47,6 +47,9 @@ export default function SeasonalLinesChartRecharts({
   data,
   apiRef,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const months = t('common.months.short', { returnObjects: true }) as string[];
+  
   if (!Array.isArray(data) || !data.length) return null;
 
   /* ── group & down-sample by year ───────────────────────── */
@@ -128,7 +131,7 @@ export default function SeasonalLinesChartRecharts({
     >
       {/* headline + legend */}
       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {HEADLINE}
+        {t('charts.seasonal.title')}
         <div className="flex items-center justify-center gap-1 px-4 pt-1 text-xs sm:text-sm font-medium text-slate-700">
           <span>{minYear}</span>
           <div className="h-2 w-40 rounded bg-gradient-to-r from-blue-600 via-yellow-400 to-red-600" />
@@ -162,17 +165,15 @@ export default function SeasonalLinesChartRecharts({
             type="number"
             domain={[1, 366]}
             tickCount={12}
-            tickFormatter={(d) =>
-              ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-                [new Date(2001, 0, d).getMonth()]
-            }
+            tickFormatter={(d) => months[new Date(2001, 0, d).getMonth()]}
             className="chart-axis"
-            label={{ value: "Month", position: "bottom" }}
+            label={{ value: t('charts.seasonal.xAxisLabel'), position: "bottom" }}
           />
           <YAxis
             domain={[minE, maxE]}
             tickFormatter={(v) => v.toFixed(1)}
             className="chart-axis"
+            label={{ value: t('charts.seasonal.yAxisLabel'), angle: -90, position: "insideLeft" }}
           />
 
           {byYear.map(({ year, values }) => {

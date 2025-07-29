@@ -12,6 +12,7 @@ import {
 } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useTranslation } from 'react-i18next';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -47,6 +48,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   { waypoints, flySpeed = 0.5, className = "", terrain = true },
   ref
 ) {
+  const { i18n } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map>();
   const [ready, setReady] = useState(false);
@@ -114,6 +116,46 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
     return () => map.current?.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ═════════════════ update language when i18n changes ═════════════════ */
+  useEffect(() => {
+    if (!map.current || !ready) return;
+    
+    // Mapbox language mapping
+    const languageMap: { [key: string]: string } = {
+      'de': 'de',
+      'en': 'en',
+      'fr': 'fr',
+      'es': 'es',
+      'it': 'it',
+      'ja': 'ja',
+      'ko': 'ko',
+      'zh': 'zh-Hans',
+      'ru': 'ru'
+    };
+
+    const mapLanguage = languageMap[i18n.language] || 'en';
+    
+    // Update text fields to use the selected language
+    map.current.getStyle().layers?.forEach((layer) => {
+      if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
+        const textField = layer.layout['text-field'];
+        
+        // Only update if it's a name field
+        if (typeof textField === 'string' && textField.includes('name')) {
+          map.current!.setLayoutProperty(
+            layer.id,
+            'text-field',
+            ['coalesce',
+              ['get', `name:${mapLanguage}`],
+              ['get', 'name_international'],
+              ['get', 'name']
+            ]
+          );
+        }
+      }
+    });
+  }, [i18n.language, ready]);
 
   /* ═════════════════ orbit engine ═════════════════ */
   const orbitDegPerSec = useRef(0);

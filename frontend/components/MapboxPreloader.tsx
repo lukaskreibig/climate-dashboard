@@ -6,6 +6,7 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useTranslation } from 'react-i18next';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -23,6 +24,7 @@ export async function preloadTiles(): Promise<void> {
 }
 
 export default function MapboxPreloader() {
+  const { i18n } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,9 +43,47 @@ export default function MapboxPreloader() {
       attributionControl: false,
     });
 
-    /* 3 — Erstes ‘idle’ ⇒ alles Wesentliche ist gecacht  */
+    /* 3 — Erstes 'idle' ⇒ alles Wesentliche ist gecacht  */
     warmMap.once("idle", () => { warmed = true; });
   }, []);
+
+  /* Update language when i18n changes */
+  useEffect(() => {
+    if (!warmMap || !warmed) return;
+    
+    // Same language update logic as MapFlyScene
+    const languageMap: { [key: string]: string } = {
+      'de': 'de',
+      'en': 'en',
+      'fr': 'fr',
+      'es': 'es',
+      'it': 'it',
+      'ja': 'ja',
+      'ko': 'ko',
+      'zh': 'zh-Hans',
+      'ru': 'ru'
+    };
+
+    const mapLanguage = languageMap[i18n.language] || 'en';
+    
+    warmMap.getStyle().layers?.forEach((layer) => {
+      if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
+        const textField = layer.layout['text-field'];
+        
+        if (typeof textField === 'string' && textField.includes('name')) {
+          warmMap!.setLayoutProperty(
+            layer.id,
+            'text-field',
+            ['coalesce',
+              ['get', `name:${mapLanguage}`],
+              ['get', 'name_international'],
+              ['get', 'name']
+            ]
+          );
+        }
+      }
+    });
+  }, [i18n.language]);
 
   /* 1 × 1 px, komplett unsichtbar */
   return (

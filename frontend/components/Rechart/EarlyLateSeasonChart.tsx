@@ -22,6 +22,7 @@ import {
   Legend,
 } from "recharts";
 import gsap from "gsap";
+import { useTranslation } from 'react-i18next';
 
 /* ——— incoming data ——— */
 export interface SeasonRow {
@@ -52,21 +53,19 @@ const HALF      = HEIGHT / 2;
 
 
 /* helper: DOY → "DD-Mon" (matches your CSV labels) */
-const labelForDOY = (doy: number) => {
+const labelForDOY = (doy: number, i18n: any) => {
   const d = new Date(Date.UTC(2020, 0, doy));
-  return `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString(
-    "en-US",
-    { month: "short", timeZone: "UTC" }
-  )}`;
+  const months = i18n.t('common.months.short', { returnObjects: true }) as string[];
+  return `${String(d.getUTCDate()).padStart(2, "0")}-${months[d.getUTCMonth()]}`;
 };
 
 /* densify rows and pre-compute band height */
-function buildDense(rows: SeasonRow[]) {
+function buildDense(rows: SeasonRow[], i18n: any) {
   const byDay = Object.fromEntries(rows.map((r) => [r.day, r]));
   const dense: any[] = [];
 
   for (let doy = SUN_START; doy <= SUN_END; doy++) {
-    const day = labelForDOY(doy);
+    const day = labelForDOY(doy, i18n);
     const r = byDay[day];
 
     dense.push(
@@ -140,10 +139,12 @@ const MeanOnlyTooltip = ({
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef }: Props) {
+  const { t, i18n } = useTranslation();
+  
   /* reveal sequence (unchanged) */
 const [stage, setStage] = useState(0);
 
-/* which epoch is “in focus”?                */
+/* which epoch is "in focus"?                */
 const [focus, setFocus] = useState<"early" | "late" | "both">("both");
 
 useImperativeHandle(apiRef, () => ({
@@ -151,7 +152,7 @@ nextStep:   () => setStage((s) => Math.min(3, s + 1)),
 highlight:  (which) => setFocus(which),
 }), []);
 
-  const dense = useMemo(() => buildDense(data), [data]);
+  const dense = useMemo(() => buildDense(data, i18n), [data, i18n]);
   const meanLossPct = useMemo(() => deriveLoss(dense), [dense]);
 
   /* animate % when red mean appears (stage 2) */
@@ -225,7 +226,7 @@ highlight:  (which) => setFocus(which),
         <Area
           dataKey={`${which[0]}Band`}
           stackId={which}
-          name={`${label} IQR`}
+          name={`${label}${t('charts.earlyLateSeason.iqrSuffix')}`}
           stroke="none"
           fill={
             which === "late"
@@ -240,7 +241,7 @@ highlight:  (which) => setFocus(which),
       <Line
         type="monotone"
         dataKey={`${which[0]}Mean`}
-        name={`${label} mean`}
+        name={`${label}${t('charts.earlyLateSeason.meanSuffix')}`}
         stroke={color}
         strokeWidth={3}
         connectNulls
@@ -262,12 +263,12 @@ highlight:  (which) => setFocus(which),
       <div style={{
         position:"absolute",left:80,top:`${TITLE_Y}px`,zIndex:5,
         fontSize:28,fontWeight:600,color:"#0f172a",pointerEvents:"none"
-      }}>2017-20 Sea Ice (Mean)</div>
+      }}>{t('charts.earlyLateSeason.earlyTitle')}</div>
 
       <div style={{
         position:"absolute",left: 80,top:`${HALF+TITLE_Y}px`,zIndex:5,
         fontSize:28,fontWeight:600,color:"#0f172a",pointerEvents:"none",
-      }}>2021-25 Sea Ice (Mean)</div>
+      }}>{t('charts.earlyLateSeason.lateTitle')}</div>
 
       {/* ---------- Headline rechts im zweiten Panel ---------- */}
       <div style={{
@@ -279,7 +280,7 @@ highlight:  (which) => setFocus(which),
           <span id="lossValue">0</span>%
         </div>
         <div style={{fontSize:14,color:"#64748b"}}>
-          less&nbsp;ice&nbsp;coverage
+          {t('charts.earlyLateSeason.lessIce')}
         </div>
       </div>
 
