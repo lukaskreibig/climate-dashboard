@@ -245,5 +245,70 @@
     "feedback": "I'd love your feedback on the way!",
     "loading": "Loading assets … {{progress}} %",
     "enter": "Enter"
-  }
+  },
+  "charts": {
+      "allYearsSeason": {
+        "title": "Daily ice fraction, every season"
+      },
+      "dailyAnomaly": {
+        "title": "Arctic Sea Ice Anomaly (in million km²) over the decades",
+        "yAxisLabel": "Anomaly (10⁶ km²)"
+      },
+      "earlyLateSeason": {
+        "earlyTitle": "2017-20 Sea Ice (Mean)",
+        "lateTitle": "2021-25 Sea Ice (Mean)",
+        "lessIce": "less ice coverage",
+        "iqrSuffix": " IQR",
+        "meanSuffix": " mean"
+      },
+      "seasonal": {
+        "title": "Arctic Sea Ice Extent (million km²)",
+        "xAxisLabel": "Month",
+        "yAxisLabel": "Sea Ice Extent"
+      },
+      "annualAnomaly": {
+        "title": "Yearly Arctic Sea ice Anomaly (in million km²) compared to the long-term average",
+        "noData": "No anomaly data found.",
+        "anomaly": "Anomaly"
+      },
+      "multiLine": {
+        "title": "Comparing atmospheric CO₂ with global and Arctic temperature",
+        "tempAxisLabel": "Temp Anomaly (°C)",
+        "co2AxisLabel": "CO₂ (Gt)",
+        "yearPrefix": "Year: ",
+        "arctic": "Arctic",
+        "global": "Global",
+        "co2": "CO₂"
+      },
+      "zScore": {
+        "title": "Comparing atmospheric CO₂ exhaust with arctic sea ice extend and Arctic temperature",
+        "arcticTemp": "Arctic Temp (z)",
+        "seaIce": "Sea Ice (z)",
+        "seaIceInv": "Sea Ice (inv, z)",
+        "co2": "CO₂ (z)"
+      },
+      "bar2024": {
+        "title": "Comparing Arctic Temperature Anomaly and Mean Global Temperature Anomaly in 2024",
+        "noData": "No 2024 data found for Arctic/Global.",
+        "arctic": "Arctic",
+        "global": "Global",
+        "meanAnomaly": "Mean Anomaly"
+      },
+      "meanIceFraction": {
+        "title": "Average Sea‑Ice Fraction Trend:",
+        "perYear": "% per year",
+        "yAxisLabel": "ice-covered area in",
+        "yearPrefix": "Year ",
+        "yearMean": "year mean",
+        "trend": "trend"
+      }
+    },
+    "common": {
+  "months": {
+    "short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "long": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  },
+  "dayOfYear": "Day of Year",
+  "day": "day"
+}
 }

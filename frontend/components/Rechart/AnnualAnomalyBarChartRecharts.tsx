@@ -12,6 +12,7 @@ import {
   ReferenceLine,
   Cell
 } from "recharts";
+import { useTranslation } from 'react-i18next';
 
 interface Row {
   Year: number;
@@ -21,21 +22,21 @@ interface Props {
   data: Row[];
 }
 
-const HEADLINE = "Yearly Arctic Sea ice Anomaly (in million km²) compared to the long-term average";
-
 export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
+  const { t } = useTranslation();
+  
   const valid = data
     .filter((d) => d.Year != null && d.AnnualAnomaly != null)
     .sort((a, b) => a.Year - b.Year);
 
   if (!valid.length) {
-    return <p className="text-gray-500 p-2">No anomaly data found.</p>;
+    return <p className="text-gray-500 p-2">{t('charts.annualAnomaly.noData')}</p>;
   }
 
   return (
     <div style={{ width: "100%", height: 400 }}>
        <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {HEADLINE}
+        {t('charts.annualAnomaly.title')}
       </div>
       <ResponsiveContainer>
         <BarChart data={valid} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
@@ -54,7 +55,7 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
           {/* Dashed zero line */}
           <ReferenceLine y={0} stroke="#000" strokeDasharray="3 3" />
 
-          <Bar dataKey="AnnualAnomaly" name="Anomaly">
+          <Bar dataKey="AnnualAnomaly" name={t('charts.annualAnomaly.anomaly')}>
             {valid.map((entry, index) => {
               const val = entry.AnnualAnomaly!;
               const color = val >= 0 ? "blue" : "red";

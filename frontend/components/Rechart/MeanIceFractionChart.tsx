@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import gsap from "gsap";
+import { useTranslation } from 'react-i18next';
 
 /* ─── types ────────────────────────────────────────────────────────── */
 interface Datum { year: number; mean: number }
@@ -27,6 +28,8 @@ const fitTrend = (rows: Datum[]) => {
 
 /* ─── component ─────────────────────────────────────────────────────── */
 export default function MeanIceFractionChart({ data }: Props) {
+  const { t } = useTranslation();
+  
   /* add regression prediction to every point */
   const { dataFit, pctDrop } = useMemo(() => {
     if (!data.length) return { dataFit: [], pctDrop: 0 };
@@ -56,7 +59,7 @@ export default function MeanIceFractionChart({ data }: Props) {
         position: "absolute", left: 80, top: TITLE_Y, zIndex: 5,
         fontSize: 28, fontWeight: 600, color: "#0f172a", pointerEvents: "none",
       }}>
-        Average Sea‑Ice Fraction Trend:
+        {t('charts.meanIceFraction.title')}
       </div>
 
       {/* finding */}
@@ -65,7 +68,7 @@ export default function MeanIceFractionChart({ data }: Props) {
         display: "flex", flexDirection: "column", alignItems: "flex-end",
       }}>
         <div style={{ fontSize: 32, fontWeight: 600, color: "#d62929" }}>
-          -<span id="pctLoss">0</span>% per year
+          -<span id="pctLoss">0</span>{t('charts.meanIceFraction.perYear')}
         </div>
       </div>
 
@@ -83,7 +86,7 @@ export default function MeanIceFractionChart({ data }: Props) {
             tickFormatter={d => `${(d * 100).toFixed(0)} %`}
             tick={{ fill: "#94a3b8" }}
             label={{
-              value: "ice-covered area in",
+              value: t('charts.meanIceFraction.yAxisLabel'),
               angle: -90,
               position: "insideLeft",
               fill: "#94a3b8",
@@ -93,7 +96,7 @@ export default function MeanIceFractionChart({ data }: Props) {
           <Tooltip
             contentStyle={{ background: "#0f172a", border: "none" }}
             formatter={(v: number) => `${(v * 100).toFixed(1)} %`}
-            labelFormatter={l => `Year ${l}`}
+            labelFormatter={l => `${t('charts.meanIceFraction.yearPrefix')}${l}`}
           />
           {/* bars */}
           <Bar
@@ -102,7 +105,7 @@ export default function MeanIceFractionChart({ data }: Props) {
             stroke="#38bdf8"
             barSize={22}
             radius={[4, 4, 0, 0]}
-            name="year mean"
+            name={t('charts.meanIceFraction.yearMean')}
           />
           {/* trendline */}
           <Line
@@ -112,7 +115,7 @@ export default function MeanIceFractionChart({ data }: Props) {
             strokeWidth={2}
             dot={false}
             strokeDasharray="6 4"
-            name="trend"
+            name={t('charts.meanIceFraction.trend')}
           />
         </ComposedChart>
       </ResponsiveContainer>

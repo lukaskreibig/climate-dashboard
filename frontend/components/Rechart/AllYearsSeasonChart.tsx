@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTranslation } from 'react-i18next';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -51,6 +52,7 @@ const densify = (rows:Row[]) => {
 
 /* ─── component ──────────────────────────────────────────────────── */
 export default function AllYearsSeasonChart({data}:Props){
+  const { t } = useTranslation();
   const dense = useMemo(()=>densify(data),[data]);
   const years = useMemo(()=>[...new Set(data.map(r=>r.year))].sort(),[data]);
 
@@ -99,7 +101,7 @@ export default function AllYearsSeasonChart({data}:Props){
     <div style={{position:"relative",width:"100%"}}>
       {/* title */}
       <div style={{position:"absolute",left:20,top:32,fontSize:28,fontWeight:600,color:"#0f172a"}}>
-        Daily ice fraction, every season
+        {t('charts.allYearsSeason.title')}
       </div>
 
       {/* mini-chart grid */}
