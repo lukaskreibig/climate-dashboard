@@ -1,45 +1,45 @@
 {
   "arctic": {
     "title": "Die Arktis: Frühwarnsystem unseres Planeten",
-    "heroTitle": "DAS GROSSE SCHMELZEN",
+    "heroTitle": "SCHMELZPUNKT",
     "heroSubtitle": "Eine datenbasierte Geschichte über das Verschwinden des Meereises von Lukas Kreibig",
-    "heroLine1": "Die Arktis erwärmt sich viermal schneller als der globale Durchschnitt",
-    "heroLine2": "In der rasant erwärmenden Arktis ist das Schmelzen des Meereises zur Realität geworden",
-    "heroLine3": "Forscher prognostizieren eisfreie Sommer in der Arktis noch vor 2050",
-    "heroLine4": "Die Arktis ist das Frühwarnsystem unseres Planeten.",
-    "heroLine5": "Hören wir rechtzeitig hin?"
+    "heroLine1": "Die Arktis erwärmt sich 4x schneller als der globale Durchschnitt",
+    "heroLine2": "Das Schmelzen des Meereises ist zur Realität geworden",
+    "heroLine3": "Forscher erwarten eisfreie Sommer noch vor 2050",
+    "heroLine4": "Die Arktis ist das Frühwarnsystem unseres Planeten",
+    "heroLine5": "Hören wir rechtzeitig zu?"
   },
   "scenes": {
     "geographic": {
       "title": "Wie das Eis verschwindet",
-      "intro": "In der Arktis hängen ganze Gemeinschaften vom Meereis ab. Doch was passiert, wenn dieses Eis schneller denn je schwindet?",
+      "intro": "In der Arktis hängen viele Gemeinschaften vom Meereis ab. Doch was passiert, wenn das Eis schneller denn je schwindet?",
       "greenland": {
         "title": "Grönland",
         "description": "Die größte Insel der Welt. Zu 80 % mit Eis bedeckt, 20 % felsige Küstenlinie. Tief eingeschnittene Fjorde reichen Hunderte Kilometer ins Inland und bieten geschützte Häfen, wo arktische Gemeinschaften seit Jahrtausenden leben."
       },
       "uummannaqBay": {
         "title": "Uummannaq-Bucht",
-        "description": "600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der spektakulärsten Fjordsysteme Grönlands. In den meisten Monaten des Jahres verwandelt sich das Wasser hier in gefrorene Straßen."
+        "description": "600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der spektakulärsten Fjordsysteme Grönlands. In den Wintermonaten verwandelt sich das Wasser hier in Eis."
       },
       "uummannaqIsland": {
         "title": "Insel Uummannaq",
-        "description": "Heimat von 1.300 Menschen, die unter einem markanten, herzförmigen Berg leben. Sie steht stellvertretend für hunderte arktische Siedlungen, deren Existenz vollkommen von verlässlichem Meereis abhängt.",
-        "changing": "Doch diese Verlässlichkeit schwindet …"
+        "description": "Heimat von 1.300 Menschen, die unter einem herzförmigen Berg leben. Sie steht stellvertretend für hunderte arktische Siedlungen, deren Existenz vollkommen von verlässlichem Meereis abhängt.",
+        "changing": "Doch diese Verlässlichkeit schwindet..."
       }
     },
     "heartOfSeal": {
-      "title": "Herz einer Robbe",
-      "description": "Die arktische Insel Uummannaq verdankt ihren Namen dem ikonischen, robbenherzförmigen Berg, unter dem sich gleichnamige Stadt befindet."
+      "title": "Das Herz einer Robbe",
+      "description": "Die arktische Insel Uummannaq verdankt ihrem Namen einem robbenherzförmigen Berg, unter dem sich die gleichnamige Stadt befindet."
     },
     "winterMonths": {
       "description": "In den Wintermonaten friert das Meereis rund um Uummannaq und verbindet die Insel mit dem Festland. Die Einwohner können sich frei bewegen und sind nicht mehr auf die Insel beschränkt."
     },
     "fishing": {
-      "description": "Der Fischfang ist das Rückgrat dieser Gemeinschaft, die meisten leben davon. Traditionell fischen die Menschen direkt auf dem Meereis – doch diese Lebensweise ist bedroht …"
+      "description": "Der Fischfang ist das Rückgrat dieser Gemeinschaft, die Meisten leben davon. Traditionell fischen die Menschen direkt auf dem Meereis. Doch diese und andere Lebensweisen sind in Gefahr."
     },
     "voices": {
-      "title": "Stimmen aus der Gemeinschaft",
-      "description": "In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Hören wir ihnen zu.",
+      "title": "Die Stimmen der Arktis",
+      "description": "In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Was berichten Sie?",
       "learnMore": "Mehr erfahren"
     },
     "quotes": {
@@ -47,51 +47,51 @@
       "unstableClimate": "Die wichtigste Veränderung ist, dass das Klima viel instabiler geworden ist und der Wind immer stärker und unberechenbarer weht.",
       "motorsledge": "Viele Jäger bevorzugen heute Motorschlitten statt Hundeschlitten, weil die Winter zu kurz geworden sind und sie ihre Fänge schneller transportieren müssen.",
       "participant": "Interviewteilnehmer, Uummannaq",
-      "source": "Baztan et al. 2017"
+      "source": "aus Studie \"Life on Thin Ice\", Baztan et al. 2017"
     },
     "measurement": {
-      "title": "Wie misst man Eis?",
-      "intro": "Aber wie lässt sich das Gefühl der Bewohner wissenschaftlich messen? Die Antwort liegt im Weltall: Satelliten liefern uns verlässliche Daten.",
-      "step1": "Zuerst der Blick des Satelliten von oben.",
-      "step2": "Nun das unbearbeitete Winterbild, das wir analysieren. Solch ein Bild entsteht jeden Tag.",
-      "step3": "Ein Bild pro Tag seit 2017. Das sind enorm viele Aufnahmen. Wie automatisieren wir das?",
+      "title": "Nur ein Gefühl?",
+      "intro": "Aber wie lässt sich das Gefühl der Bewohner messen? Die Antwort liegt im Weltall: Satelliten können uns verlässliche Daten liefern.",
+      "step1": "Zuerst der Blick des Satelliten von oben. So sieht der Satellit auf Uummannaq.",
+      "step2": "Nun das originale Winterbild des Satelliten. Solch ein Bild entsteht jeden Tag.",
+      "step3": "Das Sentinel Programm ESA liefert uns ein Bild pro Tag seit 2017. Das sind tausende von Aufnahmen. Wie automatisieren wir das?",
       "step4": "Die Lösung: Künstliche Intelligenz. Eine selbstentwickelte Computer-Vision-Pipeline, die Wolken und Land erkennt und berechnet, wie viel Eis ein Bild enthält.",
-      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten. Wollen wir sie sehen?"
+      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten."
     },
     "visualProof": {
-      "title": "Ein Jahrzehnt der Jahreszeiten",
+      "title": "Ein Jahrzehnt arktisches Meereis",
       "description": "Hier die Ergebnisse: Jede Grafik zeigt eine Saison Meereis von Februar bis Juni.",
       "numbersTitle": "Die Zahlen sprechen Klartext",
       "numbersDescription": "Wenn wir alle Jahre betrachten, erkennen wir bereits einen Trend:",
-      "trend": "Kürzere Meereis-Winter",
+      "trend": "Wärmere Winter, weniger Eis.",
       "conclusion": "Die Aussage ‚Früher verschwand das Eis erst im Juni oder Juli, heute schon im April oder Mai‘ trifft exakt zu."
     },
     "newAbnormal": {
-      "title": "Wenn das Normale verschoben wird",
-      "description": "Verdichten wir die Daten zu zwei Zeiträumen: Vor und nach 2021. Wir vergleichen 2017–2020 mit 2021–2025.",
+      "title": "Wenn Normalität verschwindet",
+      "description": "Doch wie vergleichen wir das am Besten? Verdichten wir die Daten zu zwei Zeiträumen: Vor und nach 2021. Wir vergleichen 2017–2020 mit 2021–2025.",
       "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017–2020: Das, was vor vier Jahren noch normal war. Der blaue Bereich zeigt saisonale Schwankungen.",
       "livingOutsideTitle": "Leben außerhalb der Norm",
-      "livingOutside": "Die rote Linie zeigt den Mittelwert 2021–2025: die neue Realität.",
-      "percentage": "11,9 % weniger Eisfläche",
-      "consequence": "bedeutet, dass die Gemeinschaft nun dauerhaft außerhalb der einst normalen Schwankungen lebt.",
-      "result": "Die Folge: Motorschlitten statt Hundeschlitten, Boote statt Eisstraßen."
+      "livingOutside": "Die rote Linie zeigt den Mittelwert 2021–2025. Der Vergleich zeigt: ",
+      "percentage": "11,9 % weniger Eisfläche im Vergleich zum Mittelwert 2017–2020",
+      "consequence": "bedeutet, dass die Gemeinschaft nun dauerhaft außerhalb der früheren Schwankungen lebt.",
+      "result": "Die Folge: Motorschlitten statt Hundeschlitten, sterbende Traditionen."
     },
     "trajectory": {
-      "title": "Wohin führt das?",
-      "rate": "Aktuelle Veränderung: Jährlicher Verlust von 3 % Eis."
+      "title": "Doch wohin führt das?",
+      "rate": "Sehen wir uns die jährliche Auswertung an und ziehen wir eine Trendlinie dann sehen wir: Ein Jährlicher Verlust von 3% Meereis."
     },
     "future": {
       "trend": "Hält dieser Trend an, erlebt Uummannaq in 15 Jahren eisfreie Bedingungen.",
-      "memory": "Die Arktis, die ihre Großeltern kannten, wird dann nur noch Erinnerung sein.",
-      "traditions": "Traditionen wie Hundeschlitten werden Geschichte."
+      "memory": "Die Arktis, die die ihre Großeltern kannten, wird dann nur noch Erinnerung sein.",
+      "traditions": "Traditionen wie Hundeschlitten werden Geschichte sein."
     },
   "toArctic": {
     "title": "Von Uummannaq zur gesamten Arktis",
-    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Situation dort besser zu verstehen."
+    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Gesamtsituation besser zu verstehen."
   },
   "seasonal": {
-    "title": "Ein Gewirr schlechter Nachrichten",
-    "description": "Jede Linie zeichnet ein Jahr arktischen Meereises nach – vom Minimum zum Maximum und zurück. Blaue Linien stehen für kältere Jahre, rote für wärmere Jahre.",
+    "title": "Eine Kurve schlechter Nachrichten",
+    "description": "Jede Linie zeichnet ein Jahr arktischen Meereises nach, vom Minimum im Herbst zum Maximum im Frühling und zurück. Blaue Linien stehen für die früheren Jahre, rote für die heutigen Jahre.",
     "early": {
       "title": "1979–2000: Die (noch) kalte Hälfte",
       "description": "Konzentrieren wir uns zunächst auf die erste Hälfte der Aufzeichnungen von 1979 bis 2000. Die blauen Linien liegen deutlich höher."
@@ -101,72 +101,72 @@
       "description": "Jetzt steht das jüngste Vierteljahrhundert im Mittelpunkt. Die roten Linien drängen sich immer weiter nach unten."
     },
     "current": {
-      "title": "Dieses Jahr, genau jetzt",
-      "description": "Zuletzt isolieren wir das aktuelle Jahr. Wo liegt es? Spoiler: erneut unter dem historischen Durchschnitt."
+      "title": "Das Jahr 2025",
+      "description": "Zuletzt isolieren wir das aktuelle Jahr. Wir sehen in diesem Jahr eine Arktis, die weit unter dem historischen Durchschnitt liegt. Zwischen Februar und März 2025 haben wir einen neuen Rekordtiefstand für Meereis in der Arktis erreicht."
     },
     "breaking": {
       "title": "Im freien Fall",
-      "description": "Das ist keine natürliche Schwankung, sondern ein System im freien Fall."
+      "description": "Diese Daten zeigen uns, dass dies keine natürliche Schwankungen sind, sondern wir sehen hier ein Ökosystem im freien Fall."
     }
   },
   "decades": {
     "title": "Sechs Jahrzehnte, eine Richtung",
-    "description": "Jedes farbige Band repräsentiert ein Jahrzehnt Messungen des arktischen Meereises. Wir beginnen mit den 1970er-Jahren und verfolgen, wie sie sich treppenartig nach unten bewegen.",
+    "description": "Jedes farbige Band repräsentiert die Meereis Anomalie eines Jahrzehnts. Wir beginnen mit der ersten Dekade, den 1970er Jahren, und verfolgen, wie sich die Werte verändern.",
     "1980s": {
       "title": "Die 1980er: Das alte Normal",
-      "description": "Dieses hellblaue Band zeigt, wie das arktische Eis aussah, als viele von uns geboren wurden. Werte um null Millionen km² waren im Spätsommer üblich."
+      "description": "Dieses hellblaue Band zeigt, wie das arktische Eis in den 80ern aussah. Die Anomalien sind noch positiv, was bedeutet, dass die Eisbedeckung im Durchschnitt über dem langfristigen Durchschnitt liegt. Die 80er sind das letzte Jahrzehnt, in dem das Eis noch relativ stabil ist."
     },
     "1990s": {
       "title": "Die 1990er: Erste Risse",
-      "description": "Jedes Jahrzehnt sinkt etwas tiefer als das vorherige. Die Veränderungen scheinen langsam, gewinnen aber an Fahrt."
+      "description": "Die Eisschmelze beginnt sich zu beschleunigen. Wir sind noch im positiven Anomaliebereich, aber die Werte sinken. Der Abwärtstrends beschleunigt sich."
     },
     "2000s": {
-      "title": "Die 2000er: Der Abstieg setzt sich fort",
-      "description": "Die Abwärtsspirale hält an."
+      "title": "Die 2000er: Die Negative Wende",
+      "description": "Das erste Jahrzehnt in dem wir das ganze Jahr im negativen Bereich liegen. Der Abstand zu den 90ern ist deutlich."
     },
     "2010s": {
       "title": "Die 2010er: Beschleunigung",
-      "description": "Der Abwärtstrend verschärft sich. Werte um -0,6 Millionen km² werden üblich – ein Gebiet, das wenige Jahrzehnte zuvor noch unvorstellbar war."
+      "description": "Der Abwärtstrend verschärft sich. Was früher noch unvorstellbar war, wird zur neuen Normalität. Die Werte liegen nun bei -0,75 Millionen km². Das Eis schmilzt schneller als je zuvor."
     },
     "2020s": {
       "title": "Die 2020er: Freier Fall",
-      "description": "Das aktuelle Jahrzehnt liegt ganz unten. Werte um -0,9 Millionen km² zeigen, wie schnell sich das „neue Normal“ nach unten verschiebt.",
-      "acceleration": "Wir verlieren nicht nur Eis – wir beschleunigen ins Unbekannte."
+      "description": "Das aktuelle Jahrzehnt liegt ganz unten. Im alten Jahrtausend hatten wir im Herbst noch positive Anomalien, nun sehen wir in diesem Zeitraum Negativrekorde.",
+      "acceleration": "Das Meereis befindet sich im freien Fall. Es gibt keine Anzeichen einer Stabilisierung. Ganz im Gegenteil. Das Meereis ist auf einem historischen Tiefstand."
     }
   },
   "bridge": {
-    "decades": "Jedes Jahrzehnt sank tiefer als das davor. Doch wie verhalten sich einzelne Jahre innerhalb dieser Stufen?"
+    "decades": "Jedes Jahrzehnt sank tiefer als das davor. Doch wie verhalten sich einzelne Jahre innerhalb dieser Zeit?"
   },
   "annual": {
     "title": "Der Kipppunkt",
-    "description": "Jeder Balken zeigt, wie weit das jeweilige Jahr über (blau) oder unter (rot) dem langfristigen Durchschnitt endete. Null markiert die „normale“ Linie.",
-    "analysis": "Die 1980er und 1990er pendelten noch um die Norm. Die 2000er zeigten bereits negative Tendenzen. Die 2010er und 2020er? Fast komplett rot.",
-    "conclusion": "Wir haben eine Grenze überschritten – und es gibt kein Zurück."
+    "description": "Jeder Balken zeigt, wie weit das jeweilige Jahr über (blau) oder unter (rot) dem langfristigen Durchschnitt endete. Null markiert den Durchschnitt aller Jahre.",
+    "analysis": "Die 1980er und 1990er pendelten noch um die Norm. In den 2000er erreichen wir einen Kippunkt. Die 2010er und 2020er sind nur noch negativ.",
+    "conclusion": "Auch die einzelnen Jahre zeigen den gleichen Trend: Das Eis schmilzt schneller als je zuvor."
   },
   "drivers": {
-    "intro": "Was treibt das Eis weg? Wir haben sinkende Eisflächen und Rekordanomalien gesehen. Nun legen wir die Ursachen – CO₂, globale und arktische Temperaturen – auf dieselbe Skala."
+    "intro": "Was treibt die Eisschmelze an? Wir haben sinkende Eisflächen und Rekordanomalien gesehen. Nun legen wir die Ursachen auf dieselbe Skala."
   },
   "connections": {
-    "title": "Der eindeutige Beweis",
-    "description": "Drei Linien, eine Geschichte: CO₂-Konzentration in der Atmosphäre (grün), globale Temperatur (blau) und Temperatur in der Arktis (rot) steigen seit Jahrzehnten parallel an.",
-    "causation": "Dies ist keine Korrelation, sondern eine kausale Beziehung. Mehr CO₂ bedeutet mehr Wärme, und die Arktis spürt dies zuerst und am stärksten.",
-    "conclusion": "Der Zusammenhang ist unbestreitbar."
+    "title": "Die unnatürliche Erwärmung der Erde",
+    "description": "Drei Linien, eine Geschichte: CO₂-Konzentration in der Atmosphäre (grün) und globale Temperatur (blau) steigen seit Jahrzehnten an. Die Temperatur in der Arktis (rot) steigt sichtbar schneller als der globale Durchschnitt.",
+    "causation": " Mehr CO₂ bedeutet mehr Wärme, und die Arktis spürt dies zuerst und am stärksten.",
+    "conclusion": "Die Arktis ist das Frühwarnsystem unseres Planeten. Was dort passiert, betrifft uns alle."
   },
   "zscore": {
     "title": "Alles auf einer Skala",
-    "description": "Wie vergleicht man CO₂-Werte (in ppm) mit Temperatur (in Grad) und Eisausdehnung (in Quadratkilometern)?",
-    "method": "Indem man alles auf dieselbe Skala setzt: wie viele Standardabweichungen jeder Messwert vom historischen Durchschnitt entfernt liegt. So werden Muster klar sichtbar.",
+    "description": "Wie vergleicht man CO₂-Werte mit Temperatur und Eisausdehnung?",
+    "method": "Man berechnet wie viele Standardabweichungen jeder Messwert vom historischen Durchschnitt entfernt liegt und setzt sie auf eine gemeinsame Skala. So werden Muster klar sichtbar.",
     "mirror": {
       "title": "Das Spiegelbild",
-      "description": "Drehen wir die Eisverluste um, erscheint etwas Erstaunliches: Der Anstieg von CO₂ und Temperatur spiegelt perfekt den Eisverlust wider.",
-      "conclusion": "Drei verschiedene Messgrößen, eine Geschichte. So sieht Klimawandel in Daten aus."
+      "description": "Drehen wir die Meereisverluste um, erscheint etwas Erstaunliches: Der Anstieg von CO₂ und Temperatur spiegelt perfekt den Eisverlust wider.",
+      "conclusion": "Drei verschiedene Messgrößen, eine gemeinsame Geschichte. So sieht Klimawandel in Daten aus."
     }
   },
   "2024": {
     "title": "2024: Der dramatische Höhepunkt",
-    "description": "Während globale Temperaturen 2024 Rekorde brachen, stiegen die Temperaturen in der Arktis doppelt so stark.",
-    "warning": "Dieser enorme rote Balken ist nicht bloß eine Zahl – er ist eine Warnung. Klimafolgen sind nicht gleichmäßig verteilt, sondern treffen die Arktis zuerst und besonders hart.",
-    "conclusion": "Was in der Arktis geschieht, bleibt nicht in der Arktis."
+    "description": "Während globale Temperaturen 2024 Rekorde brachen, stiegen die Temperaturen in der Arktis umso stärker.",
+    "warning": "Dieser enorme rote Balken ist nicht bloß eine Zahl sondern eine Warnung. Klimafolgen sind nicht gleichmäßig verteilt, sondern treffen die Arktis zuerst und besonders hart.",
+    "conclusion": "Doch das Schmelzen des Meereises hat Folgen für den gesamten Planeten und wird auch den Klimawandel weiter beschleunigen. Was in der Arktis geschieht, bleibt nicht in der Arktis."
   }},
   "legal": {
     "info": "Rechtliche Informationen",
@@ -263,7 +263,8 @@
       "seasonal": {
         "title": "Arktische Meereisausdehnung (Millionen km²)",
         "xAxisLabel": "Monat",
-        "yAxisLabel": "Meereisausdehnung"
+        "yAxisLabel": "Meereisausdehnung",
+        "recordLow": "Rekordtief"
       },
       "annualAnomaly": {
         "title": "Jährliche arktische Meereis-Anomalie (in Millionen km²) im Vergleich zum langfristigen Durchschnitt",

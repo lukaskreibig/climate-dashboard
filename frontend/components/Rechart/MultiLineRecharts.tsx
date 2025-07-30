@@ -85,7 +85,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
             label={{ value: t('charts.multiLine.co2AxisLabel'), angle: 90, position: "insideRight" }}
           />
 
-          <Tooltip formatter={tooltipFormatter} labelFormatter={(year) => `${t('charts.multiLine.yearPrefix')}${year}`} />
+          <Tooltip formatter={tooltipFormatter} labelStyle={{color:"#000"}} labelFormatter={(year) => `${t('charts.multiLine.yearPrefix')}${year}`} />
           <Legend className="chart-grid" />
 
           {/* Arctic line */}
@@ -95,6 +95,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
             dataKey="64N-90N"
             name={t('charts.multiLine.arctic')}
             stroke="#ef4444"
+            strokeWidth={2}
             dot={false}
           />
 
@@ -105,6 +106,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
             dataKey="Glob"
             name={t('charts.multiLine.global')}
             stroke="#3b82f6"
+            strokeWidth={2}
             dot={false}
           />
 
@@ -115,6 +117,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
             dataKey="GlobalCO2Mean"
             name={t('charts.multiLine.co2')}
             stroke="#10b981"
+            strokeWidth={2}
             dot={false}
           />
         </ComposedChart>

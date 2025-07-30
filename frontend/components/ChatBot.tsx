@@ -153,9 +153,9 @@ export default function ChatBot() {
       <button
         type="button"
         onClick={() => setOpened(true)}
-        className="fixed bottom-6 left-6 z-40 rounded-full shadow-lg transition-transform hover:scale-110 animate-pulse"
+        className="fixed bottom-30 right-5.5 z-40 rounded-full shadow-lg ring-1  ring-slate-900/10 transition-transform hover:scale-105 animate-pulse"
       >
-        <Image src="/knud.jpg" alt={t("chatbot.chatWith")} width={56} height={56} className="rounded-full" />
+        <Image src="/knud.jpg" alt={t("chatbot.chatWith")} width={50} height={56} className="rounded-full" />
       </button>
 
       {/* Modal overlay */}

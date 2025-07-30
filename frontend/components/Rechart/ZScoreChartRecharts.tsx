@@ -99,7 +99,7 @@ export default function ZScoreChartRecharts({
             <CartesianGrid className="chart-grid" strokeDasharray="3 3" />
             <XAxis className="chart-axis" dataKey="Year" />
             <YAxis className="chart-axis" />
-            <Tooltip formatter={(v) => (typeof v === "number" ? v.toFixed(2) : v)} />
+            <Tooltip formatter={(v) => (typeof v === "number" ? v.toFixed(2) : v)} labelStyle={{color:"#000"}} />
             <Legend
               className="chart-grid"
               onClick={(o) => {
@@ -114,6 +114,7 @@ export default function ZScoreChartRecharts({
               dataKey="Arctic_z"
               name={t("charts.zScore.arcticTemp")}
               stroke="#ef4444"
+              strokeWidth={2}
               hide={hidden.includes("Arctic_z")}
               dot={false}
             />
@@ -124,6 +125,7 @@ export default function ZScoreChartRecharts({
               dataKey="SeaIceFinal"
               name={inv ? t("charts.zScore.seaIceInv") : t("charts.zScore.seaIce")}
               stroke="#3b82f6"
+              strokeWidth={2}
               hide={hidden.includes("SeaIceFinal")}
               dot={false}
             />
@@ -134,6 +136,7 @@ export default function ZScoreChartRecharts({
               dataKey="GlobCO2Mean_z"
               name={t("charts.zScore.co2")}
               stroke="#48bb78"
+              strokeWidth={2}
               hide={hidden.includes("GlobCO2Mean_z")}
               dot={false}
             />

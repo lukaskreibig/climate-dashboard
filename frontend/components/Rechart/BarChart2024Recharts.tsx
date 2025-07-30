@@ -85,6 +85,7 @@ export default function BarChart2024Recharts({ data }: Props) {
             formatter={(val) =>
               typeof val === "number" ? val.toFixed(2) : val
             }
+            labelStyle={{color:"#000"}}
           />
           <Legend className="chart-grid" />
           <Bar dataKey="value" name={t("charts.bar2024.meanAnomaly")}>

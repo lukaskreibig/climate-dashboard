@@ -36,7 +36,7 @@ export default function MapboxPreloader() {
     /* 2 — Unsichtbare Karte anlegen */
     warmMap = new mapboxgl.Map({
       container : box.current,
-      style     : "mapbox://styles/mapbox/satellite-streets-v12",
+      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
       center    : [0, 90],
       zoom      : 1.3,
       interactive: false,

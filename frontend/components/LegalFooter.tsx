@@ -22,9 +22,9 @@ export default function LegalFooter() {
         <Popover.Trigger asChild>
           <button
             aria-label={t('legal.info')}
-            className="fixed bottom-6 right-6 z-[999] rounded-full bg-white/80
+            className="fixed bottom-6 right-5.5 z-[999] rounded-full bg-white/80
                        p-3 shadow-lg ring-1 ring-slate-900/10 backdrop-blur
-                       transition-colors hover:bg-white"
+                       transition-colors hover:bg-white hover:scale-105"
           >
             <Info className="h-5 w-5 text-slate-700" />
           </button>

@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   XAxis,
@@ -43,11 +44,14 @@ type HighlightMode =
   | "late"
   | "current";
 
+const RECORD_LOW_START_DOY = 45;  // ~14. Februar
+const RECORD_LOW_END_DOY = 75;    // ~16. März
+
 export default function SeasonalLinesChartRecharts({
   data,
   apiRef,
 }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const months = t('common.months.short', { returnObjects: true }) as string[];
   
   if (!Array.isArray(data) || !data.length) return null;
@@ -184,7 +188,7 @@ export default function SeasonalLinesChartRecharts({
                 data={values}
                 dataKey="Extent"
                 stroke={col(year)}
-                strokeWidth={active ? 2.4 : 1}
+                strokeWidth={highlight !== "current" && !active ? 1 : 2.4}
                 strokeOpacity={
                   hoverYear
                     ? active
@@ -201,6 +205,17 @@ export default function SeasonalLinesChartRecharts({
               />
             );
           })}
+
+          {highlight === "current" && (
+  <ReferenceArea
+    x1={RECORD_LOW_START_DOY}
+    x2={RECORD_LOW_END_DOY}
+    fill="#1f2937"
+    fillOpacity={0.1}
+    strokeOpacity={1}
+    label={t('charts.seasonal.recordLow')}
+  />
+)}
 
           {/* helper lines keep .chart-ref for GSAP fade */}
           {/* <ReferenceLine

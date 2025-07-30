@@ -59,7 +59,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 
     map.current = new mapboxgl.Map({
       container: box.current,
-      style: "mapbox://styles/mapbox/satellite-streets-v12",
+      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
       center: [waypoints[0].lng, waypoints[0].lat],
       zoom: waypoints[0].zoom,
       pitch: waypoints[0].pitch ?? 0,
@@ -73,6 +73,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 
     map.current.on("style.load", () => {
       /* remove Mapbox water to reveal MapTiler underneath */
+      
       map
         .current!.getStyle()
         .layers?.filter((l) => l.id.startsWith("water"))

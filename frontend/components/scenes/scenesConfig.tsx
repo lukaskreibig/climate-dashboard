@@ -493,6 +493,7 @@ export const useScenesWithTranslation = () => {
     key: "visual-proof",
     chart: (d: DataBundle, api) => <AllYearsSeasonChart data={d.daily} apiRef={api} />,
     progressPoint: true,
+    plainCaptions: true,
     axesSel: AXES,
 
     captions: [
@@ -534,11 +535,12 @@ export const useScenesWithTranslation = () => {
     key: "new-abnormal",
     chart: (d: DataBundle, api) => <EarlyLateSeasonChart data={d.season} apiRef={api} />,
     axesSel: AXES,
+    plainCaptions: true,
     axesInIdx: 0,
 
     captions: [
       {
-        captionSide: "right",
+        captionSide: "left",
         html: (
           <>
             <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.title')}</h3>
@@ -549,7 +551,7 @@ export const useScenesWithTranslation = () => {
         ),
       },
       {
-        captionSide: "right",
+        captionSide: "left",
         html: (
           <>
             <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.title')}</h3>
@@ -560,7 +562,7 @@ export const useScenesWithTranslation = () => {
         ),
       },
       {
-        captionSide: "right",
+        captionSide: "left",
         html: (
           <>
             <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
@@ -593,11 +595,12 @@ export const useScenesWithTranslation = () => {
   {
     key: "trajectory",
     chart: (d: DataBundle) => <MeanIceFractionChart data={d.frac} />,
+    plainCaptions: true,
     axesSel: AXES,
 
     captions: [
       {
-        captionSide: "left",
+        captionSide: "right",
         html: (
           <>
             <h3 className="text-2xl font-display mb-2">{t('scenes.trajectory.title')}</h3>
@@ -864,7 +867,7 @@ export const useScenesWithTranslation = () => {
 
     captions : [
       {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
           <p className="text-lg">
@@ -873,7 +876,7 @@ export const useScenesWithTranslation = () => {
         </>)
       },
       {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1980s.title')}</h3>
           <p className="text-lg">
@@ -882,7 +885,7 @@ export const useScenesWithTranslation = () => {
         </>)
       },
       {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1990s.title')}</h3>
           <p className="text-lg">
@@ -891,7 +894,7 @@ export const useScenesWithTranslation = () => {
         </>)
       },
             {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2000s.title')}</h3>
           <p className="text-lg">
@@ -900,7 +903,7 @@ export const useScenesWithTranslation = () => {
         </>)
       },
       {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2010s.title')}</h3>
           <p className="text-lg">
@@ -909,7 +912,7 @@ export const useScenesWithTranslation = () => {
         </>)
       },
       {
-        captionSide:"right",
+        captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.2020s.title')}</h3>
           <p className="text-lg">
