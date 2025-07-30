@@ -264,7 +264,8 @@
       "seasonal": {
         "title": "Arctic Sea Ice Extent (million km²)",
         "xAxisLabel": "Month",
-        "yAxisLabel": "Sea Ice Extent"
+        "yAxisLabel": "Sea Ice Extent",
+        "recordLow": "All-Time Record Low"
       },
       "annualAnomaly": {
         "title": "Yearly Arctic Sea ice Anomaly (in million km²) compared to the long-term average",

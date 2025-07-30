@@ -19,7 +19,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 import gsap from "gsap";
 import { useTranslation } from 'react-i18next';
@@ -53,19 +52,21 @@ const HALF      = HEIGHT / 2;
 
 
 /* helper: DOY → "DD-Mon" (matches your CSV labels) */
-const labelForDOY = (doy: number, i18n: any) => {
+const labelForDOY = (doy: number) => {
   const d = new Date(Date.UTC(2020, 0, doy));
-  const months = i18n.t('common.months.short', { returnObjects: true }) as string[];
-  return `${String(d.getUTCDate()).padStart(2, "0")}-${months[d.getUTCMonth()]}`;
+  return `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString(
+    "en-US",
+    { month: "short", timeZone: "UTC" }
+  )}`;
 };
 
 /* densify rows and pre-compute band height */
-function buildDense(rows: SeasonRow[], i18n: any) {
+function buildDense(rows: SeasonRow[]) {
   const byDay = Object.fromEntries(rows.map((r) => [r.day, r]));
   const dense: any[] = [];
 
   for (let doy = SUN_START; doy <= SUN_END; doy++) {
-    const day = labelForDOY(doy, i18n);
+    const day = labelForDOY(doy);
     const r = byDay[day];
 
     dense.push(
@@ -139,7 +140,7 @@ const MeanOnlyTooltip = ({
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   
   /* reveal sequence (unchanged) */
 const [stage, setStage] = useState(0);
@@ -152,7 +153,7 @@ nextStep:   () => setStage((s) => Math.min(3, s + 1)),
 highlight:  (which) => setFocus(which),
 }), []);
 
-  const dense = useMemo(() => buildDense(data, i18n), [data, i18n]);
+  const dense = useMemo(() => buildDense(data), [data]);
   const meanLossPct = useMemo(() => deriveLoss(dense), [dense]);
 
   /* animate % when red mean appears (stage 2) */

@@ -10,6 +10,11 @@ const languages = [
   { code: "de", name: "Deutsch", flag: "🇩🇪" },
 ] as const;
 
+// const languages = [
+//   { code: "en", name: "English" },
+//   { code: "de", name: "Deutsch"},
+// ] as const;
+
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
@@ -33,14 +38,14 @@ export default function LanguageSwitcher() {
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button
-          className="fixed top-6 right-6 z-40 flex items-center gap-2 rounded-full bg-white/80
-                     px-4 py-2 shadow-lg ring-1 ring-slate-900/10 backdrop-blur
+          className="fixed bottom-18 right-5.5 z-40 flex items-center gap-2 rounded-full bg-white/80
+                     px-3.5 py-3 shadow-lg ring-1 ring-slate-900/10 backdrop-blur
                      transition-all hover:bg-white hover:scale-105"
           aria-label="Sprache ändern"
         >
           {/* <Globe className="h-4 w-4 text-slate-700" /> */}
           <span className="text-sm font-medium text-slate-700">
-            {languages.find(l => l.code === current)?.flag} {current.toUpperCase()}
+             {current.toUpperCase()}
           </span>
         </button>
       </Popover.Trigger>

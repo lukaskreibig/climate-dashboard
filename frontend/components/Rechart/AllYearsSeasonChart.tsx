@@ -11,6 +11,7 @@ import {
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTranslation } from 'react-i18next';
+import i18n from "@/i18n/client";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,10 +36,11 @@ const COLORS    = [
 ];
 
 /* ─── helpers ─────────────────────────────────────────────────────── */
-const doyLabel = (doy:number) => {
-  const d = new Date(Date.UTC(2020,0,doy));
-  return `${String(d.getUTCDate()).padStart(2,"0")}-${d.toLocaleString(
-    "en-US",{month:"short",timeZone:"UTC"})}`;
+const doyLabel = (doy: number, locale: string = 'de-DE') => {
+  const d = new Date(Date.UTC(2020, 0, doy));
+  return `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString(
+    locale, { month: "short", timeZone: "UTC" }
+  )}`;
 };
 
 const densify = (rows:Row[]) => {
@@ -83,13 +85,25 @@ export default function AllYearsSeasonChart({data}:Props){
         <LineChart data={dense.filter(r=>r.year===yr)} margin={{left:8,right:8,top:24,bottom:24}}>
           <CartesianGrid strokeDasharray="2 3" stroke="#CBD5E1" vertical={false}/>
           <XAxis dataKey="doy" type="number" domain={[SUN_START,SUN_END]} ticks={ticks}
-            tickFormatter={d=>doyLabel(Number(d)).split("-")[1]} tick={{fill:"#94a3b8",fontSize:10,dy:6}}
+            tickFormatter={d => doyLabel(Number(d), i18n.language === 'de' ? 'de-DE' : 'en-US').split("-")[1]}
             axisLine={false} tickLine={false} height={18}/>
           <YAxis domain={[0,1]} ticks={[0,0.5,1]} tickFormatter={v=>`${(v*100).toFixed(0)} %`}
             tick={{fill:"#94a3b8",fontSize:10,dx:-4}} width={28} axisLine={false} tickLine={false}/>
-          <Tooltip cursor={{stroke:"#64748b",strokeDasharray:"3 3"}} formatter={(v:number)=>`${(v*100).toFixed(1)} %`}
-            labelFormatter={l=>doyLabel(Number(l))}/>
-          <Line type="monotone" dataKey="frac" connectNulls dot={false}
+                    <Tooltip 
+            cursor={{ stroke: "#64748b", strokeDasharray: "3 3" }} 
+            formatter={(v: number) => `${(v * 100).toFixed(1)} %`}
+            labelFormatter={l => doyLabel(Number(l), i18n.language === 'de' ? 'de-DE' : 'en-US')}
+            contentStyle={{
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              border: '1px solid #e2e8f0',
+              borderRadius: '4px',
+              padding: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            labelStyle={{ color: '#1e293b', fontWeight: 600 }}
+            itemStyle={{ color: '#475569' }}
+          />
+          <Line type="monotone" dataKey="frac" name={i18n.language === 'de' ? 'Anteil Meereis' : 'Fraction Sea Ice'} connectNulls dot={false}
             stroke={COLORS[i%COLORS.length]} strokeWidth={2}/>
         </LineChart>
       </ResponsiveContainer>

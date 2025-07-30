@@ -165,7 +165,7 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
         {author}
       </div>)}
       {authorSubtitle && (
-        <div className="text-sm tracking-wide text-slate-600">
+        <div className="text-sm tracking-wide" style={{ color: textColor }}>
           {authorSubtitle}
         </div>
       )}

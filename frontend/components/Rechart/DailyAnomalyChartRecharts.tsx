@@ -37,6 +37,8 @@ const colorOf = (dec:string)=>({
 }[dec] || "#6b7280");
 
 
+
+
 /* ============================================================ */
 export default function DailyAnomalyChart({ data, apiRef }: Props) {
   const { t, i18n } = useTranslation();
@@ -96,7 +98,8 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
           <YAxis label={{value:t('charts.dailyAnomaly.yAxisLabel'),angle:-90,position:"insideLeft"}}
                  className="chart-axis"/>
           <Tooltip formatter={(v:number)=>v.toFixed(3)}
-                   labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}/>
+                   labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}
+                   labelStyle={{color:"#000"}} />
           <Legend/>
 
           {series.slice(0,visible).map(({decade,rows,color})=>(
