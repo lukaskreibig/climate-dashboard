@@ -1,4 +1,3 @@
-// components/CaptionWithLearnMore.tsx
 "use client";
 
 import React from 'react';
@@ -78,18 +77,14 @@ export const CaptionWithLearnMore: React.FC<CaptionWithLearnMoreProps> = ({
   return (
     <>
       {children}
-       <div
-        className="inline-block pointer-events-auto"
-        /* ScrollTrigger klick-Durchleitung verhindern: */
-        onClick={(e) => e.stopPropagation()}
-      ></div>
       
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button 
             variant="ghost"
             size="sm" 
-            className="mt-2 gap-2"
+            className="mt-4 gap-2 pointer-events-auto"
+            onClick={(e) => e.stopPropagation()} // Prevent ScrollTrigger interference
           >
             <Info className="h-4 w-4" />
             {learnMore.linkTitle}
@@ -102,33 +97,33 @@ export const CaptionWithLearnMore: React.FC<CaptionWithLearnMoreProps> = ({
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription asChild>
-  <div className="prose prose-slate max-w-none text-base leading-relaxed space-y-4 !text-black">
-            {learnMore.image && (
-              <img 
-                src={learnMore.image} 
-                alt={learnMore.title || ''}
-                className="w-full rounded-lg mb-4"
-              />
-            )}
+            <div className="prose prose-slate max-w-none text-base leading-relaxed space-y-4 !text-black">
+              {learnMore.image && (
+                <img 
+                  src={learnMore.image} 
+                  alt={learnMore.title || ''}
+                  className="w-full rounded-lg mb-4"
+                />
+              )}
               {renderWithLineBreaks(learnMore.content)}
             </div>
           </AlertDialogDescription>
           <AlertDialogFooter className="flex flex-col items-start !justify-between gap-2 mt-4">
-  {learnMore.linkUrl && (
-    <Button asChild variant="secondary">
-      <a
-        href={learnMore.linkUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {t('common.openSource', 'Originalquelle öffnen')}
-      </a>
-    </Button>
-  )}
-  <AlertDialogCancel className="hover:text-purple-700">
-    {t('common.close')}
-  </AlertDialogCancel>
-</AlertDialogFooter>
+            {learnMore.linkUrl && (
+              <Button asChild variant="secondary">
+                <a
+                  href={learnMore.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('common.openSource', 'Originalquelle öffnen')}
+                </a>
+              </Button>
+            )}
+            <AlertDialogCancel className="hover:text-purple-700">
+              {t('common.close')}
+            </AlertDialogCancel>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
