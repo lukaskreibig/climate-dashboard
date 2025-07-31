@@ -8,7 +8,7 @@ An interactive, data-driven dashboard that visualizes climate data—including t
 
 Explore the live version:
 
-👉 [View Live Dashboard](https://arctic.rip)
+👉 [View Live Story](https://arctic.rip)
 
 
 ## Overview
