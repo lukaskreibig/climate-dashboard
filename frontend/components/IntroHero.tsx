@@ -68,11 +68,11 @@ export default function IntroHero() {
       tl.addLabel("start");
       tl.to([arrow.current, subtitle.current], { opacity: 0, duration: .15, ease: "none" }, "start");
       tl.to(block.current, { yPercent: 50, scale: 1.05, duration: .25, ease: "none" }, "start");
-      tl.to(photo.current,   { opacity: 0, scale: 1.08, duration: .15, ease: "none" }, "+=.25")
+     tl.to(photo.current,   { opacity: 0, scale: 1.08, duration: .15, ease: "none" }, "+=.25")
         .to(title.current,   { color: "white",           duration: .15, ease: "none" }, "<")
         .to(overlay.current, { opacity: 1,               duration: .15, ease: "none" }, "<");
 
-      tl.to(meltTurb.current, { attr: { baseFrequency: .025 }, duration: 1, ease: "none" }, "+=.15")
+      tl.to(meltTurb.current, { attr: { baseFrequency: .025 }, duration: 1, ease: "none " }, "+=.15")
         .to(meltDisp.current, { attr: { scale: 150 },          duration: 1, ease: "none" }, "<")
         .to(title.current,    { filter: "url(#scrollMelt)", scale: 1.5, duration: 1, ease: "none" }, "<")
         .addLabel("meltDone");

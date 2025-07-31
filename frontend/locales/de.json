@@ -40,14 +40,18 @@
     "voices": {
       "title": "Die Stimmen der Arktis",
       "description": "In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Was berichten Sie?",
-      "learnMore": "Mehr erfahren"
+      "learnMoreLink": "Mehr über die Studie \"Life on thin ice\" erfahren",
+      "learnMoreTitle": "Life on thin ice",
+    "learnMoreContent": "Die Studie \"Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities\" von Juan Baztan, Mateo Cordier, Jean-Michel Huctin, Zhiwei Zhu und Jean-Paul Vanderlinden erscheint in Polar Science 13: 100–108 (2017) und verbindet zehn Jahre partizipative Feldforschung in der Bucht von Uummannaq mit einer bibliometrischen Analyse von über 3 700 Meereis-Publikationen. Interviews und eine Fokusgruppe (2014/15) zeigen: Verlässliches Wintereis bildet das Rückgrat von Jagd, Fischerei und Mobilität, bricht jedoch heute Wochen früher auf als noch in den 1990er-Jahren. Nur rund 1 % der Fachliteratur untersucht die für die Gemeinde entscheidende Eisdicke nahe der Küste, was eine erhebliche Wissenslücke offenbart. Die Autoren fordern daher eine gemeinsam mit Inuit-Gemeinschaften erstellte Klimaforschung, um Ergebnisse relevant, glaubwürdig und legitim für lokale Anpassungsentscheidungen zu machen.",
+        "learnMoreLinkUrl": "https://doi.org/10.1016/j.polar.2017.05.002"
+
     },
     "quotes": {
       "iceDisappears": "Als ich ein Kind war, verschwand das Eis erst im Juni oder Juli. Heute ist es bereits im April oder Mai weg.",
       "unstableClimate": "Die wichtigste Veränderung ist, dass das Klima viel instabiler geworden ist und der Wind immer stärker und unberechenbarer weht.",
       "motorsledge": "Viele Jäger bevorzugen heute Motorschlitten statt Hundeschlitten, weil die Winter zu kurz geworden sind und sie ihre Fänge schneller transportieren müssen.",
       "participant": "Interviewteilnehmer, Uummannaq",
-      "source": "aus Studie \"Life on Thin Ice\", Baztan et al. 2017"
+      "source": "aus der \"Life on Thin Ice\" Studie" 
     },
     "measurement": {
       "title": "Nur ein Gefühl?",
@@ -56,7 +60,11 @@
       "step2": "Nun das originale Winterbild des Satelliten. Solch ein Bild entsteht jeden Tag.",
       "step3": "Das Sentinel Programm ESA liefert uns ein Bild pro Tag seit 2017. Das sind tausende von Aufnahmen. Wie automatisieren wir das?",
       "step4": "Die Lösung: Künstliche Intelligenz. Eine selbstentwickelte Computer-Vision-Pipeline, die Wolken und Land erkennt und berechnet, wie viel Eis ein Bild enthält.",
-      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten."
+      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten.",
+      "learnMoreLink": "Erfahre mehr über die Computer Vision Pipeline",
+      "learnMoreTitle": "Computer Vision Pipeline für Meereiserkennung",
+      "learnMoreContent": "Rohdaten aller 13 Sentinel-2-Bänder werden aus der AWS-Cloud geladen und durchlaufen eine vierstufige Segmentierungs-Pipeline:\\n\\n• Black-Border-Filter entfernt defekte Randpixel.\\n• Wolkenmaske: Ein U-Net (CloudSEN12+) erkennt dünne Wolken und Schatten.\\n• Landmaske: Eine statische Küstenmaske blendet Fels und Tundra aus.\\n• Eis/Wasser-Maske: Spektralindices trennen\\n  – festes Eis  NDSI > 0,52\\n  – dünnes / nasses Eis 0,31–0,52\\n  – offenes Wasser NDWI > 0,25.\\n\\nAlle Masken werden zu einem Farb-Overlay kombiniert (Gelb = festes Eis, Cyan = dünnes Eis, Blau = Wasser). Pro Kachel werden Kennzahlen in eine CSV geschrieben.",
+      "learnMoreLinkUrl": "https://www.github.com/lukaskreibig/"
     },
     "visualProof": {
       "title": "Ein Jahrzehnt arktisches Meereis",
@@ -87,7 +95,11 @@
     },
   "toArctic": {
     "title": "Von Uummannaq zur gesamten Arktis",
-    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Gesamtsituation besser zu verstehen."
+    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Gesamtsituation besser zu verstehen.",
+    "learnMoreLink": "Wo kommen die Arktisdaten? Klicke hier die Methodik.",
+    "learnMoreTitle": "Methodik & Datenquellen – Arktisches Meereis",
+    "learnMoreContent": "Dieses Dashboard nutzt wissenschaftlich geprüfte Datensätze und aktualisiert sie täglich über eine automatisierte Python-Pipeline.\\n\\nDatenquellen\\nNASA GISS – Temperaturanomalien: https://data.giss.nasa.gov/gistemp/\\nNOAA – tägliche Meereisausdehnung: https://www.ncei.noaa.gov/access/monitoring/seaice/\\nOur World in Data – weltweite CO₂-Emissionen: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nVerarbeitungsschritte\\n1. Ein GitHub-Actions-Workflow startet jede Nacht ein Update.\\n2. Neueste CSV-/JSON-Dateien werden geladen, geprüft und mit Pandas vereinheitlicht.\\n3. Z-Scores setzen Temperatur, Eisausdehnung und CO₂ auf eine gemeinsame Skala.\\n4. Die bereinigten Daten werden als data.json gespeichert und via FastAPI an das Next.js-Frontend ausgeliefert."
+    
   },
   "seasonal": {
     "title": "Eine Kurve schlechter Nachrichten",
@@ -229,15 +241,31 @@
       }
     }
   },
-  "chatbot": {
-    "greeting": "Willkommen, Reisender! Ich bin Knud Rasmussen, dänisch-grönländischer Forscher und Sammler von Inuit-Legenden. Frage mich gern zu den grönländischen Geschichten, die ich in den ‚Eskimo Folk-Tales‘ gesammelt habe. Moderne Technologie hilft mir heute, diese Erzählungen lebendig zu halten und mit KI zu verbinden.",
+    "chatbot": {
+    "greeting": "Willkommen, Reisender! Ich bin Knud Rasmussen, dänisch-grönländischer Forscher und Sammler von Inuit-Legenden. Frage mich gern zu den grönländischen Geschichten, die ich in den ‚Eskimo Folk-Tales' gesammelt habe. Moderne Technologie hilft mir heute, diese Erzählungen lebendig zu halten und mit KI zu verbinden.",
     "error": "Ein Fehler ist aufgetreten. Die Geister schweigen gerade. Bitte versuche es später erneut.",
     "chatWith": "Sprich mit Knud",
     "chatWithFull": "Sprich mit Knud Rasmussen",
     "closeChat": "Chat schließen",
     "placeholder": "Frage zu grönländischen Legenden …",
-    "send": "Senden"
-},
+    "send": "Senden",
+    "description": "Dieser KI-Chatbot wurde mit den ‚Eskimo Folk-Tales' trainiert – einer einzigartigen Sammlung grönländischer Legenden und Mythen, die der dänisch-grönländische Polarforscher Knud Rasmussen (1879-1933) während seiner legendären Thule-Expeditionen gesammelt hat.",
+    "aboutKnud": "Knud Rasmussen gilt als ‚Vater der Eskimologie' und unternahm zwischen 1912-1924 mehrere bahnbrechende Expeditionen durch die Arktis. Er sprach fließend Grönländisch und sammelte über 20.000 Seiten mündlicher Überlieferungen der Inuit – Geschichten über Geister, Schamanen, Jagd und das Leben in der Arktis.",
+    "folkTales": "Die ‚Eskimo Folk-Tales' enthalten Hunderte von Geschichten: vom großen Raben Tulugaq, der das Licht in die Welt brachte, bis hin zu Sedna, der Meeresgöttin. Diese Erzählungen gewähren einzigartige Einblicke in die spirituelle Welt der Inuit.",
+    "aiNote": "Willkommen, Reisender. Frage mich nach spezifischen Legenden, Charakteren oder der Bedeutung arktischer Mythen!"
+  },
+  "outro": {
+    "sourcesMethodology": "Quellen & Methodik",
+    "backToStory": "← Zurück zur Geschichte",
+    "startConversation": "Gespräch beginnen",
+    "explorerSubtitle": "Entdecker • Geschichtenerzähler • Wegweiser",
+    "contact": "Kontakt",
+    "phone": "Tel.",
+    "email": "E-Mail",
+    "voicesButton": "Life on Thin Ice Studie",
+    "measurementButton": "Computer Vision Pipeline",
+    "arcticButton": "Arktische Datenquellen"
+  },
   "beta": {
     "title": "Beta-Vorschau",
     "description": "Diese interaktive Arktis-Geschichte ist noch in Entwicklung. Möglicherweise treten Fehler, visuelle Probleme oder fehlende Funktionen auf, während ich weiter daran arbeite.",
@@ -304,11 +332,13 @@
       }
     },
   "common": {
-  "months": {
-    "short": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
-    "long": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
-  },
-  "dayOfYear": "Tag des Jahres",
-  "day": "Tag"
+      "months": {
+        "short": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
+        "long": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+      },
+    "dayOfYear": "Tag des Jahres",
+    "day": "Tag",
+    "openSource": "Originalquelle öffnen",
+  "close": "Schließen"
 }
 }

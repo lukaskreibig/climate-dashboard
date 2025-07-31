@@ -493,7 +493,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
               c.captionSide
             )} pointer-events-none z-20`}
           >
-            <div className={finalClass}>{c.html}</div>
+            <div className={`pointer-events-auto ${finalClass}`}>{c.html}</div>
           </div>
         );
       })}
