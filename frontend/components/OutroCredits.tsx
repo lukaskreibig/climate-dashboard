@@ -214,7 +214,9 @@ export default function OutroCredits() {
     <section
       ref={outroRef}
       id="outro"
-      className="fixed inset-0 bg-neutral-950 text-white flex flex-col lg:flex-row items-stretch justify-between z-50 opacity-0 transition-opacity duration-700"
+      className="fixed inset-0 bg-neutral-950 text-white flex flex-col lg:flex-row
+             items-stretch justify-between z-50 opacity-0 pointer-events-none
+             invisible transition-opacity duration-700"
     >
       {/* ═══ LEFT COLUMN - Credits & Methodology ═══ */}
       <div className="flex-1 flex flex-col justify-center px-8 py-10 max-w-lg">
@@ -261,7 +263,7 @@ export default function OutroCredits() {
               // Hide outro after scroll
               setTimeout(() => {
                 if (outroRef.current) {
-                  outroRef.current.classList.add("opacity-0");
+                  outroRef.current.classList.add("opacity-0", "pointer-events-none", "invisible");
                 }
               }, 100);
             }}

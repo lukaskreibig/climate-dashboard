@@ -81,7 +81,16 @@ export default function IntroHero() {
 
       tl.add(() => {
         gsap.set("body", { overflow: "hidden" });
-        document.getElementById("outro")?.classList.remove("opacity-0");
+        const outro = document.getElementById("outro");
+ if (outro) {
+   // Klicks zulassen + sichtbar schalten
+   outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
+   gsap.fromTo(
+     outro,
+     { opacity: 0 },
+     { opacity: 1, duration: 0.6, ease: "power2.out" }
+   );
+ }
       });
     }, wrap);
 
