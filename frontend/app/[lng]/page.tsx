@@ -13,13 +13,13 @@ import ArcticBackgroundSystem, {
 import MapboxPreloader, { preloadTiles } from "@/components/MapboxPreloader";
 
 import ChartScene from "@/components/scenes/ChartScene";
-import { dynamicModules, scenes, useScenesWithTranslation } from "@/components/scenes/scenesConfig";
+import { dynamicModules, useScenesWithTranslation } from "@/components/scenes/scenesConfig";
 
 import StoryProgress from "@/components/StoryProgress";
-import ChatBot from "@/components/ChatBot";
 import OutroHero from "@/components/OutroHero";
 import BetaDialog from "@/components/BetaDialog";
 import LegalFooter from "@/components/LegalFooter";
+import OutroCredits from "@/components/OutroCredits";
 
 
 /* ──────────────────── TYPES ──────────────────── */
@@ -306,8 +306,8 @@ export default function Page() {
 
         <OutroHero />
 
-        <ChatBot />
-
+        {/* ─── Outro / Credits ─── */}
+        <OutroCredits />
       <StoryProgress />
       <LegalFooter />
 

@@ -40,14 +40,17 @@
     "voices": {
       "title": "Voices from the Community",
       "description": "In interviews gathered for the Life on Thin Ice study, Uummannaq residents explain how fast-shrinking winter ice is altering travel, hunting and tradition. Lets listen to their problems.",
-      "learnMore": "Learn more Button"
+       "learnMoreLink": "Find out more about the study \"Life on thin ice\"",
+    "learnMoreTitle": "Life on thin ice",
+    "learnMoreContent": "The paper, \"Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities\" from Juan Baztan, Mateo Cordier, Jean-Michel Huctin, Zhiwei Zhu and Jean-Paul Vanderlinden published in Polar Science 13: 100–108 (2017), integrates ten years of participatory fieldwork in Uummannaq Bay with a bibliometric review of > 3 700 sea-ice papers to assess whether mainstream climate science meets Inuit community needs. Semi-structured interviews and a 2015 focus-group reveal that predictable winter sea-ice is essential for hunting, fishing and over-ice travel, yet melt-season onset now arrives several weeks earlier than in the 1990s. Only ≈ 1 % of the global literature examines coastal winter ice-thickness, the parameter most needed for safe travel, indicating a significant relevance gap. The authors conclude that climate knowledge must be co-produced with Indigenous communities to be salient, credible and legitimate for local adaptation and decision-making.",
+    "learnMoreLinkUrl": "https://doi.org/10.1016/j.polar.2017.05.002"
     },
     "quotes": {
       "iceDisappears": "When I was a child, the ice was gone in June and July, now it is gone in April and May.",
       "unstableClimate": "The most important change, is that the climate has become more instable now and the wind is more unpredictable and stronger.",
       "motorsledge": "A lot of hunters prefer the motorsledge over dogsledding, because the winters are too short, the snowmobiles are faster to transport the catch.",
       "participant": "Interview participant, Uummannaq",
-      "source": "Baztan et al. 2017"
+      "source": "from the \"Life on Thin Ice\" study"
     },
     "measurement": {
       "title": "How to measure ice?",
@@ -56,7 +59,11 @@
       "step2": "Now the raw winter image we analyse. One of those for every day.",
       "step3": "One picture a day since 2017. Thats a LOT of pictures. So how do we automatize that and make the images into?",
       "step4": "The answer AI: A self built Computer Vision pipeline that detects Clouds, Land and calculates how much Ice is in a picture.",
-      "step5": "This is how the results look like. After computer-vision processing, ice (yellow and turquoise) pops out. Now if we do this for every day we have data for we can look at almost a decade of data. Shall we?"
+      "step5": "This is how the results look like. After computer-vision processing, ice (yellow and turquoise) pops out. Now if we do this for every day we have data for we can look at almost a decade of data. Shall we?",
+      "learnMoreLink": "Learn More about the Computer Vision Pipeline",
+      "learnMoreTitle": "Computer Vision Pipeline for Sea Ice Detection",
+      "learnMoreContent": "High-resolution Sentinel-2 images (all 13 bands) are streamed from AWS and pass through a four-stage segmentation pipeline:\\n\\n• Black-border filter removes corrupt edge pixels.\\n• Cloud mask: a U-Net model (CloudSEN12+) flags thin clouds and shadows.\\n• Land mask: a static coastline raster excludes rock and tundra.\\n• Ice/Water mask: spectral indices separate\\n  – solid ice  NDSI > 0.52\\n  – light / wet ice 0.31–0.52\\n  – open water NDWI > 0.25.\\n\\nMasks are merged into a colour overlay (yellow = solid ice, cyan = light ice, blue = water). Statistics for every tile are stored in a CSV file for later analysis.",
+      "learnMoreLinkUrl": "https://www.github.com/lukaskreibig/"
     },
     "visualProof": {
       "title": "A Decade of Seasons",
@@ -87,7 +94,10 @@
     },
     "toArctic": {
       "title": "From Uummannaq to Arctic",
-      "description": "The Data showed us Sea Ice loss in Uummannaq is imminent. But what about the arctic in general? Lets look at some more comprehend data that explains the whole arctic situation."
+      "description": "The Data showed us Sea Ice loss in Uummannaq is imminent. But what about the arctic in general? Lets look at some more comprehend data that explains the whole arctic situation.",
+      "learnMoreLink": "Where does the Arctic data come from? Click for methodology.",
+      "learnMoreTitle": "Methodology & Data Sources – Arctic Sea-Ice Dashboard",
+    "learnMoreContent": "The dashboard combines peer-reviewed datasets and refreshes them daily via an automated Python pipeline.\\n\\nData sources\\nNASA GISS – temperature anomalies: https://data.giss.nasa.gov/gistemp/\\nNOAA – daily Arctic sea-ice extent: https://www.ncei.noaa.gov/access/monitoring/seaice/\\nOur World in Data – global CO₂ emissions: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nProcessing steps\\n1. A GitHub Actions workflow triggers an update every night.\\n2. Latest CSV / JSON files are downloaded, validated and reshaped with Pandas.\\n3. Z-scores standardise temperature, ice extent and CO₂ to a common scale.\\n4. The cleaned dataset is written to data.json and served by FastAPI to the Next.js frontend."
     },
     "seasonal": {
       "title": "A Spaghetti Bowl of Bad News",
@@ -149,7 +159,7 @@
     "connections": {
       "title": "The Smoking Gun",
       "description": "Three lines, one story: atmospheric CO₂ (green), global temperature (blue), and Arctic temperature (red) have marched in lockstep for decades.",
-      "causation": "This isn't correlation—it's causation. More CO₂ traps more heat, and the Arctic feels it first and fastest.",
+      "causation": "This isn't correlation, it's causation. More CO₂ traps more heat, and the Arctic feels it first and fastest.",
       "conclusion": "The connection is undeniable."
     },
     "zscore": {
@@ -165,7 +175,7 @@
     "2024": {
       "title": "2024: The Exclamation Point",
       "description": "While global temperatures broke records in 2024, Arctic temperatures soared even higher—rising at roughly twice the global rate.",
-      "warning": "That towering red bar isn't just data—it's a warning. Climate impacts don't spread evenly across our planet. They hit the Arctic first, and they hit it hardest.",
+      "warning": "That towering red bar isn't just data, it's a warning. Climate impacts don't spread evenly across our planet. They hit the Arctic first, and they hit it hardest.",
       "conclusion": "What happens in the Arctic doesn't stay in the Arctic."
     }
   },
@@ -230,14 +240,30 @@
       }
     }
   },
-  "chatbot": {
+   "chatbot": {
     "greeting": "Greetings, traveller! I'm Knud Rasmussen, Danish-Greenlandic explorer and collector of Inuit legends. Ask me anything about the Greenlandic folktales I recorded in Eskimo Folk-Tales. Behind the scenes, modern technology helps me recall these stories clearly, blending the spirit of my journeys with today's AI.",
     "error": "An error occurred. The spirits have gone silent. Please try again later.",
     "chatWith": "Chat with Knud",
     "chatWithFull": "Chat with Knud Rasmussen",
     "closeChat": "Close chat",
     "placeholder": "Ask about Greenlandic stories…",
-    "send": "Send"
+    "send": "Send",
+    "description": "This AI chatbot is trained on the 'Eskimo Folk-Tales', a unique collection of Greenlandic legends and myths gathered by Danish-Greenlandic polar explorer Knud Rasmussen (1879-1933) during his legendary Thule Expeditions.",
+    "aboutKnud": "Known as the 'Father of Eskimology,' Knud Rasmussen conducted groundbreaking expeditions across the Arctic from 1912-1924. Fluent in Greenlandic, he collected over 20,000 pages of Inuit oral traditions and stories of spirits, shamans, hunting, and Arctic life.",
+    "folkTales": "The 'Eskimo Folk-Tales' contain hundreds of stories: from Tulugaq the great raven who brought light to the world, to Sedna the sea goddess. These tales offer unique insights into the spiritual world of the Inuit.",
+    "aiNote": "Greetings, traveller. Ask me about specific legends, characters, or the meaning behind Arctic myths!"
+  },
+  "outro": {
+    "sourcesMethodology": "Sources & Methodology",
+    "backToStory": "← Back to Story",
+    "startConversation": "Start Conversation",
+    "explorerSubtitle": "Explorer • Storyteller • Guide",
+    "contact": "Contact",
+    "phone": "Phone",
+    "email": "Email",
+    "voicesButton": "Life on Thin Ice Study",
+    "measurementButton": "Computer Vision Pipeline",
+    "arcticButton": "Arctic Data Sources"
   },
     "beta": {
     "title": "Beta Preview",
@@ -310,6 +336,8 @@
     "long": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
   },
   "dayOfYear": "Day of Year",
-  "day": "day"
+  "day": "day",
+  "openSource": "Open Source",
+  "close": "Close"
 }
 }

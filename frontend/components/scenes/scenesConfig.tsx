@@ -9,6 +9,7 @@ import PhotoStory from "../PhotoStory";
 import MapFlyScene from "../MapFlyScene";
 import SatelliteScene from "@/components/SatelliteScene";
 import { useTranslation } from 'react-i18next';
+import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
@@ -66,6 +67,7 @@ interface DataBundle{
   iqrStats      : any;
   annual        : any[];
 }
+
 
 export const useScenesWithTranslation = () => {
   const { t } = useTranslation();
@@ -292,15 +294,25 @@ export const useScenesWithTranslation = () => {
   axesSel: NO_MATCH,
   captions: [     {
       html: (
-        <>
-         <h2 className="text-3xl font-bold mb-3">{t('scenes.voices.title')}</h2>
+            <CaptionWithLearnMore
+              learnMore={{
+                title: t('scenes.voices.learnMoreTitle'),
+                content: t('scenes.voices.learnMoreContent'),
+                linkTitle: t('scenes.voices.learnMoreLink'),
+                linkUrl: t('scenes.voices.learnMoreLinkUrl'),
+              }}
+            >
+              <h2 className="text-3xl font-bold mb-3">{t('scenes.voices.title')}</h2>
 <p className="text-lg text-center max-w-2xl mx-auto">
   {t('scenes.voices.description')}
-  <br/>
-  {t('scenes.voices.learnMore')}
 </p>
-        </>
-      ),
+            </CaptionWithLearnMore>
+          ),
+
+
+
+      
+      
     },
 ],
 },
@@ -456,9 +468,18 @@ export const useScenesWithTranslation = () => {
     },
     {
       captionSide:"left",
-      html:<p className="text-lg max-w-sm">
+      html: <CaptionWithLearnMore
+              learnMore={{
+                title: t('scenes.measurement.learnMoreTitle'),
+                content: t('scenes.measurement.learnMoreContent'),
+                linkTitle: t('scenes.measurement.learnMoreLink'),
+                image: "/images/pipeline.png",  
+              }}
+            >
+             <p className="text-lg max-w-sm">
         {t('scenes.measurement.step4')}
       </p>
+            </CaptionWithLearnMore>
     },
      {
       captionSide:"left",
@@ -757,16 +778,18 @@ export const useScenesWithTranslation = () => {
   ),
   axesSel: NO_MATCH,
   captions: [     {
-      html: (
-        <>
+     html: (
+            <CaptionWithLearnMore
+              learnMore={{
+                title: t('scenes.toArctic.learnMoreTitle'),
+                content: t('scenes.toArctic.learnMoreContent'),
+                linkTitle: t('scenes.toArctic.learnMoreLink'),
+              }}
+            >
          <h2 className="text-3xl font-bold mb-3">{t('scenes.toArctic.title')}</h2>
 <p className="text-lg text-center max-w-2xl mx-auto">
-  {t('scenes.toArctic.description')}
-  <br/>
-  {t('scenes.voices.learnMore')}
-</p>
-        </>
-      ),
+  {t('scenes.toArctic.description')}</p>
+            </CaptionWithLearnMore>)
     },
     
 ],

@@ -171,7 +171,7 @@ export default function ChatBot() {
           <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col bg-white text-gray-900 rounded-lg shadow-xl p-4 h-[80vh]">
             {/* header */}
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/knud.jpg" alt="Knud" width={32} height={32} className="rounded-full" />
+              <Image src="/images/knud.jpg" alt="Knud" width={32} height={32} className="rounded-full" />
               <h2 className="font-semibold">{t("chatbot.chatWithFull")}</h2>
               <button
                 onClick={() => setOpened(false)}
@@ -187,7 +187,7 @@ export default function ChatBot() {
               {messages.map((msg, idx) => (
                 <div key={idx} className={clsx("flex", msg.fromUser ? "justify-end" : "justify-start")}>
                   {!msg.fromUser && (
-                    <Image src="/knud.jpg" alt="Knud avatar" width={24} height={24} className="rounded-full mr-2 self-start" />
+                    <Image src="/images/knud.jpg" alt="Knud avatar" width={24} height={24} className="rounded-full mr-2 self-start" />
                   )}
                   {msg.fromUser && (
                     <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2">
