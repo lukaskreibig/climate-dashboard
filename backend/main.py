@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 from typing import Any, List
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -42,6 +43,37 @@ class DataResponse(BaseModel):
 
 @app.get("/data", response_model=DataResponse)
 async def get_data():
+    """
+    Load climate data from a Postgres database if available, falling back to
+    reading the JSON file in data/data.json for local development.
+    The database connection string is taken from the DATABASE_URL environment
+    variable. Each table's rows are returned as a list of dictionaries.
+    """
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        try:
+            engine = create_engine(database_url)
+            table_map = {
+                "annual": "annual",
+                "dailySeaIce": "dailySeaIce",
+                "annualAnomaly": "annualAnomaly",
+                "corrMatrix": "corrMatrix",
+                "iqrStats": "iqrStats",
+                "partial2025": "partial2025",
+            }
+            data = {}
+            with engine.connect() as conn:
+                for key, table in table_map.items():
+                    result = conn.execute(text(f"SELECT * FROM {table}"))
+                    rows = [dict(row._mapping) for row in result]
+                    data[key] = rows
+            return data
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error reading data from database: {e}",
+            )
+    # Fallback to JSON file for development without a database
     file_path = os.path.join(os.getcwd(), "data", "data.json")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Data file not found")
