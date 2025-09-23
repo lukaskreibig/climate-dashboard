@@ -15,13 +15,13 @@ def update_data():
     os.makedirs("data", exist_ok=True)
     temp_df.to_csv(os.path.join("data", "original_temperature_nasa.csv"), index=False)
 
-    # Daily sea ice extent data from NOAA
-    df_ice = pd.read_excel(
-        "https://noaadata.apps.nsidc.org/NOAA/G02135/seaice_analysis/Sea_Ice_Index_Daily_Extent_G02135_v3.0.xlsx",
-        sheet_name="NH-5-Day-Extent"
-    )
-    os.makedirs("data/csv", exist_ok=True)
-    df_ice.to_csv(os.path.join("data", "original_ice_noaa.csv"), index=False)
+    # # Daily sea ice extent data from NOAA
+    # df_ice = pd.read_excel(
+    #     "https://noaadata.apps.nsidc.org/NOAA/G02135/seaice_analysis/Sea_Ice_Index_Daily_Extent_G02135_v3.0.xlsx",
+    #     sheet_name="NH-5-Day-Extent"
+    # )
+    # os.makedirs("data/csv", exist_ok=True)
+    # df_ice.to_csv(os.path.join("data", "original_ice_noaa.csv"), index=False)
     
     # CO2 from Our World in Data
     headers = {
@@ -35,6 +35,37 @@ def update_data():
         annual_co_emissions.to_csv(os.path.join("data", "original_co2_worldindata.csv"), index=False)
     else:
         raise Exception(f"Failed to download data: {response.status_code}")
+    
+
+    V4_NH_DAILY_CSV = os.getenv(
+        "SEA_ICE_DAILY_CSV_URL",
+        "https://masie_web.apps.nsidc.org/pub/DATASETS/NOAA/G02135/north/daily/data/N_seaice_extent_daily_v4.0.csv",
+    )
+
+    # 1) Read v4 daily CSV
+    df_raw = pd.read_csv(V4_NH_DAILY_CSV)
+
+    # 2) Keep Northern Hemisphere rows if 'hemi' is present
+    if "hemi" in df_raw.columns:
+        df_raw = df_raw[df_raw["hemi"] == "N"].copy()
+
+    # 3) Build a proper Date column
+    df_raw["Date"] = pd.to_datetime(
+        dict(year=df_raw["year"], month=df_raw["mo"], day=df_raw["da"]),
+        errors="coerce",
+    )
+
+    # Clean up: require Date and extent
+    df_raw = df_raw.dropna(subset=["Date", "extent"]).copy()
+
+    # 4) Columns the rest of your script expects:
+    #    Year, DayOfYear, Extent, plus the original Date (kept for your later steps)
+    df_raw["Year"] = df_raw["Date"].dt.year.astype(int)
+    df_raw["DayOfYear"] = df_raw["Date"].dt.dayofyear.astype(int)
+    df_raw["Extent"] = df_raw["extent"].astype(float)
+
+    # 5) This is the DataFrame your existing code already uses
+    df_ice = df_raw[["Date", "Year", "DayOfYear", "Extent"]].copy()
     
     # --- Clean Sea Ice Data ---
     df_ice.rename(columns={df_ice.columns[0]: "Month", df_ice.columns[1]: "Day"}, inplace=True)
