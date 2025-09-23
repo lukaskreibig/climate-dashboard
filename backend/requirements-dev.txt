@@ -9,3 +9,4 @@ openai
 chromadb
 torch
 sentence-transformers
+sqlalchemy
