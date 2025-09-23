@@ -175,17 +175,15 @@ def update_data():
     if database_url:
         from sqlalchemy import create_engine
         engine = create_engine(database_url)
-
         print("[INFO] Inserting DataFrames into Postgres...")
 
-        # Each DataFrame goes into its own table
+        # Jede DataFrame in snake_case-Tabellen schreiben
         annual_df.to_sql("annual", engine, if_exists="replace", index=False)
-        daily_df.to_sql("dailySeaIce", engine, if_exists="replace", index=False)
-        corr_df.to_sql("corrMatrix", engine, if_exists="replace", index=False)
-        iqr_df.to_sql("iqrStats", engine, if_exists="replace", index=False)
-        p2025_df.to_sql("partial2025", engine, if_exists="replace", index=False)
-        anomaly_df.to_sql("annualAnomaly", engine, if_exists="replace", index=False)
-
+        daily_df.to_sql("daily_sea_ice", engine, if_exists="replace", index=False)
+        corr_df.to_sql("corr_matrix", engine, if_exists="replace", index=False)
+        iqr_df.to_sql("iqr_stats", engine, if_exists="replace", index=False)
+        p2025_df.to_sql("partial_2025", engine, if_exists="replace", index=False)
+        anomaly_df.to_sql("annual_anomaly", engine, if_exists="replace", index=False)
         print("[INFO] Successfully inserted data into Postgres.")
     else:
         print("[INFO] No DATABASE_URL found, skipping Postgres insert.")
