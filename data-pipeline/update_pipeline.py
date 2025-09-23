@@ -21,9 +21,23 @@ def update_data():
     """
     # ------------------------------------------------------------------
     # 1) NASA GISS temperature data (annual)
-    temp_df = pd.read_csv(
-        "https://data.giss.nasa.gov/gistemp/tabledata_v4/ZonAnn.Ts+dSST.csv"
-    )
+    # Use a consistent User‑Agent header for all outbound HTTP requests.
+    # This mitigates TLS issues and 403 responses on some servers.
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/114.0.0.0 Safari/537.36"
+        )
+    }
+    nasa_url = "https://data.giss.nasa.gov/gistemp/tabledata_v4/ZonAnn.Ts+dSST.csv"
+    try:
+        temp_response = requests.get(nasa_url, headers=headers, verify=False)
+        temp_response.raise_for_status()
+        temp_df = pd.read_csv(io.StringIO(temp_response.text))
+    except Exception as e:
+        raise RuntimeError(f"Failed to download NASA temperature data: {e}")
+
     os.makedirs("data", exist_ok=True)
     temp_df.to_csv(
         os.path.join("data", "original_temperature_nasa.csv"), index=False
@@ -38,16 +52,49 @@ def update_data():
         "SEA_ICE_DAILY_CSV_URL",
         "https://masie_web.apps.nsidc.org/pub/DATASETS/NOAA/G02135/north/daily/data/N_seaice_extent_daily_v4.0.csv",
     )
-    df_raw = pd.read_csv(V4_NH_DAILY_CSV)
-    # Filter to Northern Hemisphere rows if the 'hemi' column exists
-    if "hemi" in df_raw.columns:
-        df_raw = df_raw[df_raw["hemi"] == "N"].copy()
-    # Construct a proper Date column
+    try:
+        # Download the CSV (disable verification if the certificate is invalid)
+        sea_response = requests.get(V4_NH_DAILY_CSV, headers=headers, verify=False)
+        sea_response.raise_for_status()
+        # Many NSIDC v4 daily CSVs include a second row with units.  Skip it.
+        raw_text = sea_response.text
+        df_raw = pd.read_csv(io.StringIO(raw_text), skiprows=[1])
+    except Exception as e:
+        raise RuntimeError(f"Failed to download sea ice CSV: {e}")
+
+    # Strip leading/trailing spaces from column names
+    df_raw.columns = [c.strip() for c in df_raw.columns]
+
+    # Rename columns to generic names.  The v4 daily CSV uses 'Year', 'Month', 'Day',
+    # 'Extent', and optionally 'Missing' and 'Source Data'.  Normalize to lower-case.
+    rename_map = {}
+    for col in df_raw.columns:
+        c = col.strip()
+        if c.lower().startswith("year"):
+            rename_map[col] = "year"
+        elif c.lower().startswith("month") or c.lower().startswith("mm"):
+            rename_map[col] = "mo"
+        elif c.lower().startswith("day") or c.lower().startswith("dd"):
+            rename_map[col] = "da"
+        elif "extent" in c.lower():
+            rename_map[col] = "extent"
+    df_raw.rename(columns=rename_map, inplace=True)
+
+    # Drop rows without the necessary columns
+    required_cols = {"year", "mo", "da", "extent"}
+    missing_cols = required_cols - set(df_raw.columns)
+    if missing_cols:
+        raise KeyError(
+            f"Sea ice CSV is missing expected columns {missing_cols}. "
+            f"Available columns: {list(df_raw.columns)}"
+        )
+
+    # Construct Date
     df_raw["Date"] = pd.to_datetime(
         {
-            "year": df_raw["year"],
-            "month": df_raw["mo"],
-            "day": df_raw["da"],
+            "year": df_raw["year"].astype(int),
+            "month": df_raw["mo"].astype(int),
+            "day": df_raw["da"].astype(int),
         },
         errors="coerce",
     )
@@ -57,7 +104,7 @@ def update_data():
     df_raw["Year"] = df_raw["Date"].dt.year.astype(int)
     df_raw["DayOfYear"] = df_raw["Date"].dt.dayofyear.astype(int)
     df_raw["Extent"] = df_raw["extent"].astype(float)
-    # We only need Date, Year, DayOfYear, and Extent for downstream processing
+    # Build the working df_ice
     df_ice = df_raw[["Date", "Year", "DayOfYear", "Extent"]].copy()
     # Save raw CSV for reproducibility
     os.makedirs("data/csv", exist_ok=True)
