@@ -7,3 +7,4 @@ chromadb
 torch
 sentence-transformers
 sqlalchemy
+psycopg[binary]
