@@ -397,8 +397,8 @@ export const scenes2: SceneCfg[] = [
     chart: (_d, api) => (
       <HeroFade
         ref={api}
-        rawSrc="/images/satellite.png"
-        overlaySrc="/images/overlay.png"
+        rawSrc="/images/satellite.jpg"
+        overlaySrc="/images/overlay.jpg"
       />
     ),
     axesSel: NO_MATCH,
