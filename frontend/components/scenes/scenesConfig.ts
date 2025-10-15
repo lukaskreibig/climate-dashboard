@@ -434,7 +434,6 @@ export const useScenesWithTranslation = () => {
         [-51.948045, 70.617879], // ↘
         [-52.373222, 70.629154], // ↙
       ]}
-    />
   ),
 
   axesSel: NO_MATCH,
