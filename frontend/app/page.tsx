@@ -3,6 +3,7 @@
 ------------------------------------------------------------------ */
 "use client";
 
+import '../i18n';
 import { useEffect, useRef, useState } from "react";
 import { csvParse } from "d3-dsv";
 
@@ -13,13 +14,13 @@ import ArcticBackgroundSystem, {
 import MapboxPreloader, { preloadTiles } from "@/components/MapboxPreloader";
 
 import ChartScene from "@/components/scenes/ChartScene";
-import { dynamicModules, useScenesWithTranslation } from "@/components/scenes/scenesConfig";
+import { dynamicModules, scenes, useScenesWithTranslation } from "@/components/scenes/scenesConfig";
 
 import StoryProgress from "@/components/StoryProgress";
+import ChatBot from "@/components/ChatBot";
 import OutroHero from "@/components/OutroHero";
 import BetaDialog from "@/components/BetaDialog";
 import LegalFooter from "@/components/LegalFooter";
-import OutroCredits from "@/components/OutroCredits";
 
 
 /* ──────────────────── TYPES ──────────────────── */
@@ -138,7 +139,7 @@ export default function Page() {
 
 
         /* —— 1. JSON for legacy chapter-1 charts —— */
-        const baseJson: DataJSON = await fetch('/api/data').then((r) =>
+        const baseJson: DataJSON = await fetch("/api/data").then((r) =>
           r.json()
         );
         goTo(30)
@@ -267,6 +268,8 @@ export default function Page() {
     })();
   }, []);
 
+  useEffect(() => {console.log("progress", progress)}, [progress])
+
 
   /* —— render full story —— */
   return (
@@ -306,14 +309,12 @@ export default function Page() {
 
         <OutroHero />
 
-        {/* ─── Outro / Credits ─── */}
-        <OutroCredits />
-      <StoryProgress />
-      <LegalFooter />
+        <ChatBot />
 
       </main>
-      
 
+      <StoryProgress />
+      <LegalFooter />
 
     </>
   );
