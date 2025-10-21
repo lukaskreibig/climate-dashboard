@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
 import os
 import json
@@ -289,7 +289,15 @@ async def predict(req: PredictRequest):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    try:
+        engine = create_engine(os.getenv("DATABASE_URL")) if os.getenv("DATABASE_URL") else None
+        if engine:
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+        status = {"status": "ok", "db": "ok" if engine else "skipped"}
+        return JSONResponse(status_code=200, content=status)
+    except Exception as exc:
+        return JSONResponse(status_code=503, content={"status": "degraded", "error": str(exc)})
 
 # Original chat
 class ChatRequest(BaseModel):
