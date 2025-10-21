@@ -20,7 +20,7 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg2://climate:climate@db:5432/climate
-      OPENAI_API_KEY: "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"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       - db
     ports:
