@@ -72,6 +72,9 @@ __pycache__/
 
 /frontend/yarn.lock
 /frontend/.yarn
+!/frontend/.yarn/
+!/frontend/.yarn/releases/
+!/frontend/.yarn/releases/**
 
 /.vscode
 
