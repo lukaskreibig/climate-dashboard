@@ -67,10 +67,9 @@ __pycache__/
 /backend/data/csv
 
 /frontend/yarn.lock
+/frontend/.yarn
 
 /.vscode
-
-.yarn
 
 /data
 /uummannaq-ice
