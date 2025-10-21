@@ -18,8 +18,14 @@ venv/
 .env
 .env.*
 data/
+!data/chroma_db/**
+!data/data.json
+!data/fjord_data.json
 *.csv
+!data/csv/**
 *.json
+!data/data.json
+!data/fjord_data.json
 *.parquet
 notebooks/
 *.ipynb

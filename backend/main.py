@@ -299,7 +299,21 @@ class ChatResponse(BaseModel):
     answer: str
 
 # Chroma setup
-embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+from threading import Lock
+
+_embedder = None
+_embedder_lock = Lock()
+
+
+def get_embedder() -> SentenceTransformer:
+    global _embedder
+    if _embedder is None:
+        with _embedder_lock:
+            if _embedder is None:
+                _embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    return _embedder
+
+
 chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
 try:
     collection = chroma_client.get_collection("eskimo-folktales")
@@ -312,6 +326,7 @@ async def chat_stream(req: ChatRequest):
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
+    embedder = get_embedder()
     query_embedding = embedder.encode([user_query])[0]
     results = collection.query(query_embeddings=[query_embedding], n_results=3)
     retrieved_chunks = results.get("documents", [[]])[0]

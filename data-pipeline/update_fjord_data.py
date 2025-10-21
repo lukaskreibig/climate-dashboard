@@ -25,7 +25,7 @@ engine = create_engine(os.environ["DATABASE_URL"])
 
 def create_tables(engine):
     """Create tables if they do not already exist."""
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS fjord_daily (
                 date date PRIMARY KEY,
@@ -140,6 +140,7 @@ def update_fjord_data():
     rows['date'] = pd.to_datetime(rows['date']).dt.date
 
     # --- ensure DB schema is correct (handles upgrades)
+    ensure_tables(engine)
     ensure_schema(engine)
 
     # 1) fjord_daily (truncate + append to keep PK/indexes intact)
@@ -194,6 +195,11 @@ def update_fjord_data():
         c.execute(text("TRUNCATE fjord_freeze_breakup"))
     pd.DataFrame(fb_records).to_sql('fjord_freeze_breakup', engine, if_exists='append', index=False, method='multi')
 
-if __name__ == '__main__':
+def ensure_tables(engine):
+    """Ensure tables exist even in hosted environments where __main__ isn't run."""
     create_tables(engine)
+
+
+if __name__ == '__main__':
+    ensure_tables(engine)
     update_fjord_data()
