@@ -70,9 +70,7 @@ __pycache__/
 # /backend/jupyter_notebook
 /backend/data/csv
 
-/frontend/yarn.lock
-/frontend/.yarn
-!/frontend/.yarn/
+/frontend/.yarn/*
 !/frontend/.yarn/releases/
 !/frontend/.yarn/releases/**
 
