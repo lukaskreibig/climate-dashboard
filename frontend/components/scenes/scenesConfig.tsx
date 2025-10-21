@@ -554,7 +554,7 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 8: THE NEW ABNORMAL ═══ */
   {
     key: "new-abnormal",
-    chart: (d: DataBundle, api) => <EarlyLateSeasonChart data={d.season} apiRef={api} />,
+    chart: (d: DataBundle, api) => <EarlyLateSeasonChart data={d.season} apiRef={api} lossPct={d.seasonLossPct} />,
     axesSel: AXES,
     plainCaptions: true,
     axesInIdx: 0,
@@ -884,7 +884,7 @@ export const useScenesWithTranslation = () => {
     progressPoint: true,
     plainCaptions: true,
     chart : (d:DataBundle, api) =>
-            <DailyChart data={d.dailySeaIce} apiRef={api} />,
+            <DailyChart data={(d as any).decadalAnomaly} apiRef={api} />,
     axesSel   : AXES,
     axesInIdx : 0,
 

@@ -3,8 +3,10 @@ uvicorn[standard]
 pydantic
 python-dotenv
 openai
+pandas
 chromadb
 torch
 sentence-transformers
 sqlalchemy
 psycopg2-binary
+numpy

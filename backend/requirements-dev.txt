@@ -4,10 +4,12 @@ pydantic
 accelerate
 pandas
 requests
+python-dotenv
 openpyxl
 openai
 chromadb
 torch
 sentence-transformers
 sqlalchemy
-psycopg[binary]
+numpy
+psycopg2-binary
