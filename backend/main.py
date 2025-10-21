@@ -14,6 +14,8 @@ from schemas import FjordDataBundle
 import pandas as pd
 import numpy as np
 from typing import Optional
+from functools import lru_cache
+import logging
 
 
 load_dotenv()
@@ -287,17 +289,36 @@ async def predict(req: PredictRequest):
     dummy_prediction = req.temperature * 0.5 + req.co2 * 0.1
     return PredictResponse(prediction=dummy_prediction, model_version="v1.0")
 
+LOGGER = logging.getLogger("backend.health")
+
+
+@lru_cache(maxsize=1)
+def _engine():
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        return None
+    return create_engine(db_url, pool_pre_ping=True, future=True)
+
+
 @app.get("/health")
 async def health():
-    try:
-        engine = create_engine(os.getenv("DATABASE_URL")) if os.getenv("DATABASE_URL") else None
-        if engine:
+    payload: dict[str, Any] = {"status": "ok"}
+    db_report: dict[str, Any] = {"status": "skipped"}
+    engine = _engine()
+
+    if engine is not None:
+        try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
-        status = {"status": "ok", "db": "ok" if engine else "skipped"}
-        return JSONResponse(status_code=200, content=status)
-    except Exception as exc:
-        return JSONResponse(status_code=503, content={"status": "degraded", "error": str(exc)})
+            db_report = {"status": "ok"}
+        except Exception as exc:
+            LOGGER.warning("Healthcheck database probe failed: %s", exc)
+            db_report = {"status": "error", "error": str(exc)}
+            payload["status"] = "degraded"
+
+    payload["checks"] = {"database": db_report}
+    # Always return HTTP 200 so Railway doesn't kill the container while the DB catches up.
+    return JSONResponse(status_code=200, content=payload)
 
 # Original chat
 class ChatRequest(BaseModel):
