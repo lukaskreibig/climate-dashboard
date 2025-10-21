@@ -6,7 +6,6 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
-data/
 raw/
 .cache/
 .env
