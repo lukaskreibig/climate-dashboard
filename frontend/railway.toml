@@ -1,6 +1,12 @@
 [build]
 builder = "RAILPACK"
 buildCommand = "npm run build"
+watchPatterns = [
+  "package.json",
+  ".yarnrc.yml",
+  ".yarn/releases/**",
+  "frontend/**"
+]
 
 [deploy]
 startCommand = "npm run start"
