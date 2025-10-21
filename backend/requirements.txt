@@ -1,11 +1,12 @@
 fastapi
 uvicorn[standard]
 pydantic
-accelerate
-pandas
-requests
-openpyxl
+python-dotenv
 openai
+pandas
 chromadb
 torch
 sentence-transformers
+sqlalchemy
+psycopg2-binary
+numpy

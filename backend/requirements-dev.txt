@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+accelerate
+pandas
+requests
+python-dotenv
+openpyxl
+openai
+chromadb
+torch
+sentence-transformers
+sqlalchemy
+numpy
+psycopg2-binary

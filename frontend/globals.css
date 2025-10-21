@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@import "mapbox-gl/dist/mapbox-gl.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -77,7 +77,7 @@
 }
 
 .dark {
-  --background: rgb(248,250,252);
+  --background: oklch(98.415% 0.00352 248.585);
   --foreground: oklch(0.984 0.003 247.858);
   /* --card: oklch(0.208 0.042 265.755);
   --card-foreground: oklch(0.984 0.003 247.858); */
@@ -121,3 +121,107 @@
   }
 }
 
+/* =========================================================================
+   ICE-CARD  v2.5  – “free-floating” turquoise shard
+   - remove any parent `bg-white/… shadow-lg` classes in your SceneConfig
+   - keep the wrapper div but leave it transparent
+   ========================================================================= */
+.ice-card{
+  padding:2.75rem 2.25rem;
+  max-width:900px;
+  color:#ebf8ff; text-align:center;
+  font-weight:500; line-height:1.55;
+  background:oklch(62.982% 0.0761 256.496);
+  transform: none !important;
+  transition: none !important;
+
+  /* ---- crisp glacier silhouette ---- */
+  clip-path:polygon(
+    10% 4%, 26% 0%, 74% 0%, 92% 4%,
+    100% 18%, 96% 82%, 86% 96%, 14% 96%, 4% 86%, 0% 32%
+  );
+}
+
+
+/* new stuff: 
+
+/* Add to your global CSS */
+.story-text {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: #374151;
+  font-weight: 400;
+}
+
+.story-text strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.story-headline {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.story-subhead {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+/* Enhanced caption styling */
+.caption-enhanced {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Pull quotes for key insights */
+.pullquote {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1e40af;
+  border-left: 4px solid #3b82f6;
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+}
+
+/* Data highlight boxes */
+.data-highlight {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #93c5fd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.data-highlight .number {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1e40af;
+  line-height: 1;
+}
+
+.data-highlight .label {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.mapboxgl-canvas-container,
+.mapboxgl-map {
+  background: #1e293b;       /* same slate-700 you already use */
+}

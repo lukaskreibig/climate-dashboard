@@ -1,0 +1,17 @@
+.git
+.gitignore
+.vscode
+.idea
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+data/
+raw/
+.cache/
+.env
+.env.*
+.DS_Store
+../frontend
+../backend
+../uummannaq-ice

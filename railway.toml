@@ -1,0 +1,28 @@
+# railway.toml
+[project]
+name = "climate-dashboard"
+
+# Managed Postgres statt eigenem DB-Container
+[plugins]
+postgres = { source = "railway/postgresql" }
+
+# -------- API (FastAPI) --------
+[services.api]
+root  = "backend"
+build = "pip install -r requirements.txt"
+start = "uvicorn main:app --host 0.0.0.0 --port ${PORT}"
+# Beispiel-ENV, Rest setzt du im Railway-Dashboard:
+env = { 
+  SEAICE_SMOOTH_WINDOW = "11",
+  SEAICE_ANOM_BASELINE_START = "1981",
+  SEAICE_ANOM_BASELINE_END   = "2010"
+}
+
+# -------- Pipeline-Worker --------
+[services.pipeline]
+root  = "data-pipeline"
+build = "pip install -r requirements.txt"
+# entweder als „dauernder“ Worker …
+start = "python -u update_pipeline.py && python -u update_fjord_data.py && sleep infinity"
+# … oder minimaler Runner nur für Cron:
+# start = "python -u update_pipeline.py && python -u update_fjord_data.py"

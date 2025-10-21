@@ -1,0 +1,31 @@
+# VCS & IDE
+.git
+.gitignore
+.vscode
+.idea
+
+# Python junk
+__pycache__/
+*.py[cod]
+*.egg-info/
+.build/
+dist/
+build/
+.venv/
+venv/
+
+# Local data & caches
+.env
+.env.*
+data/
+*.csv
+*.json
+*.parquet
+notebooks/
+*.ipynb
+.DS_Store
+
+# Frontend / monorepo things you do NOT want in backend image
+../frontend
+../data-pipeline
+../uummannaq-ice
