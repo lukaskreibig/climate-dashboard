@@ -3,6 +3,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import mapboxgl from "mapbox-gl";
+import { registerMapPreload } from "@/lib/mapPreloadRegistry";
 
 /* ---------- public (imperative) API ------------------------- */
 export interface SeaIceApi {
@@ -39,6 +40,8 @@ const yearUrls: Record<2017 | 2021 | 2024, string> = {
   2024: wmsUrl("2024-03-01"),
 };
 
+registerMapPreload({ images: Object.values(yearUrls) });
+
 /* ---------- component --------------------------------------- */
 const SeaIceOverlay = forwardRef<SeaIceApi, Props>(function SeaIceOverlay(
   { mapRef, quad }, ref
@@ -46,25 +49,42 @@ const SeaIceOverlay = forwardRef<SeaIceApi, Props>(function SeaIceOverlay(
 
   /* add sources + layers once -------------------------------- */
   useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
+    let frame = 0;
 
-    const addLayers = () => {
-      (Object.entries(yearUrls) as [keyof typeof yearUrls, string][])
-        .forEach(([year, url]) => {
-          const srcId = `ice-${year}`;
+    const waitForMap = () => {
+      const map = mapRef.current?.getMap();
+      if (!map) {
+        frame = requestAnimationFrame(waitForMap);
+        return;
+      }
 
-          if (!map.getSource(srcId)) {
-            map.addSource(srcId, { type: "image", url, coordinates: quad });
-          }
-          if (!map.getLayer(srcId)) {
-            map.addLayer({ id: srcId, type: "raster", source: srcId,
-                           paint: { "raster-opacity": 0 } });
-          }
-        });
+      const addLayers = () => {
+        (Object.entries(yearUrls) as [keyof typeof yearUrls, string][])
+          .forEach(([year, url]) => {
+            const srcId = `ice-${year}`;
+
+            if (!map.getSource(srcId)) {
+              map.addSource(srcId, { type: "image", url, coordinates: quad });
+            }
+            if (!map.getLayer(srcId)) {
+              map.addLayer({
+                id: srcId,
+                type: "raster",
+                source: srcId,
+                paint: { "raster-opacity": 0 },
+              });
+            }
+          });
+      };
+
+      map.isStyleLoaded() ? addLayers() : map.once("style.load", addLayers);
     };
 
-    map.isStyleLoaded() ? addLayers() : map.once("style.load", addLayers);
+    waitForMap();
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [mapRef, quad]);
 
   /* imperative fade-toggle ----------------------------------- */

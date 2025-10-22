@@ -9,6 +9,7 @@ import React, {
   useState,
   MutableRefObject,
   useEffect,
+  useCallback,
 } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -59,6 +60,8 @@ export interface SceneCfg {
 
   /** whether the snow layer should be visible (default true) */
   snow?: boolean;
+  /** pre-mount chart this many pixels before the scene enters view */
+  prefetchMarginPx?: number;
 }
 
 export const NO_MATCH = "*:not(*)";
@@ -86,11 +89,51 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const api = useRef<any>(null);
   const [mounted, setMounted] = useState(false);
+  const hasMounted = useRef(false);
 
   const fadeIn = !!cfg.fadeIn;
   const fadeOut = !!cfg.fadeOut;
   const slideIn = fadeIn ? false : cfg.slideIn !== false;
   const slideUp = fadeOut ? false : cfg.slideUp !== false;
+
+  const ensureMounted = useCallback(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      setMounted(true);
+    }
+  }, []);
+
+  /* ─────────────────── prefetch / pre-mount ───────────────────── */
+  useEffect(() => {
+    if (!cfg.prefetchMarginPx) return;
+    if (hasMounted.current) return;
+    if (!sec.current) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      ensureMounted();
+      return;
+    }
+
+    const margin = cfg.prefetchMarginPx;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            ensureMounted();
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: `${margin}px 0px ${margin}px 0px`,
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sec.current);
+
+    return () => observer.disconnect();
+  }, [cfg.prefetchMarginPx, ensureMounted]);
 
   /* ─────────────────── SNOW TOGGLE ─────────────────────── */
   useEffect(() => {
@@ -134,12 +177,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         end: "bottom 90%",
         onEnter: () => {
           hideOthers();
-          setMounted(true);
+          ensureMounted();
           wrap.current!.style.visibility = "visible";
           api.current?.showStage?.(0);
         },
         onEnterBack: () => {
           hideOthers();
+          ensureMounted();
           wrap.current!.style.visibility = "visible";
           api.current?.showStage?.(0);
         },
@@ -415,7 +459,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     }, sec);
 
     return () => ctx.revert();
-  }, [cfg]);
+  }, [cfg, ensureMounted]);
 
   /* ---------- helpers -------------------------------------- */
   const chartW =
@@ -431,11 +475,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       : "items-center justify-center px-6";
 
   const capText = (s?: "left" | "right") => (s ? "text-left" : "text-center");
-
-
-  console.log("rerender in Chartscene?")
-
-
   /* ---------- render --------------------------------------- */
   return (
     <section

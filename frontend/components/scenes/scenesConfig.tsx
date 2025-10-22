@@ -6,10 +6,11 @@ import dynamic      from "next/dynamic";
 import { SceneCfg } from "./ChartScene";
 import { NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
-import MapFlyScene from "../MapFlyScene";
+import MapFlyScene, { Waypoint } from "../MapFlyScene";
 import SatelliteScene from "@/components/SatelliteScene";
 import { useTranslation } from 'react-i18next';
 import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
+import { registerMapPreload } from "@/lib/mapPreloadRegistry";
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
@@ -36,6 +37,28 @@ const EarlyLateSeasonChart = dynamic(() => import("@/components/Rechart/EarlyLat
 const MeanIceFractionChart = dynamic(() => import("@/components/Rechart/MeanIceFractionChart"), { ssr: false });
 const FreezeBreakTimelineChart = dynamic(() => import("@/components/Rechart/FreezeBreakTimelineChart"), { ssr: false });
 const AllYearsSeasonChart = dynamic(() => import("@/components/Rechart/AllYearsSeasonChart"), { ssr: false });
+
+const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
+  { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },
+  { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },
+  { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },
+  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
+];
+
+const SATELLITE_WAYPOINTS: Waypoint[] = [
+  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 0 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 10.5, pitch: 70, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+];
+
+const SATELLITE_IMAGES = ["/images/satellite.jpg", "/images/overlay.jpg"];
+
+registerMapPreload({
+  views: [...GEOGRAPHIC_WAYPOINTS, ...SATELLITE_WAYPOINTS],
+  images: SATELLITE_IMAGES,
+});
 
 export const dynamicModules = [
   SeasonalChart,
@@ -82,16 +105,11 @@ export const useScenesWithTranslation = () => {
       slideIn: false,
       fadeOut: true,
       snow: false,
+      prefetchMarginPx: 900,
       chart: (_d, api) => (
           <MapFlyScene
             ref={api}
-            waypoints={[
-              { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },          // Global Arctic
-              { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },        // Greenland
-              { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },    // Uummannaq Bay
-              { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
-              //  { lng: -52.27, lat: 70.69, zoom: 10, pitch: 0, bearing: 0 },
-            ]}
+            waypoints={GEOGRAPHIC_WAYPOINTS}
           />
 
       ),
@@ -406,7 +424,7 @@ export const useScenesWithTranslation = () => {
   axesSel: NO_MATCH,
   captions: [{ html: <></> }],
 },
-{
+    {
   key: "introcharts",
   progressPoint: true, 
   chartSide: "fullscreen",
@@ -415,19 +433,14 @@ export const useScenesWithTranslation = () => {
   fadeOut: true,
   snow: false,
   parallax: false,
+  prefetchMarginPx: 900,
 
   chart: (_d, api) => (
     <SatelliteScene
       ref={api}
-      waypoints={[
-        { lng:-52.27, lat:70.67, zoom:10, pitch:60, bearing:0 },
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0,  bearing:4.7 },
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0, bearing:4.7},
-        { lng: -52.22, lat: 70.70, zoom: 10.5, pitch: 70, bearing: 4.7},
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0, bearing:4.7},
-      ]}
-      rawImg ="/images/satellite.jpg"
-      maskImg="/images/overlay.jpg"
+      waypoints={SATELLITE_WAYPOINTS}
+      rawImg={SATELLITE_IMAGES[0]}
+      maskImg={SATELLITE_IMAGES[1]}
       coords={[
         [-52.333915, 70.798511], // ↖
         [-51.905163, 70.787129], // ↗

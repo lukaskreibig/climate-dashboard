@@ -5,46 +5,155 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { useTranslation } from 'react-i18next';
+import "mapbox-gl/dist/mapbox-gl.css";
+import {
+  getRegisteredMapPreloadImages,
+  getRegisteredMapPreloadViews,
+  MapPreloadView,
+} from "@/lib/mapPreloadRegistry";
+import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
 /* Singleton innerhalb eines Browser-Tabs */
-let warmed   = false;
+let warmed = false;
 let warmMap: mapboxgl.Map | null = null;
+let warmPromise: Promise<void> | null = null;
+
+const defaultView: MapPreloadView = {
+  lng: 0,
+  lat: 90,
+  zoom: 1.3,
+  pitch: 0,
+  bearing: 0,
+};
+
+const waitForIdle = (map: mapboxgl.Map) =>
+  new Promise<void>((resolve) => {
+    if (!map) return resolve();
+    map.once("idle", () => resolve());
+  });
+
+const waitForStyle = (map: mapboxgl.Map) =>
+  new Promise<void>((resolve) => {
+    if (!map) return resolve();
+    if (map.isStyleLoaded()) {
+      resolve();
+      return;
+    }
+    map.once("style.load", () => resolve());
+  });
+
+const preloadImage = (src: string) =>
+  new Promise<void>((resolve) => {
+    if (typeof Image === "undefined") return resolve();
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
 
 /** externe Helper-Fn für page.tsx  */
 export async function preloadTiles(): Promise<void> {
-  return new Promise(res => {
-    if (warmed) return res();           // schon erledigt
-    const check = () => warmed ? res() : requestAnimationFrame(check);
+  if (warmed) return;
+  if (warmPromise) return warmPromise;
+
+  return new Promise((resolve) => {
+    const check = () => {
+      if (warmed) {
+        resolve();
+        return;
+      }
+      if (warmPromise) {
+        warmPromise.finally(() => resolve());
+        return;
+      }
+      requestAnimationFrame(check);
+    };
     check();
   });
 }
 
 export default function MapboxPreloader() {
   const { i18n } = useTranslation();
+  const initialLanguage = useRef(i18n.language);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (warmed || !box.current) return;
+    if (warmPromise || !box.current) return;
 
     /* 1 — Worker + WebGL Kontext booten */
     mapboxgl.prewarm?.();
 
+    const registeredViews = getRegisteredMapPreloadViews();
+    const warmViews = registeredViews.length ? registeredViews : [defaultView];
+
+    const first = warmViews[0] ?? defaultView;
+
     /* 2 — Unsichtbare Karte anlegen */
     warmMap = new mapboxgl.Map({
-      container : box.current,
-      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
-      center    : [0, 90],
-      zoom      : 1.3,
+      container: box.current,
+      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${initialLanguage.current}`,
+      center: [first.lng, first.lat],
+      zoom: first.zoom,
+      pitch: first.pitch ?? 0,
+      bearing: first.bearing ?? 0,
       interactive: false,
       attributionControl: false,
+      maxPitch: 85,
     });
 
-    /* 3 — Erstes 'idle' ⇒ alles Wesentliche ist gecacht  */
-    warmMap.once("idle", () => { warmed = true; });
+    let cancelled = false;
+
+    const runWarmup = async () => {
+      try {
+        await waitForStyle(warmMap!);
+        if (cancelled) return;
+
+        ensureMapTilerLayers(warmMap!);
+
+        // warm initial viewpoint
+        await waitForIdle(warmMap!);
+        if (cancelled) return;
+
+        for (const view of warmViews.slice(1)) {
+          warmMap!.jumpTo({
+            center: [view.lng, view.lat],
+            zoom: view.zoom,
+            pitch: view.pitch ?? 0,
+            bearing: view.bearing ?? 0,
+            animate: false,
+          });
+          await waitForIdle(warmMap!);
+          if (cancelled) return;
+        }
+
+        const imageUrls = getRegisteredMapPreloadImages();
+        if (imageUrls.length) {
+          await Promise.all(imageUrls.map((src) => preloadImage(src)));
+          if (cancelled) return;
+        }
+      } finally {
+        if (!cancelled) {
+          warmed = true;
+        }
+      }
+    };
+
+    warmPromise = runWarmup();
+    warmPromise.catch((err) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Mapbox warmup failed", err);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      warmMap?.remove();
+      warmMap = null;
+      warmPromise = null;
+    };
   }, []);
 
   /* Update language when i18n changes */

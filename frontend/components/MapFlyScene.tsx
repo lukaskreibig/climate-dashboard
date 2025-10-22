@@ -11,8 +11,10 @@ import {
   useImperativeHandle,
 } from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { useTranslation } from 'react-i18next';
+import "mapbox-gl/dist/mapbox-gl.css";
+import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
+import { preloadTiles } from "./MapboxPreloader";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -55,66 +57,45 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 
   /* ═════════════════ build map once ═════════════════ */
   useEffect(() => {
-    if (!box.current) return;
+    let cancelled = false;
 
-    map.current = new mapboxgl.Map({
-      container: box.current,
-      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
-      center: [waypoints[0].lng, waypoints[0].lat],
-      zoom: waypoints[0].zoom,
-      pitch: waypoints[0].pitch ?? 0,
-      bearing: waypoints[0].bearing ?? 0,
-      interactive: false,
-      attributionControl: false,
-      maxPitch: 85,
-    });
+    const buildMap = async () => {
+      if (!box.current || !waypoints.length) return;
 
-    map.current.once("idle", () => setReady(true));
+      await preloadTiles();
+      if (cancelled || !box.current || !waypoints.length) return;
 
-    map.current.on("style.load", () => {
-      /* remove Mapbox water to reveal MapTiler underneath */
-      
-      map
-        .current!.getStyle()
-        .layers?.filter((l) => l.id.startsWith("water"))
-        .forEach((l) => map.current!.removeLayer(l.id));
+      const first = waypoints[0];
+      const instance = new mapboxgl.Map({
+        container: box.current,
+        style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
+        center: [first.lng, first.lat],
+        zoom: first.zoom,
+        pitch: first.pitch ?? 0,
+        bearing: first.bearing ?? 0,
+        interactive: false,
+        attributionControl: false,
+        maxPitch: 85,
+      });
 
-      /* MapTiler Satellite raster */
-      if (!map.current!.getSource("mt-sat")) {
-        const hires = window.devicePixelRatio > 1;
-        const scaleQS = hires ? "&scale=2" : "";
-        map.current!.addSource("mt-sat", {
-          type: "raster",
-          tiles: [
-            `https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}${scaleQS}`,
-          ],
-          tileSize: 256,
-          maxzoom: 14,
-          attribution: "© MapTiler © OpenStreetMap",
-        });
-      }
-      const firstSymbol = map
-        .current!.getStyle()
-        .layers?.find((l) => l.type === "symbol")?.id;
-      if (!map.current!.getLayer("mt-sat")) {
-        map.current!.addLayer(
-          { id: "mt-sat", type: "raster", source: "mt-sat" },
-          firstSymbol
-        );
-      }
+      map.current = instance;
 
-      /* optional 3-D terrain */
-      if (terrain && !map.current!.getSource("mt-dem")) {
-        map.current!.addSource("mt-dem", {
-          type: "raster-dem",
-          url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`,
-          tileSize: 256,
-        });
-        map.current!.setTerrain({ source: "mt-dem", exaggeration: 1.3 });
-      }
-    });
+      instance.once("idle", () => {
+        if (!cancelled) setReady(true);
+      });
 
-    return () => map.current?.remove();
+      instance.on("style.load", () => {
+        ensureMapTilerLayers(instance, { terrain });
+      });
+    };
+
+    buildMap();
+
+    return () => {
+      cancelled = true;
+      map.current?.remove();
+      map.current = undefined;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
