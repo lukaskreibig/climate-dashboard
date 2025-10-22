@@ -5,14 +5,13 @@ import I18nClient from '@/components/I18nClient';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
+interface LocaleLayoutProps {
   children: React.ReactNode;
   params: { lng: Language };
-}) {
-  const { lng } = await params;
+}
+
+export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
+  const { lng } = params;
   await i18n.changeLanguage(lng);              // Server stellt Sprache ein
 
   return (

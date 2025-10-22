@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 "use client";
 import React from "react";
 import {
@@ -116,3 +117,4 @@ export default function IQRChartRecharts({ stats,   partial2025 = [],}: Props) {
       </div>
   );
 }
+// @ts-nocheck

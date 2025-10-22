@@ -11,7 +11,7 @@ import {
   useImperativeHandle,
 } from "react";
 import mapboxgl from "mapbox-gl";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
 import { preloadTiles } from "./MapboxPreloader";
@@ -52,7 +52,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 ) {
   const { i18n } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map>();
+  const map = useRef<mapboxgl.Map | null>(null);
   const [ready, setReady] = useState(false);
 
   /* ═════════════════ build map once ═════════════════ */
@@ -65,12 +65,12 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       await preloadTiles();
       if (cancelled || !box.current || !waypoints.length) return;
 
-      // const container = box.current;
-      // container.innerHTML = "";
+      const container = box.current;
+      container.innerHTML = "";
 
       const first = waypoints[0];
       const instance = new mapboxgl.Map({
-        container: box.current,
+        container,
         style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
         center: [first.lng, first.lat],
         zoom: first.zoom,
@@ -97,7 +97,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
     return () => {
       cancelled = true;
       map.current?.remove();
-      map.current = undefined;
+      map.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -105,7 +105,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   /* ═════════════════ update language when i18n changes ═════════════════ */
   useEffect(() => {
     if (!map.current || !ready) return;
-    
+
     // Mapbox language mapping
     const languageMap: { [key: string]: string } = {
       'de': 'de',
@@ -128,7 +128,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         
         // Only update if it's a name field
         if (typeof textField === 'string' && textField.includes('name')) {
-          map.current!.setLayoutProperty(
+          map.current?.setLayoutProperty(
             layer.id,
             'text-field',
             ['coalesce',
@@ -151,8 +151,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       lastT.current = t;
       if (orbitDegPerSec.current !== 0 && map.current) {
         map.current.setBearing(
-          (map.current.getBearing() + orbitDegPerSec.current * dt) % 360,
-          { animate: false }
+          (map.current.getBearing() + orbitDegPerSec.current * dt) % 360
         );
       }
       requestAnimationFrame(tick);
@@ -171,8 +170,8 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         map.current?.flyTo({
           center: [wp.lng, wp.lat],
           zoom: wp.zoom,
-          pitch: wp.pitch ?? map.current!.getPitch(),
-          bearing: wp.bearing ?? map.current!.getBearing(),
+          pitch: wp.pitch ?? (map.current?.getPitch() ?? 0),
+          bearing: wp.bearing ?? (map.current?.getBearing() ?? 0),
           speed: wp.flySpeed ?? flySpeed,
         });
 
@@ -180,7 +179,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       },
 
       /*  ► SatelliteScene expects this helper */
-      getMap: () => map.current,
+      getMap: () => map.current ?? undefined,
     }),
     [waypoints, flySpeed]
   );

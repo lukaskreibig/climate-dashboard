@@ -89,18 +89,13 @@ export const dynamicModules: PreloadableComponent[] = [
 /* helper ------------------------------------------------------- */
 const AXES = ".chart-grid, .chart-axis";
 
-interface DataBundle{
-  dailySeaIce   : any[];
-  annualAnomaly : any[];
-  iqrStats      : any;
-  annual        : any[];
-}
+type DataBundle = DashboardDataOrNull;
 
 
 export const useScenesWithTranslation = () => {
   const { t } = useTranslation();
   
-  const scenes: SceneCfg<DashboardDataOrNull>[] = [
+  const scenes: SceneCfg[] = [
 
    {
       key: "geographic-journey",
@@ -530,7 +525,9 @@ export const useScenesWithTranslation = () => {
 /* ═══ SCENE 6: THE VISUAL PROOF ═══ */
   {
     key: "visual-proof",
-    chart: (d: DataBundle, api) => <AllYearsSeasonChart data={d.daily} apiRef={api} />,
+    chart: (d: DataBundle, api) => (
+      <AllYearsSeasonChart data={(d?.daily ?? []) as any} apiRef={api} />
+    ),
     progressPoint: true,
     plainCaptions: true,
     axesSel: AXES,
@@ -572,7 +569,13 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 8: THE NEW ABNORMAL ═══ */
   {
     key: "new-abnormal",
-    chart: (d: DataBundle, api) => <EarlyLateSeasonChart data={d.season} apiRef={api} lossPct={d.seasonLossPct} />,
+    chart: (d: DataBundle, api) => (
+      <EarlyLateSeasonChart
+        data={(d?.season ?? []) as any}
+        apiRef={api}
+        lossPct={d?.seasonLossPct ?? null}
+      />
+    ),
     axesSel: AXES,
     plainCaptions: true,
     axesInIdx: 0,
@@ -633,7 +636,7 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 9: THE TRAJECTORY ═══ */
   {
     key: "trajectory",
-    chart: (d: DataBundle) => <MeanIceFractionChart data={d.frac} />,
+    chart: (d: DataBundle) => <MeanIceFractionChart data={(d?.frac ?? []) as any} />,
     plainCaptions: true,
     axesSel: AXES,
 
@@ -814,9 +817,9 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "seasonal", // remains the same
-  chart: (d, api) => (
+  chart: (d: DataBundle, api) => (
     // pass apiRef so the chart exposes highlight() to ScrollTrigger
-    <SeasonalChart data={d.dailySeaIce} apiRef={api} />
+    <SeasonalChart data={(d?.dailySeaIce ?? []) as any} apiRef={api} />
   ),
   axesSel: AXES,
   plainCaptions: true,
@@ -1016,7 +1019,7 @@ export const useScenesWithTranslation = () => {
     key       : "annual",
         plainCaptions: true,
 
-    chart     : (d:DataBundle)=> <AnnualChart data={d.annualAnomaly}/>,
+    chart     : (d:DataBundle)=> <AnnualChart data={(d?.annualAnomaly ?? []) as any}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1086,7 +1089,7 @@ export const useScenesWithTranslation = () => {
     /* 6 — Multi-line connections (clearer narrative) ----------- */
   {
     key      : "connections",
-    chart    : (d:DataBundle)=> <MultiChart data={d.annual}/>,
+    chart    : (d:DataBundle)=> <MultiChart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
     axesInIdx : 0,
     plainCaptions: true,
@@ -1109,7 +1112,7 @@ export const useScenesWithTranslation = () => {
   },
    {
     key       : "zscore",
-    chart     : (d:DataBundle,api)=> <ZScoreChart data={d.annual} apiRef={api}/>,
+    chart     : (d:DataBundle,api)=> <ZScoreChart data={(d?.annual ?? []) as any} apiRef={api}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1148,7 +1151,7 @@ export const useScenesWithTranslation = () => {
   {
     key      : "2024-focus",
     progressPoint: true,
-    chart    : (d:DataBundle)=> <Bar24Chart data={d.annual}/>,
+    chart    : (d:DataBundle)=> <Bar24Chart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
     plainCaptions: true,
     captions : [

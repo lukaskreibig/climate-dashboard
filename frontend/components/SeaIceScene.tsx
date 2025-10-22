@@ -14,8 +14,8 @@ type Api = MapFlyApi & SeaIceApi;
 interface Props { waypoints: Waypoint[]; }
 
 export default forwardRef<Api, Props>(function SeaIceScene({ waypoints }, ref) {
-  const mapRef = useRef<MapFlyApi & { getMap: () => mapboxgl.Map | undefined }>(null);
-  const iceRef = useRef<SeaIceApi>(null);
+  const mapRef = useRef<(MapFlyApi & { getMap: () => mapboxgl.Map | undefined }) | null>(null);
+  const iceRef = useRef<SeaIceApi | null>(null);
 
   /* bubble up both imperative sub-APIs ----------------------- */
   useImperativeHandle(ref, () => ({
@@ -26,7 +26,11 @@ export default forwardRef<Api, Props>(function SeaIceScene({ waypoints }, ref) {
   return (
     <>
       <MapFlyScene ref={mapRef} waypoints={waypoints} />
-      <SeaIceOverlay ref={iceRef} mapRef={mapRef} quad={ICE_QUAD} />
+      <SeaIceOverlay
+        ref={iceRef}
+        mapRef={mapRef as React.RefObject<{ getMap: () => mapboxgl.Map | undefined }>}
+        quad={ICE_QUAD}
+      />
     </>
   );
 });

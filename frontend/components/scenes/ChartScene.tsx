@@ -36,7 +36,7 @@ export interface CaptionCfg {
 
 export interface SceneCfg {
   key: string;
-  chart: (d: any, api: MutableRefObject<any>) => JSX.Element;
+  chart: (d: any, api: MutableRefObject<any>) => React.ReactElement;
   axesSel: string;
   helperSel?: string;
   captions: CaptionCfg[];
@@ -298,13 +298,15 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
   /* ▸▸ nur Elemente dieser Szene selektieren ◂◂ */
   const axesEls =
-    cfg.axesSel === NO_MATCH ? [] : wrap.current!.querySelectorAll(cfg.axesSel);
+    cfg.axesSel === NO_MATCH
+      ? ([] as HTMLElement[])
+      : Array.from(wrap.current!.querySelectorAll<HTMLElement>(cfg.axesSel));
   const helperEls = cfg.helperSel
-    ? wrap.current!.querySelectorAll(cfg.helperSel)
-    : [];
+    ? Array.from(wrap.current!.querySelectorAll<HTMLElement>(cfg.helperSel))
+    : ([] as HTMLElement[]);
 
   /* anfangs verbergen – nur lokale Nodes, nicht global! */
-  gsap.set(axesEls,   { opacity: 0 });
+  gsap.set(axesEls, { opacity: 0 });
   gsap.set(helperEls, { opacity: 0 });
 
   const N      = cfg.captions.length;
@@ -317,11 +319,11 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const helpIn  = clamp(cfg.helperInIdx ?? axesIn);
   const helpOut = cfg.helperOutIdx      ?? axesOut;
 
-  const fade = (els: NodeListOf<HTMLElement>, v: number) =>
+  const fade = (els: HTMLElement[], v: number) =>
     gsap.to(els, { opacity: v, duration: 0.4, paused: true });
 
   const bind = (
-    els: NodeListOf<HTMLElement>,
+    els: HTMLElement[],
     iIn: number,
     iOut: number
   ) => {
@@ -354,10 +356,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       onEnterBack  : () => a.call(api.current),
     });
   });
-})();
+    })();
 
       /* ─── chart x-shift helpers (zurück-geholt) ─────────── */
-      if (cfg.chartSide !== "fullscreen") {
+      if (cfg.chartSide && cfg.chartSide !== "fullscreen") {
         const CAPTION_MARGIN = 24;
         const SHIFT_FACTOR = 0.6;
 
@@ -369,14 +371,11 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           const cap = sec.current?.querySelector<HTMLElement>(".caption-box");
           const capW = cap ? cap.clientWidth : 320;
           const shift = Math.max(gap * SHIFT_FACTOR, capW / 2 + CAPTION_MARGIN);
-          return side === "left" ? -shift : shift - 80;
+          return side === "left" ? -shift : shift;
         };
 
         const firstSide = cfg.captions.find((c) => c.captionSide);
-        const explicit =
-          cfg.chartSide && cfg.chartSide !== "fullscreen"
-            ? cfg.chartSide
-            : undefined;
+        const explicit = cfg.chartSide as "left" | "right" | "center";
         let current: "left" | "right" | "center" =
           explicit ??
           (firstSide?.captionSide === "left"
@@ -500,10 +499,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
       {/* captions */}
       {cfg.captions.map((c, i) => {
-        const empty =
-          !c.html ||
-          (React.isValidElement(c.html) &&
-            React.Children.count(c.html.props.children) === 0);
+        const content = c.html;
+        const empty = (() => {
+          if (content === null || content === undefined) return true;
+          if (!React.isValidElement(content)) return false;
+          const props = content.props as { children?: React.ReactNode };
+          return React.Children.count(props.children ?? null) === 0;
+        })();
 
         const defaultBoxClass = cfg.plainCaptions
           ? `caption-box ${

@@ -123,7 +123,6 @@ export default function MapboxPreloader() {
             zoom: view.zoom,
             pitch: view.pitch ?? 0,
             bearing: view.bearing ?? 0,
-            animate: false,
           });
           await waitForIdle(warmMap!);
           if (cancelled) return;

@@ -1,14 +1,16 @@
 // app/components/I18nClient.tsx
 "use client";
 
-import { ReactNode, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
 import i18n from "@/i18n/client";
+import type { Language } from "@/i18n/settings";
 
-export default function I18nClient({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const lng = pathname.split("/")[1] || "en";
+interface Props {
+  lng: Language;
+  children: ReactNode;
+}
 
+export default function I18nClient({ lng, children }: Props) {
   useEffect(() => {
     if (i18n.language !== lng) {
       i18n.changeLanguage(lng);
