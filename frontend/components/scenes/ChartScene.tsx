@@ -359,23 +359,56 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     })();
 
       /* ─── chart x-shift helpers (zurück-geholt) ─────────── */
-      if (cfg.chartSide && cfg.chartSide !== "fullscreen") {
+      const chartSide = cfg.chartSide ?? "center";
+      if (chartSide !== "fullscreen") {
         const CAPTION_MARGIN = 24;
         const SHIFT_FACTOR = 0.6;
 
         const pxShift = (side: "left" | "right" | "center") => {
-          if (!wrap.current || !box.current || side === "center") return 0;
+          if (!wrap.current || !box.current) return 0;
           const wrapW = wrap.current.clientWidth;
+          if (wrapW < 960 || side === "center") return 0;
           const boxW = box.current.clientWidth;
           const gap = (wrapW - boxW) / 2;
           const cap = sec.current?.querySelector<HTMLElement>(".caption-box");
           const capW = cap ? cap.clientWidth : 320;
           const shift = Math.max(gap * SHIFT_FACTOR, capW / 2 + CAPTION_MARGIN);
-          return side === "left" ? -shift : shift;
+          const initialLeft = gap;
+          const desiredShift = side === "right" ? -shift : shift;
+
+          const leftBuffer = side === "right"
+            ? Math.max(capW + CAPTION_MARGIN * 0.5, wrapW * 0.14)
+            : Math.max(48, wrapW * 0.05);
+          const rightBuffer = side === "left"
+            ? Math.max(capW + CAPTION_MARGIN * 4.5, wrapW * 0.18)
+            : Math.max(160, wrapW * 0.12);
+
+          const maxRight = wrapW - rightBuffer;
+
+          let newLeft = initialLeft + desiredShift;
+          let newRight = newLeft + boxW;
+          let adjustedShift = desiredShift;
+
+          if (newLeft < leftBuffer) {
+            const delta = leftBuffer - newLeft;
+            adjustedShift += delta;
+            newLeft += delta;
+            newRight += delta;
+          }
+
+          if (newRight > maxRight) {
+            const delta = newRight - maxRight;
+            adjustedShift -= Math.sign(desiredShift || 1) * delta;
+          }
+
+          return adjustedShift;
         };
 
         const firstSide = cfg.captions.find((c) => c.captionSide);
-        const explicit = cfg.chartSide as "left" | "right" | "center";
+        const explicit =
+          cfg.chartSide && cfg.chartSide !== "fullscreen"
+            ? (cfg.chartSide as "left" | "right" | "center")
+            : undefined;
         let current: "left" | "right" | "center" =
           explicit ??
           (firstSide?.captionSide === "left"
