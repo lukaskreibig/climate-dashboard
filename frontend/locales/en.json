@@ -121,10 +121,10 @@
     },
     "decades": {
       "title": "Six Decades, One Direction",
-      "description": "Each colored band represents a decade of Arctic ice measurements. Watch as we reveal them one by one—and notice the unmistakable staircase downward. We start with the 1970s.",
+      "description": "Each colored band represents a decade of Arctic ice measurements. Watch them appear one by one and notice the unmistakable staircase downward. We open in the 1980s—the last decade before the losses dive below zero.",
       "1980s": {
         "title": "The 1980s: The Old Normal",
-        "description": "This light blue band shows what Arctic ice looked like when many of us were born. Values around zero million km² were typical for late summer."
+        "description": "This soft blue band is our starting point. Late-summer values still hovered around zero million km²—close to the historical average and a world many remember as 'normal.'"
       },
       "1990s": {
         "title": "The 1990s: First Cracks",
@@ -132,7 +132,7 @@
       },
       "2000s": {
         "title": "The 2000s: Going Down",
-        "description": "The downward spiral holding on. (replace)"
+        "description": "For the first time the curve spends the entire season below the old baseline. The shift from stability to loss is no longer subtle—it is the new default."
       },
       "2010s": {
         "title": "The 2010s: Acceleration",

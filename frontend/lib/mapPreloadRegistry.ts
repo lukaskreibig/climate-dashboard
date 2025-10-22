@@ -40,3 +40,8 @@ export function getRegisteredMapPreloadViews(): MapPreloadView[] {
 export function getRegisteredMapPreloadImages(): string[] {
   return Array.from(imageStore);
 }
+
+export function resetMapPreloadRegistry(): void {
+  viewStore.clear();
+  imageStore.clear();
+}

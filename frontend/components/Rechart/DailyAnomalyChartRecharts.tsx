@@ -29,6 +29,29 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
       .sort((a,b)=>decadeNum(a.decade)-decadeNum(b.decade));
   },[data]);
 
+  const chartData = useMemo(() => {
+    const daySet = new Set<number>();
+    const valueByDecade = new Map<string, Map<number, number>>();
+
+    series.forEach(({ decade, rows }) => {
+      const lookup = new Map<number, number>();
+      rows.forEach(({ day, an }) => {
+        daySet.add(day);
+        lookup.set(day, an);
+      });
+      valueByDecade.set(decade, lookup);
+    });
+
+    const sortedDays = Array.from(daySet).sort((a, b) => a - b);
+    return sortedDays.map((day) => {
+      const entry: Record<string, number | null> & { day: number } = { day };
+      valueByDecade.forEach((lookup, decade) => {
+        entry[decade] = lookup.has(day) ? lookup.get(day)! : null;
+      });
+      return entry;
+    });
+  }, [series]);
+
   const [visible,setVisible]=useState(1);
   useImperativeHandle(apiRef,()=>({ showLevel:(lvl:number)=>setVisible(Math.max(1, Math.min(lvl, series.length))) }),[series.length]);
 
@@ -38,14 +61,31 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
         {t('charts.dailyAnomaly.title')}
       </div>
       <ResponsiveContainer>
-        <LineChart margin={{top:20,right:20,bottom:20,left:40}}>
+        <LineChart data={chartData} margin={{top:20,right:20,bottom:20,left:40}}>
           <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>
           <XAxis dataKey="day" type="number" domain={[1,365]} ticks={monthTicks} tickFormatter={monthOf} className="chart-axis"/>
           <YAxis label={{value:t('charts.dailyAnomaly.yAxisLabel'),angle:-90,position:"insideLeft"}} className="chart-axis"/>
-          <Tooltip formatter={(v:any)=>Number(v).toFixed(3)} labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`} />
+          <Tooltip
+            formatter={(v: number | string | Array<number | string>) => {
+              if (Array.isArray(v)) return v;
+              if (v === null || v === undefined || v === "") return "-";
+              return Number(v).toFixed(3);
+            }}
+            labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}
+          />
           <Legend/>
-          {series.slice(0,visible).map(({decade,rows,color})=>(
-            <Line key={decade} data={rows} dataKey="an" type="monotone" stroke={color} strokeWidth={2} name={decade} dot={false}/>
+          {series.slice(0,visible).map(({decade,color})=>(
+            <Line
+              key={decade}
+              type="monotone"
+              dataKey={decade}
+              stroke={color}
+              strokeWidth={2}
+              name={decade}
+              dot={false}
+              activeDot={{ r: 3.5 }}
+              connectNulls
+            />
           ))}
         </LineChart>
       </ResponsiveContainer>

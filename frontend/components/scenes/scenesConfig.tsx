@@ -2,15 +2,16 @@
    scenesConfig.tsx – Chapter 1 — "The Arctic: Our Planet's Canary"
    Restructured for compelling data journalism
 ------------------------------------------------------------------- */
-import dynamic      from "next/dynamic";
-import { SceneCfg } from "./ChartScene";
-import { NO_MATCH } from "./ChartScene";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import { SceneCfg, NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
 import MapFlyScene, { Waypoint } from "../MapFlyScene";
 import SatelliteScene from "@/components/SatelliteScene";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
 import { registerMapPreload } from "@/lib/mapPreloadRegistry";
+import type { DashboardDataOrNull } from "@/types/dashboard";
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
@@ -60,7 +61,11 @@ registerMapPreload({
   images: SATELLITE_IMAGES,
 });
 
-export const dynamicModules = [
+export type PreloadableComponent = ComponentType<any> & {
+  preload?: () => Promise<unknown>;
+};
+
+export const dynamicModules: PreloadableComponent[] = [
   SeasonalChart,
   AnnualChart,
   IQRChart,
@@ -95,7 +100,7 @@ interface DataBundle{
 export const useScenesWithTranslation = () => {
   const { t } = useTranslation();
   
-  const scenes: SceneCfg[] = [
+  const scenes: SceneCfg<DashboardDataOrNull>[] = [
 
    {
       key: "geographic-journey",
@@ -902,21 +907,21 @@ export const useScenesWithTranslation = () => {
     axesInIdx : 0,
 
     captions : [
+      // {
+      //   captionSide:"left",
+      //   html:(<>
+      //     <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
+      //     <p className="text-lg">
+      //       {t('scenes.decades.description')}
+      //     </p>
+      //   </>)
+      // },
       {
         captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
           <p className="text-lg">
             {t('scenes.decades.description')}
-          </p>
-        </>)
-      },
-      {
-        captionSide:"left",
-        html:(<>
-          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1980s.title')}</h3>
-          <p className="text-lg">
-            {t('scenes.decades.1980s.description')}
           </p>
         </>)
       },

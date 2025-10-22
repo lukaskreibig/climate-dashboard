@@ -135,16 +135,20 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
   }, [stage, meanLossPct]);
 
   useEffect(() => {
-    const allEarly = ".early-epoch";
-    const allLate  = ".late-epoch";
+    const earlyEls = gsap.utils.toArray<SVGElement>('.early-epoch');
+    const lateEls = gsap.utils.toArray<SVGElement>('.late-epoch');
+
+    if (!earlyEls.length && !lateEls.length) return;
+
     if (focus === "both") {
-      gsap.to([allEarly, allLate], { opacity: 1, duration: 0.6, ease: "power2.out" });
+      if (earlyEls.length) gsap.to(earlyEls, { opacity: 1, duration: 0.6, ease: "power2.out" });
+      if (lateEls.length) gsap.to(lateEls, { opacity: 1, duration: 0.6, ease: "power2.out" });
     } else if (focus === "early") {
-      gsap.to(allEarly, { opacity: 1, duration: 0.6, ease: "power2.out" });
-      gsap.to(allLate,  { opacity: 0.15, duration: 0.6, ease: "power2.out" });
+      if (earlyEls.length) gsap.to(earlyEls, { opacity: 1, duration: 0.6, ease: "power2.out" });
+      if (lateEls.length) gsap.to(lateEls, { opacity: 0.15, duration: 0.6, ease: "power2.out" });
     } else {
-      gsap.to(allLate,  { opacity: 1, duration: 0.6, ease: "power2.out" });
-      gsap.to(allEarly, { opacity: 0.15, duration: 0.6, ease: "power2.out" });
+      if (lateEls.length) gsap.to(lateEls, { opacity: 1, duration: 0.6, ease: "power2.out" });
+      if (earlyEls.length) gsap.to(earlyEls, { opacity: 0.15, duration: 0.6, ease: "power2.out" });
     }
   }, [focus]);
 

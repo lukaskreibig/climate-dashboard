@@ -47,6 +47,8 @@ The project is structured as a monorepo with separate folders for the frontend (
 - **Backend:** Deployed via Railway.
 - **Frontend:** Deployed via Vercel.
 
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a detailed technical overview and [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) for the preprocessing workflow.
+
 ## Data Sources
 
 This project relies on **scientifically verified** datasets from trusted institutions. The data is automatically updated daily.
@@ -71,3 +73,14 @@ This project uses an automated data workflow to ensure that the visualizations a
 - Aggregates daily anomalies for annual bar chart visualization.
 - Final transformed data is saved as a JSON file (data/data.json), which is then consumed by the dashboard for rendering the interactive charts.
 
+## Development Workflow
+
+```bash
+cd frontend
+yarn install
+yarn lint       # ESLint
+yarn test       # Vitest unit tests
+yarn dev        # Next.js (Turbopack)
+```
+
+Vitest is configured with JSDOM (`vitest.config.ts`) and ships with the first unit tests covering the Mapbox preload registry. Extend the suite by adding files to `frontend/lib/__tests__/`.

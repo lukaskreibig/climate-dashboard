@@ -10,10 +10,8 @@ export default function I18nClient({ children }: { children: ReactNode }) {
   const lng = pathname.split("/")[1] || "en";
 
   useEffect(() => {
-    // nur ändern, falls wirklich nötig
-    console.log("I18nClient rerender?", lng);
     if (i18n.language !== lng) {
-      i18n.changeLanguage(lng);       // löst re-render sauber im Effekt aus
+      i18n.changeLanguage(lng);
     }
   }, [lng]);
 

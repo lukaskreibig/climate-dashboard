@@ -38,6 +38,25 @@ export default function IntroHero() {
 
   /* ─── GSAP ─────────────────────────────────────────────────────────── */
   useGSAP(() => {
+    if (
+      !wrap.current ||
+      !photo.current ||
+      !overlay.current ||
+      !bgFade.current ||
+      !block.current ||
+      !title.current ||
+      !subtitle.current ||
+      !line1.current ||
+      !line2.current ||
+      !arrow.current ||
+      !idleTurb.current ||
+      !idleDisp.current ||
+      !meltTurb.current ||
+      !meltDisp.current
+    ) {
+      return;
+    }
+
     const ctx = gsap.context(() => {
       /* idle shimmer (unchanged) */
       const idle = gsap.timeline({ repeat: -1, yoyo: true });

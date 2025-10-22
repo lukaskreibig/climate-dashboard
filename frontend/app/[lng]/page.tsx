@@ -1,44 +1,37 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useScenesWithTranslation, dynamicModules } from '@/components/scenes/scenesConfig';
-import IntroHero from '@/components/IntroHero';
-import ArcticBackgroundSystem, { SnowApi } from '@/components/ArcticBackgroundSystem';
-import MapboxPreloader from '@/components/MapboxPreloader';
-import ChartScene from '@/components/scenes/ChartScene';
-import StoryProgress from '@/components/StoryProgress';
-import ChatBot from '@/components/ChatBot';
-import OutroHero from '@/components/OutroHero';
-import BetaDialog from '@/components/BetaDialog';
-import LegalFooter from '@/components/LegalFooter';
-import OutroCredits from '@/components/OutroCredits';
-import type { FjordDataBundle } from '@/types';
+import {
+  useScenesWithTranslation,
+  dynamicModules,
+  type PreloadableComponent,
+} from "@/components/scenes/scenesConfig";
+import IntroHero from "@/components/IntroHero";
+import ArcticBackgroundSystem, {
+  type SnowApi,
+} from "@/components/ArcticBackgroundSystem";
+import MapboxPreloader from "@/components/MapboxPreloader";
+import ChartScene from "@/components/scenes/ChartScene";
+import StoryProgress from "@/components/StoryProgress";
+import ChatBot from "@/components/ChatBot";
+import OutroHero from "@/components/OutroHero";
+import BetaDialog from "@/components/BetaDialog";
+import LegalFooter from "@/components/LegalFooter";
+import OutroCredits from "@/components/OutroCredits";
+import { ApiError, fetchBaseData, fetchFjordData } from "@/lib/apiClient";
+import type { DashboardData, DashboardDataOrNull } from "@/types/dashboard";
 
-interface DataJSON {
-  dailySeaIce: any[];
-  annualAnomaly: any[];
-  iqrStats: any;
-  annual: any[];
-}
-
-
-interface CombinedData extends DataJSON {
-  decadalAnomaly?: { decade: string; day: number; an: number; sd?: number|null; n: number }[];
-  spring: { year: number; anomaly: number | null }[];
-  season: {
-    day: string;
-    eMean: number | null; e25: number | null; e75: number | null;
-    lMean: number | null; l25: number | null; l75: number | null;
-  }[];
-  frac:   { year: number; mean: number | null }[];
-  freeze: { year: number; freeze: number | null; breakup: number | null }[];
-  daily:  FjordDataBundle['daily'];
-  seasonLossPct?: number | null;   // NEW
-}
+const preloadModules = async (modules: PreloadableComponent[]) => {
+  await Promise.all(
+    modules.map((module) =>
+      typeof module.preload === "function" ? module.preload() : Promise.resolve()
+    )
+  );
+};
 
 export default function Page() {
   const scenes = useScenesWithTranslation();
-  const [data, setData] = useState<CombinedData | null>(null);
+  const [data, setData] = useState<DashboardDataOrNull>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [showDialog, setShowDialog] = useState(true);
@@ -50,29 +43,38 @@ export default function Page() {
     (async () => {
       try {
         setLoading(true);
-        await Promise.all(dynamicModules.map((m:any)=> typeof m.preload === 'function' ? m.preload() : Promise.resolve()));
+        await preloadModules(dynamicModules);
         goTo(15);
 
-        const baseJson: DataJSON = await fetch('/api/data').then(r=>r.json());
+        const [baseJson, fjordData] = await Promise.all([
+          fetchBaseData(),
+          fetchFjordData(),
+        ]);
         goTo(30);
 
-        const fjordData: FjordDataBundle & { seasonLossPct?: number | null } =
-          await fetch('/api/uummannaq').then(r=>r.json());
+        const combined: DashboardData = {
+          dailySeaIce: baseJson.dailySeaIce,
+          annualAnomaly: baseJson.annualAnomaly,
+          iqrStats: baseJson.iqrStats,
+          annual: baseJson.annual,
+          decadalAnomaly: baseJson.decadalAnomaly ?? [],
+          spring: fjordData.spring,
+          season: fjordData.season,
+          frac: fjordData.frac,
+          freeze: fjordData.freeze,
+          daily: fjordData.daily,
+          seasonLossPct: fjordData.seasonLossPct ?? null,
+        };
         goTo(50);
 
-        // KEIN client-seitiges Mapping mehr – Backend liefert fertige Struktur
-        setData({
-          ...baseJson,
-          spring: fjordData.spring,
-          season: fjordData.season,          // already merged & labeled
-          frac:   fjordData.frac,
-          freeze: fjordData.freeze,
-          daily:  fjordData.daily,
-          seasonLossPct: (fjordData as any).seasonLossPct ?? null,
-        });
+        setData(combined);
         goTo(100);
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("API error:", error.payload ?? error.message);
+        } else {
+          console.error(error);
+        }
       } finally {
         setProgress(100);
         setLoading(false);

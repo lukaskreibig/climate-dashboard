@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import type { FjordDataBundle } from "@/types";
 
 export const dynamic = "force-dynamic"; // no static cache
 export const revalidate = 0;
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const backendUrl = process.env.BACKEND_INTERNAL_URL;
     if (!backendUrl) {
@@ -39,13 +40,17 @@ export async function GET(request: Request) {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as FjordDataBundle & {
+      seasonLossPct?: number | null;
+    };
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     const msg =
-      error?.name === "AbortError"
+      error instanceof Error && error.name === "AbortError"
         ? "Upstream timeout"
-        : error?.message || "Internal Server Error";
+        : error instanceof Error
+        ? error.message
+        : "Internal Server Error";
     console.error("Error in /api/uummannaq proxy:", error);
     return NextResponse.json({ error: msg }, { status: 500 });
   }

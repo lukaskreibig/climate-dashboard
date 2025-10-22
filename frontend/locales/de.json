@@ -123,10 +123,10 @@
   },
   "decades": {
     "title": "Sechs Jahrzehnte, eine Richtung",
-    "description": "Jedes farbige Band repräsentiert die Meereis Anomalie eines Jahrzehnts. Wir beginnen mit der ersten Dekade, den 1970er Jahren, und verfolgen, wie sich die Werte verändern.",
+    "description": "Jedes farbige Band steht für ein Jahrzehnt arktischer Eis-Anomalien. Wir beginnen mit den 1980ern – dem letzten Jahrzehnt, in dem späte Sommerwerte noch nahe bei null Millionen km² lagen.",
     "1980s": {
       "title": "Die 1980er: Das alte Normal",
-      "description": "Dieses hellblaue Band zeigt, wie das arktische Eis in den 80ern aussah. Die Anomalien sind noch positiv, was bedeutet, dass die Eisbedeckung im Durchschnitt über dem langfristigen Durchschnitt liegt. Die 80er sind das letzte Jahrzehnt, in dem das Eis noch relativ stabil ist."
+      "description": "Dieses hellblaue Band ist unser Ausgangspunkt. Die Abweichungen kreisen noch um den langfristigen Durchschnitt – ein Zustand, den viele als selbstverständlich kannten."
     },
     "1990s": {
       "title": "Die 1990er: Erste Risse",
@@ -134,7 +134,7 @@
     },
     "2000s": {
       "title": "Die 2000er: Die Negative Wende",
-      "description": "Das erste Jahrzehnt in dem wir das ganze Jahr im negativen Bereich liegen. Der Abstand zu den 90ern ist deutlich."
+      "description": "Zum ersten Mal liegen alle Werte unter der alten Referenzlinie. Aus einer langsamen Verschiebung wird ein dauerhaftes Minus – der Abwärtstrend ist nicht mehr zu übersehen."
     },
     "2010s": {
       "title": "Die 2010er: Beschleunigung",

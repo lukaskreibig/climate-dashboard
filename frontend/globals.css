@@ -74,6 +74,25 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --progress-gutter: 0px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --progress-gutter: clamp(80px, 12vw, 120px);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --progress-gutter: clamp(96px, 10vw, 160px);
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --progress-gutter: clamp(120px, 9vw, 200px);
+  }
 }
 
 .dark {

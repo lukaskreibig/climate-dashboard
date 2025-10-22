@@ -369,7 +369,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           const cap = sec.current?.querySelector<HTMLElement>(".caption-box");
           const capW = cap ? cap.clientWidth : 320;
           const shift = Math.max(gap * SHIFT_FACTOR, capW / 2 + CAPTION_MARGIN);
-          return side === "left" ? -shift : shift;
+          return side === "left" ? -shift : shift - 80;
         };
 
         const firstSide = cfg.captions.find((c) => c.captionSide);

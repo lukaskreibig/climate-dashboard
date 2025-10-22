@@ -65,6 +65,9 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       await preloadTiles();
       if (cancelled || !box.current || !waypoints.length) return;
 
+      // const container = box.current;
+      // container.innerHTML = "";
+
       const first = waypoints[0];
       const instance = new mapboxgl.Map({
         container: box.current,
@@ -185,10 +188,10 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   /* ═════════════════ render ═════════════════ */
   return (
     <div
-      ref={box}
       className={`relative w-full h-full ${className}`}
       style={{ background: "#0f172a" }}
     >
+      <div ref={box} className="relative h-full w-full" />
       {!ready && (
         <div className="absolute inset-0 bg-neutral-950 pointer-events-none" />
       )}
