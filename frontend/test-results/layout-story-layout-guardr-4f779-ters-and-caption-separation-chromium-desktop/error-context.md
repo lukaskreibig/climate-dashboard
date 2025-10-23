@@ -1,0 +1,415 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - region
+    - link [ref=e2] [cursor=pointer]:
+      - /url: https://www.mapbox.com/
+  - main:
+    - generic:
+      - generic:
+        - img
+        - generic:
+          - heading [level=1]: SCHMELZPUNKT
+          - heading [level=2]: Eine datenbasierte Geschichte über das Verschwinden des Meereises von Lukas Kreibig
+          - heading [level=2]: Die Arktis erwärmt sich 4x schneller als der globale Durchschnitt
+          - heading [level=2]: Das Schmelzen des Meereises ist zur Realität geworden
+        - generic:
+          - img
+    - generic:
+      - generic:
+        - generic [ref=e3]:
+          - heading [level=2] [ref=e4]: Wie das Eis verschwindet
+          - paragraph [ref=e5]: In der Arktis hängen viele Gemeinschaften vom Meereis ab. Doch was passiert, wenn das Eis schneller denn je schwindet?
+        - generic [ref=e6]:
+          - heading [level=3] [ref=e7]: Grönland
+          - paragraph [ref=e8]: Die größte Insel der Welt. Zu 80 % mit Eis bedeckt, 20 % felsige Küstenlinie. Tief eingeschnittene Fjorde reichen Hunderte Kilometer ins Inland und bieten geschützte Häfen, wo arktische Gemeinschaften seit Jahrtausenden leben.
+        - generic [ref=e9]:
+          - heading [level=3] [ref=e10]: Uummannaq-Bucht
+          - paragraph [ref=e11]: 600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der spektakulärsten Fjordsysteme Grönlands. In den Wintermonaten verwandelt sich das Wasser hier in Eis.
+        - generic [ref=e12]:
+          - heading [level=3] [ref=e13]: Insel Uummannaq
+          - paragraph [ref=e14]: Heimat von 1.300 Menschen, die unter einem herzförmigen Berg leben. Sie steht stellvertretend für hunderte arktische Siedlungen, deren Existenz vollkommen von verlässlichem Meereis abhängt. Doch diese Verlässlichkeit schwindet...
+    - generic [ref=e15]:
+      - heading [level=3] [ref=e16]: Das Herz einer Robbe
+      - paragraph [ref=e17]: Die arktische Insel Uummannaq verdankt ihrem Namen einem robbenherzförmigen Berg, unter dem sich die gleichnamige Stadt befindet.
+    - paragraph [ref=e19]: In den Wintermonaten friert das Meereis rund um Uummannaq und verbindet die Insel mit dem Festland. Die Einwohner können sich frei bewegen und sind nicht mehr auf die Insel beschränkt.
+    - paragraph [ref=e21]: Der Fischfang ist das Rückgrat dieser Gemeinschaft, die Meisten leben davon. Traditionell fischen die Menschen direkt auf dem Meereis. Doch diese und andere Lebensweisen sind in Gefahr.
+    - generic [ref=e22]:
+      - heading [level=2] [ref=e23]: Die Stimmen der Arktis
+      - paragraph [ref=e24]: In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Was berichten Sie?
+      - button [ref=e25]:
+        - img
+        - text: Mehr über die Studie "Life on thin ice" erfahren
+    - generic:
+      - generic:
+        - generic [ref=e26]:
+          - heading [level=2] [ref=e27]: Nur ein Gefühl?
+          - paragraph [ref=e28]: "Aber wie lässt sich das Gefühl der Bewohner messen? Die Antwort liegt im Weltall: Satelliten können uns verlässliche Daten liefern."
+        - paragraph [ref=e30]: Zuerst der Blick des Satelliten von oben. So sieht der Satellit auf Uummannaq.
+        - paragraph [ref=e32]: Nun das originale Winterbild des Satelliten. Solch ein Bild entsteht jeden Tag.
+        - paragraph [ref=e34]: Das Sentinel Programm ESA liefert uns ein Bild pro Tag seit 2017. Das sind tausende von Aufnahmen. Wie automatisieren wir das?
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: "Die Lösung: Künstliche Intelligenz. Eine selbstentwickelte Computer-Vision-Pipeline, die Wolken und Land erkennt und berechnet, wie viel Eis ein Bild enthält."
+          - button [ref=e37]:
+            - img
+            - text: Erfahre mehr über die Computer Vision Pipeline
+        - paragraph [ref=e39]: "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten."
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic: Täglicher Eisanteil, jede Saison
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2017"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2018"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2019"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2020"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2021"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2022"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2023"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2024"
+                - generic:
+                  - generic:
+                    - generic:
+                      - img:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: Feb
+                            - generic:
+                              - generic: Mär
+                            - generic:
+                              - generic: Apr
+                            - generic:
+                              - generic: Mai
+                            - generic:
+                              - generic: Jun
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: 0%
+                            - generic:
+                              - generic: 50%
+                            - generic:
+                              - generic: 100%
+                  - generic: "2025"
+        - generic [ref=e40]:
+          - heading [level=3] [ref=e41]: Ein Jahrzehnt arktisches Meereis
+          - paragraph [ref=e42]: "Hier die Ergebnisse: Jede Grafik zeigt eine Saison Meereis von Februar bis Juni."
+        - generic [ref=e43]:
+          - heading [level=3] [ref=e44]: Die Zahlen sprechen Klartext
+          - paragraph [ref=e45]: "Wenn wir alle Jahre betrachten, erkennen wir bereits einen Trend: Wärmere Winter, weniger Eis. Die Aussage ‚Früher verschwand das Eis erst im Juni oder Juli, heute schon im April oder Mai‘ trifft exakt zu."
+    - generic:
+      - generic:
+        - generic [ref=e46]:
+          - heading [level=3] [ref=e47]: Wenn Normalität verschwindet
+          - paragraph [ref=e48]: "Doch wie vergleichen wir das am Besten? Verdichten wir die Daten zu zwei Zeiträumen: Vor und nach 2021. Wir vergleichen 2017–2020 mit 2021–2025."
+        - generic [ref=e49]:
+          - heading [level=3] [ref=e50]: Wenn Normalität verschwindet
+          - paragraph [ref=e51]: "Die blaue Linie zeigt den Mittelwert 2017–2020: Das, was vor vier Jahren noch normal war. Der blaue Bereich zeigt saisonale Schwankungen."
+        - generic [ref=e52]:
+          - heading [level=3] [ref=e53]: Leben außerhalb der Norm
+          - paragraph [ref=e54]: "Die rote Linie zeigt den Mittelwert 2021–2025. Der Vergleich zeigt: 11,9 % weniger Eisfläche im Vergleich zum Mittelwert 2017–2020 bedeutet, dass die Gemeinschaft nun dauerhaft außerhalb der früheren Schwankungen lebt. Die Folge: Motorschlitten statt Hundeschlitten, sterbende Traditionen."
+    - generic [ref=e55]:
+      - heading [level=3] [ref=e56]: Doch wohin führt das?
+      - paragraph [ref=e57]: "Sehen wir uns die jährliche Auswertung an und ziehen wir eine Trendlinie dann sehen wir: Ein Jährlicher Verlust von 3% Meereis."
+    - generic [ref=e58]:
+      - heading [level=2] [ref=e59]: Von Uummannaq zur gesamten Arktis
+      - paragraph [ref=e60]: "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Gesamtsituation besser zu verstehen."
+      - button [ref=e61]:
+        - img
+        - text: Wo kommen die Arktisdaten? Klicke hier die Methodik.
+    - generic:
+      - generic:
+        - generic [ref=e62]:
+          - heading [level=3] [ref=e63]: Eine Kurve schlechter Nachrichten
+          - paragraph [ref=e64]: Jede Linie zeichnet ein Jahr arktischen Meereises nach, vom Minimum im Herbst zum Maximum im Frühling und zurück. Blaue Linien stehen für die früheren Jahre, rote für die heutigen Jahre.
+        - generic [ref=e65]:
+          - heading [level=3] [ref=e66]: "1979–2000: Die (noch) kalte Hälfte"
+          - paragraph [ref=e67]: Konzentrieren wir uns zunächst auf die erste Hälfte der Aufzeichnungen von 1979 bis 2000. Die blauen Linien liegen deutlich höher.
+        - generic [ref=e68]:
+          - heading [level=3] [ref=e69]: "2000–2025: Die heiße Hälfte"
+          - paragraph [ref=e70]: Jetzt steht das jüngste Vierteljahrhundert im Mittelpunkt. Die roten Linien drängen sich immer weiter nach unten.
+        - generic [ref=e71]:
+          - heading [level=3] [ref=e72]: Das Jahr 2025
+          - paragraph [ref=e73]: Zuletzt isolieren wir das aktuelle Jahr. Wir sehen in diesem Jahr eine Arktis, die weit unter dem historischen Durchschnitt liegt. Zwischen Februar und März 2025 haben wir einen neuen Rekordtiefstand für Meereis in der Arktis erreicht.
+        - generic [ref=e74]:
+          - heading [level=3] [ref=e75]: Im freien Fall
+          - paragraph [ref=e76]: Diese Daten zeigen uns, dass dies keine natürliche Schwankungen sind, sondern wir sehen hier ein Ökosystem im freien Fall.
+    - generic:
+      - generic:
+        - generic [ref=e77]:
+          - heading [level=3] [ref=e78]: Sechs Jahrzehnte, eine Richtung
+          - paragraph [ref=e79]: Jedes farbige Band steht für ein Jahrzehnt arktischer Eis-Anomalien. Wir beginnen mit den 1980ern – dem letzten Jahrzehnt, in dem späte Sommerwerte noch nahe bei null Millionen km² lagen.
+        - generic [ref=e80]:
+          - heading [level=3] [ref=e81]: "Die 1990er: Erste Risse"
+          - paragraph [ref=e82]: Die Eisschmelze beginnt sich zu beschleunigen. Wir sind noch im positiven Anomaliebereich, aber die Werte sinken. Der Abwärtstrends beschleunigt sich.
+        - generic [ref=e83]:
+          - heading [level=3] [ref=e84]: "Die 2000er: Die Negative Wende"
+          - paragraph [ref=e85]: Zum ersten Mal liegen alle Werte unter der alten Referenzlinie. Aus einer langsamen Verschiebung wird ein dauerhaftes Minus – der Abwärtstrend ist nicht mehr zu übersehen.
+        - generic [ref=e86]:
+          - heading [level=3] [ref=e87]: "Die 2010er: Beschleunigung"
+          - paragraph [ref=e88]: Der Abwärtstrend verschärft sich. Was früher noch unvorstellbar war, wird zur neuen Normalität. Die Werte liegen nun bei -0,75 Millionen km². Das Eis schmilzt schneller als je zuvor.
+        - generic [ref=e89]:
+          - heading [level=3] [ref=e90]: "Die 2020er: Freier Fall"
+          - paragraph [ref=e91]: Das aktuelle Jahrzehnt liegt ganz unten. Im alten Jahrtausend hatten wir im Herbst noch positive Anomalien, nun sehen wir in diesem Zeitraum Negativrekorde. Das Meereis befindet sich im freien Fall. Es gibt keine Anzeichen einer Stabilisierung. Ganz im Gegenteil. Das Meereis ist auf einem historischen Tiefstand.
+    - generic [ref=e92]:
+      - heading [level=3] [ref=e93]: Der Kipppunkt
+      - paragraph [ref=e94]: "Jeder Balken zeigt, wie weit das jeweilige Jahr über (blau) oder unter (rot) dem langfristigen Durchschnitt endete. Null markiert den Durchschnitt aller Jahre. Die 1980er und 1990er pendelten noch um die Norm. In den 2000er erreichen wir einen Kippunkt. Die 2010er und 2020er sind nur noch negativ. Auch die einzelnen Jahre zeigen den gleichen Trend: Das Eis schmilzt schneller als je zuvor."
+    - generic [ref=e95]:
+      - heading [level=3] [ref=e96]: Die unnatürliche Erwärmung der Erde
+      - paragraph [ref=e97]: "Drei Linien, eine Geschichte: CO₂-Konzentration in der Atmosphäre (grün) und globale Temperatur (blau) steigen seit Jahrzehnten an. Die Temperatur in der Arktis (rot) steigt sichtbar schneller als der globale Durchschnitt. Mehr CO₂ bedeutet mehr Wärme, und die Arktis spürt dies zuerst und am stärksten. Die Arktis ist das Frühwarnsystem unseres Planeten. Was dort passiert, betrifft uns alle."
+    - generic:
+      - generic:
+        - generic [ref=e98]:
+          - heading [level=3] [ref=e99]: Alles auf einer Skala
+          - paragraph [ref=e100]: Wie vergleicht man CO₂-Werte mit Temperatur und Eisausdehnung? Man berechnet wie viele Standardabweichungen jeder Messwert vom historischen Durchschnitt entfernt liegt und setzt sie auf eine gemeinsame Skala. So werden Muster klar sichtbar.
+        - generic [ref=e101]:
+          - heading [level=3] [ref=e102]: Das Spiegelbild
+          - paragraph [ref=e103]: "Drehen wir die Meereisverluste um, erscheint etwas Erstaunliches: Der Anstieg von CO₂ und Temperatur spiegelt perfekt den Eisverlust wider. Drei verschiedene Messgrößen, eine gemeinsame Geschichte. So sieht Klimawandel in Daten aus."
+    - generic [ref=e104]:
+      - heading [level=3] [ref=e105]: "2024: Der dramatische Höhepunkt"
+      - paragraph [ref=e106]: Während globale Temperaturen 2024 Rekorde brachen, stiegen die Temperaturen in der Arktis umso stärker. Dieser enorme rote Balken ist nicht bloß eine Zahl sondern eine Warnung. Klimafolgen sind nicht gleichmäßig verteilt, sondern treffen die Arktis zuerst und besonders hart. Doch das Schmelzen des Meereises hat Folgen für den gesamten Planeten und wird auch den Klimawandel weiter beschleunigen. Was in der Arktis geschieht, bleibt nicht in der Arktis.
+    - generic:
+      - generic:
+        - img
+        - generic:
+          - heading [level=2]: Forscher erwarten eisfreie Sommer noch vor 2050
+          - heading [level=2]: Die Arktis ist das Frühwarnsystem unseres Planeten
+          - heading [level=2]: Hören wir rechtzeitig zu?
+    - button:
+      - img
+  - generic [ref=e107]:
+    - generic [ref=e108]: Big Melt
+    - generic [ref=e109]:
+      - button [ref=e112]:
+        - generic: Wie das Eis verschwindet
+      - button [ref=e113]:
+        - generic: Das Herz einer Robbe
+      - button [ref=e114]:
+        - generic: Die Stimmen der Arktis
+      - button [ref=e115]:
+        - generic: Nur ein Gefühl?
+      - button [ref=e116]:
+        - generic: Ein Jahrzehnt arktisches Meereis
+      - button [ref=e117]:
+        - generic: Downwards Trend
+      - button [ref=e118]:
+        - generic: Von Uummannaq zur gesamten Arktis
+      - button [ref=e119]:
+        - generic: Sechs Jahrzehnte, eine Richtung
+      - button [ref=e120]:
+        - generic: Climate Change Drivers
+      - button [ref=e121]:
+        - generic: "2024: Der dramatische Höhepunkt"
+  - button:
+    - img
+  - alert
+  - button [ref=e127] [cursor=pointer]:
+    - img [ref=e128]
+  - alertdialog "Beta-Vorschau" [active] [ref=e132]:
+    - heading "Beta-Vorschau" [level=2] [ref=e133]
+    - generic [ref=e135]: Beta-Vorschau
+    - generic [ref=e136]:
+      - paragraph [ref=e137]: Diese interaktive Arktis-Geschichte ist noch in Entwicklung. Möglicherweise treten Fehler, visuelle Probleme oder fehlende Funktionen auf, während ich weiter daran arbeite.
+      - paragraph [ref=e138]: Ich freue mich über dein Feedback!
+    - button "Start" [ref=e140]
+  - button:
+    - generic: DE
+  - generic: "50"
+```

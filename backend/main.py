@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
-import os
+from pathlib import Path
 import json
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -19,7 +19,15 @@ import logging
 
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from settings import get_settings  # noqa: E402  (after load_dotenv)
+
+settings = get_settings()
+client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+DATA_FILE = DATA_DIR / "data.json"
+FJORD_DATA_FILE = DATA_DIR / "fjord_data.json"
+CHROMA_PATH = DATA_DIR / "chroma_db"
 
 app = FastAPI(
     title="Climate Report API",
@@ -69,12 +77,12 @@ def compute_decadal_daily_anomaly(daily_rows: List[dict]) -> List[dict]:
         return []
 
     # -------- Konfiguration (ENV überschreibbar) -------------
-    YR_MIN = int(os.getenv('SEAICE_YR_MIN', '1980'))
-    YR_MAX = int(os.getenv('SEAICE_YR_MAX', '2100'))
-    BASE0  = int(os.getenv('SEAICE_ANOM_BASELINE_START', '1981'))
-    BASE1  = int(os.getenv('SEAICE_ANOM_BASELINE_END',   '2010'))
-    W_YEAR = max(1, int(os.getenv('SEAICE_SMOOTH_WINDOW', '7')))       # jährl. Vor-Glättung
-    W_DEC  = max(1, int(os.getenv('SEAICE_DECADAL_SMOOTH', '15')))     # n a c h Dekadenmittel
+    YR_MIN = settings.seaice_yr_min
+    YR_MAX = settings.seaice_yr_max
+    BASE0  = settings.seaice_anom_baseline_start
+    BASE1  = settings.seaice_anom_baseline_end
+    W_YEAR = max(1, settings.seaice_smooth_window)       # jährl. Vor-Glättung
+    W_DEC  = max(1, settings.seaice_decadal_smooth)     # n a c h Dekadenmittel
 
     # -------- Hilfsfunktionen --------------------------------
     def _circular_smooth(y: np.ndarray, win: int) -> np.ndarray:
@@ -156,7 +164,7 @@ def compute_decadal_daily_anomaly(daily_rows: List[dict]) -> List[dict]:
 
 @app.get("/data", response_model=DataResponse)
 async def get_data():
-    db_url = os.getenv("DATABASE_URL")
+    db_url = settings.database_url
     if db_url:
         try:
             engine = create_engine(db_url)
@@ -188,8 +196,8 @@ async def get_data():
             raise HTTPException(status_code=500, detail=f"Error reading data from database: {e}")
 
     # --- Fallback zu JSON-Datei wie gehabt -------------------
-    file_path = os.path.join(os.getcwd(), "data", "data.json")
-    if not os.path.exists(file_path):
+    file_path = DATA_FILE
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Data file not found")
     try:
         with open(file_path, "r") as f:
@@ -210,7 +218,7 @@ async def get_fjord_data():
         d = date(2020, 1, 1) + timedelta(days=doy - 1)
         return f"{d.day:02d}-{MONTHS[d.month-1]}"
 
-    db_url = os.getenv("DATABASE_URL")
+    db_url = settings.database_url
     if db_url:
         engine = create_engine(db_url)
         try:
@@ -267,8 +275,8 @@ async def get_fjord_data():
             raise HTTPException(status_code=500, detail=f"Error reading fjord data: {e}")
 
     # fallback: JSON (optional – hier könntest du ebenfalls 'season' schon gemerged vorhalten)
-    file_path = os.path.join(os.getcwd(), 'data', 'fjord_data.json')
-    if not os.path.exists(file_path):
+    file_path = FJORD_DATA_FILE
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fjord data file not found")
     with open(file_path, 'r') as f:
         return json.load(f)
@@ -294,7 +302,7 @@ LOGGER = logging.getLogger("backend.health")
 
 @lru_cache(maxsize=1)
 def _engine():
-    db_url = os.getenv("DATABASE_URL")
+    db_url = settings.database_url
     if not db_url:
         return None
     return create_engine(db_url, pool_pre_ping=True, future=True)
@@ -343,7 +351,7 @@ def get_embedder() -> SentenceTransformer:
     return _embedder
 
 
-chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
+chroma_client = chromadb.PersistentClient(path=str(CHROMA_PATH))
 try:
     collection = chroma_client.get_collection("eskimo-folktales")
 except:
@@ -354,6 +362,11 @@ async def chat_stream(req: ChatRequest):
     user_query = req.query.strip()
     if not user_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
+    if client is None:
+        raise HTTPException(
+            status_code=503,
+            detail="OpenAI client is not configured on this deployment.",
+        )
 
     embedder = get_embedder()
     query_embedding = embedder.encode([user_query])[0]

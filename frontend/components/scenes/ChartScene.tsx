@@ -24,6 +24,9 @@ const MIN_CHART_WIDTH = 520;
 const MAX_CHART_WIDTH = 960;
 /* ============================================================ */
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 /* ---------- TYPES ------------------------------------------- */
 export interface CaptionCfg {
   html: React.ReactNode;
@@ -79,12 +82,9 @@ const waitFor = (root: HTMLElement, sel: string) =>
   });
 
 const useIsCompact = () => {
-  const [compact, setCompact] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 1023px)").matches;
-  });
+  const [compact, setCompact] = useState(false);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(max-width: 1023px)");
     const handler = (event: MediaQueryListEvent) => setCompact(event.matches);
