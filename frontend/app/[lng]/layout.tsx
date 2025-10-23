@@ -7,11 +7,11 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: { lng: Language };
+  params: Promise<{ lng: Language }>;
 }
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
-  const { lng } = params;
+  const { lng } = await params;
   await i18n.changeLanguage(lng);              // Server stellt Sprache ein
 
   return (
