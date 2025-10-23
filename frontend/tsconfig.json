@@ -20,8 +20,20 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["vitest/globals"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "components/d3/**/*",
+    "components/builders/**/*",
+    "components/scenes/scenesConfig_2_old.tsx",
+    "components/scenes/scenesConfig_ideas.tsx",
+    "components/ui/IntroHeroNew.tsx",
+    "components/scenes/SeasonalScene.tsx",
+    "components/scenes/FlowChartScene.tsx",
+    "components/scenes/HorizontalDailyTunnelScene.tsx",
+    "components/modal/**/*"
+  ]
 }

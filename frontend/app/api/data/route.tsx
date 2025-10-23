@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import type { BackendDataResponse, ApiErrorPayload } from "@/types";
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     // Get the internal backend URL from environment variables
     const backendUrl = process.env.BACKEND_INTERNAL_URL;
@@ -29,13 +30,12 @@ export async function GET(request: Request) {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as BackendDataResponse;
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Internal Server Error";
     console.error("Error in /api/data proxy:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

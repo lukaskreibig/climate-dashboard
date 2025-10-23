@@ -36,3 +36,5 @@ export interface FjordDataBundle {
   freeze: FjordFreezeBreakup[];
   daily: FjordDailyRow[];
 }
+
+export type { DailySeaIceRow, AnnualAnomalyRow, IqrStatsRow, AnnualRow, DecadalAnomalyRow, BackendDataResponse, ApiErrorPayload } from "./api";

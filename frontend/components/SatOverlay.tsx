@@ -41,56 +41,85 @@ const SatOverlay = forwardRef<SatOverlayApi, Props>(function SatOverlay(
      1 ▸ add sources & layers exactly ONCE (when style ready)
   ---------------------------------------------------------------- */
   useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
+    let frame = 0;
+    let cleanup: (() => void) | undefined;
 
-    const addLayers = () => {
-      /* guard against hot-reload: layer might be there already */
-      if (map.getSource("sr-raw")) { reset(); return; }
+    const mount = (map: mapboxgl.Map) => {
+      const addLayers = () => {
+        /* guard against hot-reload: layer might be there already */
+        if (map.getSource("sr-raw")) {
+          reset();
+          return;
+        }
 
-      map.addSource("sr-raw",  { type:"image", url: rawImg,  coordinates: padded });
-      map.addSource("sr-mask", { type:"image", url: maskImg, coordinates: padded });
+        map.addSource("sr-raw", {
+          type: "image",
+          url: rawImg,
+          coordinates: padded,
+        });
+        map.addSource("sr-mask", {
+          type: "image",
+          url: maskImg,
+          coordinates: padded,
+        });
 
-      map.addLayer(
-        { id:"sr-raw",  type:"raster", source:"sr-raw",
-          paint:{ "raster-opacity":0 } }
-      );
-      map.addLayer({ id: "sr-mask", type: "raster", source: "sr-mask",
-                paint: { "raster-opacity": 0 } });
-      reset();
+        map.addLayer({
+          id: "sr-raw",
+          type: "raster",
+          source: "sr-raw",
+          paint: { "raster-opacity": 0 },
+        });
+        map.addLayer({
+          id: "sr-mask",
+          type: "raster",
+          source: "sr-mask",
+          paint: { "raster-opacity": 0 },
+        });
+        reset();
+      };
+
+      map.isStyleLoaded() ? addLayers() : map.once("style.load", addLayers);
+
+      // climb up from the Mapbox container to the nearest <section data-scene=…>
+      let trig: ScrollTrigger | undefined;
+      const host = map.getContainer().parentElement?.closest("section");
+      if (host) {
+        trig = ScrollTrigger.create({
+          trigger: host,
+          start: "top bottom",
+          onEnter: reset,
+          onEnterBack: reset,
+        });
+      }
+
+      return () => {
+        trig?.kill();
+        if (!map.style || !map.style.loaded()) return; // map already disposed
+        if (map.getLayer("sr-mask")) {
+          map.removeLayer("sr-mask");
+          map.removeSource("sr-mask");
+        }
+        if (map.getLayer("sr-raw")) {
+          map.removeLayer("sr-raw");
+          map.removeSource("sr-raw");
+        }
+      };
     };
 
-    /* run immediately or wait for the safe ‘style.load’ event */
-    map.isStyleLoaded() ? addLayers() : map.once("style.load", addLayers);
+    const waitForMap = () => {
+      const map = mapRef.current?.getMap();
+      if (!map) {
+        frame = requestAnimationFrame(waitForMap);
+        return;
+      }
+      cleanup = mount(map);
+    };
 
-     /* ───────────────────────────────
-     0 ▸ hide rasters whenever the
-         hosting <section> scrolls
-         into view (top or back)
-  ─────────────────────────────── */
-  {
-    // climb up from the Mapbox container to the nearest <section data-scene=…>
-    const host = map.getContainer().parentElement?.closest("section");
-    if (host) {
-      const trig = ScrollTrigger.create({
-         trigger: host, start: "top bottom", onEnter: reset, onEnterBack: reset
-       });
-    }
-  }
+    waitForMap();
 
-    /* --------------------------------------------------------------
-       2 ▸ tidy-up (only if the style is still valid)
-    -------------------------------------------------------------- */
     return () => {
-      if (!map.style || !map.style.loaded()) return;   // map already disposed
-      if (map.getLayer("sr-mask")) {
-        map.removeLayer("sr-mask");
-        map.removeSource("sr-mask");
-      }
-      if (map.getLayer("sr-raw")) {
-        map.removeLayer("sr-raw");
-        map.removeSource("sr-raw");
-      }
+      if (frame) cancelAnimationFrame(frame);
+      cleanup?.();
     };
   }, [mapRef, rawImg, maskImg, padded]);
 

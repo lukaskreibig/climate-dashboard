@@ -26,6 +26,7 @@ export default function StoryProgress() {
 
   const [points, setPoints] = useState<Waypoint[]>([]);
   const pointsRef           = useRef<Waypoint[]>([]); // always current
+  const lastActiveRef       = useRef<HTMLElement | null>(null);
 
   /* ───────── build / rebuild ───────── */
   useEffect(() => {
@@ -132,11 +133,17 @@ export default function StoryProgress() {
       .filter(t => t.vars.id?.toString().startsWith("dot-"))
       .forEach(t => t.kill());
 
+    lastActiveRef.current = null;
     points.forEach((wp, i) => {
       const dot = document.getElementById(`dot-${i}`)!;
 
       /* Grundzustand */
-      gsap.set(dot, { background: "transparent", border: "2px solid #94a3b8" });
+      gsap.set(dot, {
+        background: "transparent",
+        border: "2px solid #94a3b8",
+        boxShadow: "none",
+        transformOrigin: "center",
+      });
 
       ScrollTrigger.create({
         id     : `dot-${i}`,
@@ -148,25 +155,42 @@ export default function StoryProgress() {
     });
   }, [points]); // ← feuert erst wenn Dots existieren
 
-  const activateDot = (el: HTMLElement) => {
-  if (el.dataset.active) return;
-  el.dataset.active = "1";
+  const activateDot = (el: HTMLElement, opts: { pulse?: boolean; force?: boolean } = {}) => {
+    if (!el) return;
+    if (lastActiveRef.current && lastActiveRef.current !== el) {
+      gsap.to(lastActiveRef.current, {
+        background: "transparent",
+        borderColor: "#94a3b8",
+        boxShadow: "none",
+        duration: 0.3,
+        ease: "power2.out",
+      });
+    }
 
-  gsap
-    .timeline({ defaults: { ease: "power2.out" } })
-    /* kleiner Aus-Kick nach rechts */
-    .to(el, {  duration: 0.18 })
-    /* zurück an die Achse + Einfärben */
-    .to(
+    if (!opts.force && lastActiveRef.current === el && !opts.pulse) return;
+
+    lastActiveRef.current = el;
+
+    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+    tl.to(
       el,
       {
-        background : "#98bdf8",
-        borderColor: "#98bdf8",
-        boxShadow  : "0 0 2px rgba(56,189,248,.6)",
-        duration   : 0.24,      },
-      "<"
-    )
-};
+        background: "#93c5fd",
+        borderColor: "#93c5fd",
+        boxShadow: "0 0 8px rgba(59,130,246,0.55)",
+        duration: 0.25,
+      },
+      0
+    );
+
+    if (opts.pulse) {
+      tl.fromTo(
+        el,
+        { boxShadow: "0 0 8px rgba(59,130,246,0.55)" },
+        { boxShadow: "0 0 16px rgba(59,130,246,0.6)", duration: 0.18, yoyo: true, repeat: 1 }
+      );
+    }
+  };
 
 
   /* ───────── Scroll/Kbd navigation ───────── */
@@ -175,6 +199,12 @@ export default function StoryProgress() {
     if (!wp) return;
     const y = wp.el.offsetTop + innerHeight * 0.0;
     gsap.to(window, { scrollTo: y, duration: 0.9, ease: "power2.inOut" });
+  };
+
+  const handleDotClick = (idx: number) => {
+    const dot = document.getElementById(`dot-${idx}`);
+    if (dot) activateDot(dot, { pulse: true, force: true });
+    scrollToScene(idx);
   };
 
   useEffect(() => {
@@ -198,17 +228,16 @@ export default function StoryProgress() {
     >
       <div className="text-slate-800 mb-5">Big Melt</div>
 
-      <div ref={track} className="relative h-[40vh] w-px bg-slate-400/60 rounded-full">
+      <div ref={track} className="relative h-[40vh] w-[2px] bg-slate-400/60 rounded-full mx-auto">
         {/* Fill */}
         <div
           ref={fill}
-          className="absolute left-0 top-0 w-px rounded-full"
+          className="absolute left-1/2 -translate-x-1/2 top-0 w-[2px] rounded-full"
           style={{
             height: 0,
             /* sanfter Verlauf  –  Arctic-Blue → Magenta */
             background:
               "linear-gradient(180deg,#38bdf8 0%,#6366f1 60%,#98bdf2 100%)",
-            width: 1.5,
             boxShadow: "0 0 6px 2px rgba(99,102,241,.35)",
           }}
         />
@@ -223,14 +252,18 @@ export default function StoryProgress() {
           <button
             key={p.key}
             id={`dot-${i}`}
-            onClick={() => scrollToScene(i)}
+            onClick={() => handleDotClick(i)}
             aria-label={`Jump to ${p.title}`}
             className="
-                        group absolute left-1/2 -translate-x-1/2 -translate-y-1/2
+                        group absolute -translate-y-1/2
                         w-3 h-3 rounded-full transition-transform
                         hover:scale-125 active:scale-90 focus:outline-none focus:ring-2
                       "
-            style={{ top: `${p.f * 100}%` }}
+            style={{
+              top: `${p.f * 100}%`,
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
           >
             <span
               className="

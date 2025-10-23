@@ -8,8 +8,7 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Dialog  from "@radix-ui/react-dialog";
 import { Info, X }  from "lucide-react";
 import clsx         from "clsx";
-import { useTranslation } from 'react-i18next';
-import { t } from "i18next";
+import { useTranslation } from "react-i18next";
 
 /* ---------- Button + Popover ---------------------------------- */
 export default function LegalFooter() {
@@ -117,9 +116,6 @@ function LegalDialog({ type, onClose }: LegalDialogProps) {
     </Dialog.Root>
   );
 }
-
-console.log("LegalFooter rerender?")
-console.log(t('legal.info'));
 
 /* ============================================================= */
 /* ----------------------   Rechtstexte   ----------------------- */

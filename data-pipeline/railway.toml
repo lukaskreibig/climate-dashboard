@@ -1,5 +1,8 @@
 [build]
 builder = "DOCKERFILE"
+watchPatterns = [
+  "data-pipeline/**"
+]
 
 [deploy]
 restartPolicyType = "ON_FAILURE"

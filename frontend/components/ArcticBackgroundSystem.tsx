@@ -122,13 +122,13 @@ const ArcticBackgroundSystem = forwardRef<SnowApi>((_, ref) => {
           repeat: 1,
           repeatDelay: GUST_DURATION * 1.2,
           onComplete: () =>
-            gsap.delayedCall(
+            void gsap.delayedCall(
               gsap.utils.random(GUST_MIN_DELAY, GUST_MAX_DELAY),
               triggerGust
             ),
         });
       };
-      gsap.delayedCall(gsap.utils.random(2, 4), triggerGust);
+      void gsap.delayedCall(gsap.utils.random(2, 4), triggerGust);
 
       gsap.ticker.add((_, dt) => {
         scrollVel *= WIND_FRICTION;
@@ -158,7 +158,9 @@ const ArcticBackgroundSystem = forwardRef<SnowApi>((_, ref) => {
       }
     }, root);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+    };
   }, []);
 
   /* ─────────────── JSX ─────────────── */

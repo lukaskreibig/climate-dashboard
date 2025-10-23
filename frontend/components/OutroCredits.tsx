@@ -168,7 +168,9 @@ export default function OutroCredits() {
         start: "top center",
         onEnter: () => {
           // Enable scrolling back to story
-          gsap.set("body", { overflow: "auto" });
+          if (typeof document !== "undefined") {
+            gsap.set(document.body, { overflow: "auto" });
+          }
         }
       });
     }, outroRef);

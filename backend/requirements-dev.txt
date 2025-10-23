@@ -13,3 +13,5 @@ sentence-transformers
 sqlalchemy
 numpy
 psycopg2-binary
+pydantic-settings
+pytest

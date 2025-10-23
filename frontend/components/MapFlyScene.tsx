@@ -11,8 +11,10 @@ import {
   useImperativeHandle,
 } from "react";
 import mapboxgl from "mapbox-gl";
+import { useTranslation } from "react-i18next";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useTranslation } from 'react-i18next';
+import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
+import { preloadTiles } from "./MapboxPreloader";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -50,78 +52,60 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 ) {
   const { i18n } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map>();
+  const map = useRef<mapboxgl.Map | null>(null);
   const [ready, setReady] = useState(false);
 
   /* ═════════════════ build map once ═════════════════ */
   useEffect(() => {
-    if (!box.current) return;
+    let cancelled = false;
 
-    map.current = new mapboxgl.Map({
-      container: box.current,
-      style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
-      center: [waypoints[0].lng, waypoints[0].lat],
-      zoom: waypoints[0].zoom,
-      pitch: waypoints[0].pitch ?? 0,
-      bearing: waypoints[0].bearing ?? 0,
-      interactive: false,
-      attributionControl: false,
-      maxPitch: 85,
-    });
+    const buildMap = async () => {
+      if (!box.current || !waypoints.length) return;
 
-    map.current.once("idle", () => setReady(true));
+      await preloadTiles();
+      if (cancelled || !box.current || !waypoints.length) return;
 
-    map.current.on("style.load", () => {
-      /* remove Mapbox water to reveal MapTiler underneath */
-      
-      map
-        .current!.getStyle()
-        .layers?.filter((l) => l.id.startsWith("water"))
-        .forEach((l) => map.current!.removeLayer(l.id));
+      const container = box.current;
+      container.innerHTML = "";
 
-      /* MapTiler Satellite raster */
-      if (!map.current!.getSource("mt-sat")) {
-        const hires = window.devicePixelRatio > 1;
-        const scaleQS = hires ? "&scale=2" : "";
-        map.current!.addSource("mt-sat", {
-          type: "raster",
-          tiles: [
-            `https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}${scaleQS}`,
-          ],
-          tileSize: 256,
-          maxzoom: 14,
-          attribution: "© MapTiler © OpenStreetMap",
-        });
-      }
-      const firstSymbol = map
-        .current!.getStyle()
-        .layers?.find((l) => l.type === "symbol")?.id;
-      if (!map.current!.getLayer("mt-sat")) {
-        map.current!.addLayer(
-          { id: "mt-sat", type: "raster", source: "mt-sat" },
-          firstSymbol
-        );
-      }
+      const first = waypoints[0];
+      const instance = new mapboxgl.Map({
+        container,
+        style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
+        center: [first.lng, first.lat],
+        zoom: first.zoom,
+        pitch: first.pitch ?? 0,
+        bearing: first.bearing ?? 0,
+        interactive: false,
+        attributionControl: false,
+        maxPitch: 85,
+      });
 
-      /* optional 3-D terrain */
-      if (terrain && !map.current!.getSource("mt-dem")) {
-        map.current!.addSource("mt-dem", {
-          type: "raster-dem",
-          url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`,
-          tileSize: 256,
-        });
-        map.current!.setTerrain({ source: "mt-dem", exaggeration: 1.3 });
-      }
-    });
+      map.current = instance;
 
-    return () => map.current?.remove();
+      instance.once("idle", () => {
+        if (!cancelled) setReady(true);
+      });
+
+      instance.on("style.load", () => {
+        ensureMapTilerLayers(instance, { terrain });
+      });
+    };
+
+    buildMap();
+
+    return () => {
+      cancelled = true;
+      map.current?.remove();
+      map.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* ═════════════════ update language when i18n changes ═════════════════ */
   useEffect(() => {
     if (!map.current || !ready) return;
-    
+
     // Mapbox language mapping
     const languageMap: { [key: string]: string } = {
       'de': 'de',
@@ -144,7 +128,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         
         // Only update if it's a name field
         if (typeof textField === 'string' && textField.includes('name')) {
-          map.current!.setLayoutProperty(
+          map.current?.setLayoutProperty(
             layer.id,
             'text-field',
             ['coalesce',
@@ -167,8 +151,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       lastT.current = t;
       if (orbitDegPerSec.current !== 0 && map.current) {
         map.current.setBearing(
-          (map.current.getBearing() + orbitDegPerSec.current * dt) % 360,
-          { animate: false }
+          (map.current.getBearing() + orbitDegPerSec.current * dt) % 360
         );
       }
       requestAnimationFrame(tick);
@@ -187,8 +170,8 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         map.current?.flyTo({
           center: [wp.lng, wp.lat],
           zoom: wp.zoom,
-          pitch: wp.pitch ?? map.current!.getPitch(),
-          bearing: wp.bearing ?? map.current!.getBearing(),
+          pitch: wp.pitch ?? (map.current?.getPitch() ?? 0),
+          bearing: wp.bearing ?? (map.current?.getBearing() ?? 0),
           speed: wp.flySpeed ?? flySpeed,
         });
 
@@ -196,7 +179,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       },
 
       /*  ► SatelliteScene expects this helper */
-      getMap: () => map.current,
+      getMap: () => map.current ?? undefined,
     }),
     [waypoints, flySpeed]
   );
@@ -204,10 +187,10 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   /* ═════════════════ render ═════════════════ */
   return (
     <div
-      ref={box}
       className={`relative w-full h-full ${className}`}
       style={{ background: "#0f172a" }}
     >
+      <div ref={box} className="relative h-full w-full" />
       {!ready && (
         <div className="absolute inset-0 bg-neutral-950 pointer-events-none" />
       )}

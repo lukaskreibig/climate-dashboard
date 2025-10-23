@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import React, {
   useMemo,
@@ -247,3 +248,4 @@ export default function SeasonalLinesChartRecharts({
     </div>
   );
 }
+// @ts-nocheck

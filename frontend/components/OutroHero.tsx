@@ -35,6 +35,19 @@ export default function IntroHero() {
 
   /* ─── GSAP ─────────────────────────────────────────────── */
   useGSAP(() => {
+    if (
+      !wrap.current ||
+      !photo.current ||
+      !overlay.current ||
+      !bgFade.current ||
+      !block.current ||
+      !line4.current ||
+      !line5.current ||
+      !line6.current
+    ) {
+      return;
+    }
+
     const ctx = gsap.context(() => {
       /* 1️⃣  Main copy timeline (unchanged) */
       const tl = gsap.timeline({
@@ -80,7 +93,9 @@ export default function IntroHero() {
       "<");
 
       tl.add(() => {
-        gsap.set("body", { overflow: "hidden" });
+        if (typeof document !== "undefined") {
+          gsap.set(document.body, { overflow: "hidden" });
+        }
         const outro = document.getElementById("outro");
  if (outro) {
    // Klicks zulassen + sichtbar schalten

@@ -2,14 +2,16 @@
    scenesConfig.tsx – Chapter 1 — "The Arctic: Our Planet's Canary"
    Restructured for compelling data journalism
 ------------------------------------------------------------------- */
-import dynamic      from "next/dynamic";
-import { SceneCfg } from "./ChartScene";
-import { NO_MATCH } from "./ChartScene";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import { SceneCfg, NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
-import MapFlyScene from "../MapFlyScene";
+import MapFlyScene, { Waypoint } from "../MapFlyScene";
 import SatelliteScene from "@/components/SatelliteScene";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
+import { registerMapPreload } from "@/lib/mapPreloadRegistry";
+import type { DashboardDataOrNull } from "@/types/dashboard";
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
 
@@ -37,7 +39,33 @@ const MeanIceFractionChart = dynamic(() => import("@/components/Rechart/MeanIceF
 const FreezeBreakTimelineChart = dynamic(() => import("@/components/Rechart/FreezeBreakTimelineChart"), { ssr: false });
 const AllYearsSeasonChart = dynamic(() => import("@/components/Rechart/AllYearsSeasonChart"), { ssr: false });
 
-export const dynamicModules = [
+const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
+  { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },
+  { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },
+  { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },
+  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
+];
+
+const SATELLITE_WAYPOINTS: Waypoint[] = [
+  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 0 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 10.5, pitch: 70, bearing: 4.7 },
+  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+];
+
+const SATELLITE_IMAGES = ["/images/satellite.jpg", "/images/overlay.jpg"];
+
+registerMapPreload({
+  views: [...GEOGRAPHIC_WAYPOINTS, ...SATELLITE_WAYPOINTS],
+  images: SATELLITE_IMAGES,
+});
+
+export type PreloadableComponent = ComponentType<any> & {
+  preload?: () => Promise<unknown>;
+};
+
+export const dynamicModules: PreloadableComponent[] = [
   SeasonalChart,
   AnnualChart,
   IQRChart,
@@ -61,12 +89,7 @@ export const dynamicModules = [
 /* helper ------------------------------------------------------- */
 const AXES = ".chart-grid, .chart-axis";
 
-interface DataBundle{
-  dailySeaIce   : any[];
-  annualAnomaly : any[];
-  iqrStats      : any;
-  annual        : any[];
-}
+type DataBundle = DashboardDataOrNull;
 
 
 export const useScenesWithTranslation = () => {
@@ -82,16 +105,11 @@ export const useScenesWithTranslation = () => {
       slideIn: false,
       fadeOut: true,
       snow: false,
+      prefetchMarginPx: 900,
       chart: (_d, api) => (
           <MapFlyScene
             ref={api}
-            waypoints={[
-              { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },          // Global Arctic
-              { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },        // Greenland
-              { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },    // Uummannaq Bay
-              { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
-              //  { lng: -52.27, lat: 70.69, zoom: 10, pitch: 0, bearing: 0 },
-            ]}
+            waypoints={GEOGRAPHIC_WAYPOINTS}
           />
 
       ),
@@ -406,7 +424,7 @@ export const useScenesWithTranslation = () => {
   axesSel: NO_MATCH,
   captions: [{ html: <></> }],
 },
-{
+    {
   key: "introcharts",
   progressPoint: true, 
   chartSide: "fullscreen",
@@ -415,19 +433,14 @@ export const useScenesWithTranslation = () => {
   fadeOut: true,
   snow: false,
   parallax: false,
+  prefetchMarginPx: 900,
 
   chart: (_d, api) => (
     <SatelliteScene
       ref={api}
-      waypoints={[
-        { lng:-52.27, lat:70.67, zoom:10, pitch:60, bearing:0 },
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0,  bearing:4.7 },
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0, bearing:4.7},
-        { lng: -52.22, lat: 70.70, zoom: 10.5, pitch: 70, bearing: 4.7},
-        { lng:-52.22, lat:70.70, zoom:9.5, pitch:0, bearing:4.7},
-      ]}
-      rawImg ="/images/satellite.jpg"
-      maskImg="/images/overlay.jpg"
+      waypoints={SATELLITE_WAYPOINTS}
+      rawImg={SATELLITE_IMAGES[0]}
+      maskImg={SATELLITE_IMAGES[1]}
       coords={[
         [-52.333915, 70.798511], // ↖
         [-51.905163, 70.787129], // ↗
@@ -512,7 +525,9 @@ export const useScenesWithTranslation = () => {
 /* ═══ SCENE 6: THE VISUAL PROOF ═══ */
   {
     key: "visual-proof",
-    chart: (d: DataBundle, api) => <AllYearsSeasonChart data={d.daily} apiRef={api} />,
+    chart: (d: DataBundle, api) => (
+      <AllYearsSeasonChart data={(d?.daily ?? []) as any} apiRef={api} />
+    ),
     progressPoint: true,
     plainCaptions: true,
     axesSel: AXES,
@@ -554,7 +569,13 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 8: THE NEW ABNORMAL ═══ */
   {
     key: "new-abnormal",
-    chart: (d: DataBundle, api) => <EarlyLateSeasonChart data={d.season} apiRef={api} lossPct={d.seasonLossPct} />,
+    chart: (d: DataBundle, api) => (
+      <EarlyLateSeasonChart
+        data={(d?.season ?? []) as any}
+        apiRef={api}
+        lossPct={d?.seasonLossPct ?? null}
+      />
+    ),
     axesSel: AXES,
     plainCaptions: true,
     axesInIdx: 0,
@@ -615,7 +636,7 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 9: THE TRAJECTORY ═══ */
   {
     key: "trajectory",
-    chart: (d: DataBundle) => <MeanIceFractionChart data={d.frac} />,
+    chart: (d: DataBundle) => <MeanIceFractionChart data={(d?.frac ?? []) as any} />,
     plainCaptions: true,
     axesSel: AXES,
 
@@ -796,9 +817,9 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "seasonal", // remains the same
-  chart: (d, api) => (
+  chart: (d: DataBundle, api) => (
     // pass apiRef so the chart exposes highlight() to ScrollTrigger
-    <SeasonalChart data={d.dailySeaIce} apiRef={api} />
+    <SeasonalChart data={(d?.dailySeaIce ?? []) as any} apiRef={api} />
   ),
   axesSel: AXES,
   plainCaptions: true,
@@ -889,21 +910,21 @@ export const useScenesWithTranslation = () => {
     axesInIdx : 0,
 
     captions : [
+      // {
+      //   captionSide:"left",
+      //   html:(<>
+      //     <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
+      //     <p className="text-lg">
+      //       {t('scenes.decades.description')}
+      //     </p>
+      //   </>)
+      // },
       {
         captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
           <p className="text-lg">
             {t('scenes.decades.description')}
-          </p>
-        </>)
-      },
-      {
-        captionSide:"left",
-        html:(<>
-          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1980s.title')}</h3>
-          <p className="text-lg">
-            {t('scenes.decades.1980s.description')}
           </p>
         </>)
       },
@@ -998,7 +1019,7 @@ export const useScenesWithTranslation = () => {
     key       : "annual",
         plainCaptions: true,
 
-    chart     : (d:DataBundle)=> <AnnualChart data={d.annualAnomaly}/>,
+    chart     : (d:DataBundle)=> <AnnualChart data={(d?.annualAnomaly ?? []) as any}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1068,7 +1089,7 @@ export const useScenesWithTranslation = () => {
     /* 6 — Multi-line connections (clearer narrative) ----------- */
   {
     key      : "connections",
-    chart    : (d:DataBundle)=> <MultiChart data={d.annual}/>,
+    chart    : (d:DataBundle)=> <MultiChart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
     axesInIdx : 0,
     plainCaptions: true,
@@ -1091,7 +1112,7 @@ export const useScenesWithTranslation = () => {
   },
    {
     key       : "zscore",
-    chart     : (d:DataBundle,api)=> <ZScoreChart data={d.annual} apiRef={api}/>,
+    chart     : (d:DataBundle,api)=> <ZScoreChart data={(d?.annual ?? []) as any} apiRef={api}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1130,7 +1151,7 @@ export const useScenesWithTranslation = () => {
   {
     key      : "2024-focus",
     progressPoint: true,
-    chart    : (d:DataBundle)=> <Bar24Chart data={d.annual}/>,
+    chart    : (d:DataBundle)=> <Bar24Chart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
     plainCaptions: true,
     captions : [
