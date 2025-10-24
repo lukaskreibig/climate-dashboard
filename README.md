@@ -31,7 +31,7 @@ An immersive, data-driven scrollytelling experience that visualises how the Arct
 Clients and employers use this repository as a qualitative benchmark for senior-level engineering. It demonstrates:
 
 - **Story-first UX** — GSAP-powered scroll choreography, Mapbox/MapTiler warm-up, and pre-fetched scene assets keep the narrative fluid.
-- **Data credibility** — reproducible pipelines pull from NASA GISTEMP, NOAA NSIDC, OWID CO₂, and a custom Sentinel‑2 sea-ice segmentation job.
+- **Data credibility** — reproducible pipelines pull from NASA GISTEMP, NOAA NSIDC, OWID CO₂, and an external Sentinel‑2 sea-ice segmentation job ([uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space)).
 - **Operational maturity** — a typed FastAPI backend, Railway-hosted pipelines, and Vercel deployments with daily refresh workflows.
 - **Internationalisation & accessibility** — German/English copy, Radix primitives, and guardrails in `ChartScene` to prevent overlap with the progress rail.
 
@@ -45,7 +45,7 @@ Use the rest of this document to explore the tech stack, reproduce the environme
 |-------|-------|------------------|
 | **Frontend** (`frontend/`) | Next.js 15, React 19, GSAP, D3, Recharts, Mapbox GL, Tailwind 4 | Scrollytelling runtime, chart orchestration, Mapbox/MapTiler preload registry, localisation (i18next + file-based routing). |
 | **Backend** (`backend/`) | FastAPI, SQLAlchemy, Pandas, OpenAI SDK | Serves aggregated climate datasets, computes on-demand decadal sea-ice anomalies, exposes Uummannaq fjord bundles, and supports LLM-backed helper endpoints. |
-| **Pipelines** (`data-pipeline/`, `satellite/`) | Python, Pandas, PyTorch (UNet), segmentation_models_pytorch, pystac, Dask | Nightly ingestion & normalisation of NASA/NOAA/OWID data, plus Sentinel‑2 segmentation to derive fjord freeze/breakup metrics. |
+| **Pipelines** (`data-pipeline/` + [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space)) | Python, Pandas, PyTorch (UNet), segmentation_models_pytorch, pystac, Dask | Nightly ingestion & normalisation of NASA/NOAA/OWID data (this repo) plus a dedicated Sentinel‑2 segmentation service (companion repo) that produces fjord overlays + CSV metrics. |
 | **Infrastructure** | Vercel (frontend), Railway (backend & pipelines), GitHub Actions, Supabase/PostgreSQL | Continuous delivery, cron-style refresh jobs, and data persistence. |
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed sequence diagrams, contract boundaries, and caching strategy.
@@ -71,7 +71,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed sequence diagrams,
 │   ├── update_fjord_data.py   # Uummannaq derived metrics loader
 │   └── wait_for_db.py         # Utility for Railway deployments
 ├── docs/              # Living documentation (architecture, ops, CMS plan…)
-└── satellite/ (see docs)  # Sentinel‑2 segmentation pipeline (UNetMobV2)
+└── satellite/             # (Legacy stub) — full Sentinel‑2 segmentation lives in [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space)
 ```
 
 > **Tip:** The TypeScript types in `frontend/types/` are the single source of truth for data contracts. When backend schemas evolve, update them first and regenerate mirroring Pydantic models.
@@ -146,7 +146,7 @@ python update_pipeline.py        # ingest NOAA/NASA/OWID data
 python update_fjord_data.py      # refresh Uummannaq aggregates
 ```
 
-For the Sentinel‑2/UNet segmentation job see [docs/DATA_PIPELINE.md#sentinel-2-sea-ice-segmentation](docs/DATA_PIPELINE.md#sentinel-2-sea-ice-segmentation).
+For the Sentinel‑2/UNet segmentation job, visit the dedicated repository: [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space). That project documents tile ingestion, UNet training, and CSV/overlay exports that feed this dashboard.
 
 ### 5. Docker Compose workflow
 
@@ -161,6 +161,17 @@ docker compose --profile pipeline up pipeline
 ```
 
 The compose file uses environment overrides from `docker/.env.dev`. Mounts are configured so pipeline CSV outputs can be swapped without rebuilding the image. See [docs/OPERATIONS.md](docs/OPERATIONS.md#docker-compose) for more detail.
+
+### Related repository: Uummannaq Ice From Space
+
+The Sentinel‑2 classification work that powers our fjord insights is maintained in a sister project: **[uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space)**. Highlights:
+
+- Production-ready CLI (`uummannaq-ice`) that performs STAC discovery, tile streaming via `odc-stac`, MobilenetV2 UNet cloud masking, rule-based ice classification, and CSV/PNG reporting.
+- Extensive docs covering architecture, datasets, development workflow, integration options, and troubleshooting.
+- Configurable YAML presets (`config/*.yaml`), Docker images (CPU + CUDA), benchmarking scripts, and a full Pytest + Ruff + mypy CI pipeline.
+- Archival notebooks and historical outputs kept for traceability in `archive/legacy_pipeline`.
+
+When the pipeline finishes, the generated artefacts (CSV + overlays) are mounted or uploaded so that `data-pipeline/update_fjord_data.py` in this repository can ingest them.
 
 ---
 
@@ -240,7 +251,7 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for onboarding tips, coding style
 ## Further reading
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — subsystem deep dive, sequence diagrams, contract tables.
-- [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) — ingestion, anomaly math, Sentinel‑2 segmentation pipeline.
+- [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) — ingestion, anomaly math, and pointers to the external Sentinel‑2 segmentation pipeline.
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — deployments, cron jobs, monitoring, disaster recovery.
 - [docs/FRONTEND_RUNTIME.md](docs/FRONTEND_RUNTIME.md) — how scenes, captions, and the progress rail cooperate.
 - [docs/CMS_SANITY.md](docs/CMS_SANITY.md) — migration plan to externalise narrative copy via Sanity CMS.

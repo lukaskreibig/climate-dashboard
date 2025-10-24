@@ -70,7 +70,7 @@ See the repository README for run/start commands.
   1. Run `python data-pipeline/update_pipeline.py`.
   2. Run `python data-pipeline/update_fjord_data.py`.
   3. Restart the backend (`uvicorn main:app --reload`).
-- For the Sentinel‑2 segmentation job see [docs/DATA_PIPELINE.md](DATA_PIPELINE.md#sentinel-2-sea-ice-segmentation).
+- The Sentinel‑2 segmentation pipeline lives in a companion repository: [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space). That project handles STAC discovery, UNet inference, and overlay/CSV exports. This repo’s `data-pipeline/` jobs focus on NOAA/NASA/OWID ingest and turning the exported CSV into fjord aggregates.
 
 ---
 
