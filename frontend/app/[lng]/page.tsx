@@ -10,7 +10,10 @@ import IntroHero from "@/components/IntroHero";
 import ArcticBackgroundSystem, {
   type SnowApi,
 } from "@/components/ArcticBackgroundSystem";
-import MapboxPreloader, { preloadTiles } from "@/components/MapboxPreloader";
+import MapboxPreloader, {
+  preloadMapImages,
+  preloadTiles,
+} from "@/components/MapboxPreloader";
 import ChartScene from "@/components/scenes/ChartScene";
 import StoryProgress from "@/components/StoryProgress";
 import ChatBot from "@/components/ChatBot";
@@ -50,7 +53,8 @@ export default function Page() {
         setLoading(true);
 
         const modulePromise = preloadModules(dynamicModules).then(() => mark(20));
-        const tilesPromise = preloadTiles().then(() => mark(50));
+        const mapImagesPromise = preloadMapImages().then(() => mark(40));
+        const tilesPromise = preloadTiles().then(() => mark(55));
 
         const basePromise = fetchBaseData().then((base) => {
           mark(65);
@@ -62,7 +66,7 @@ export default function Page() {
         });
 
         const [baseJson, fjordData] = await Promise.all([basePromise, fjordPromise]);
-        await Promise.all([modulePromise, tilesPromise]);
+        await Promise.all([modulePromise, mapImagesPromise, tilesPromise]);
 
         if (cancelled) return;
 
