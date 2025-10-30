@@ -103,9 +103,11 @@ export const useScenesWithTranslation = () => {
       progressPoint: true,
       parallax: false,
       slideIn: false,
+      fadeIn: true,
       fadeOut: true,
       snow: false,
-      prefetchMarginPx: 900,
+      bgColor: "#020617",
+      prefetchMarginPx: 12000,
       chart: (_d, api) => (
           <MapFlyScene
             ref={api}
@@ -433,7 +435,8 @@ export const useScenesWithTranslation = () => {
   fadeOut: true,
   snow: false,
   parallax: false,
-  prefetchMarginPx: 900,
+  prefetchMarginPx: 12000,
+  bgColor: "#020617",
 
   chart: (_d, api) => (
     <SatelliteScene

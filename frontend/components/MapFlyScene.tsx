@@ -188,12 +188,21 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   return (
     <div
       className={`relative w-full h-full ${className}`}
-      style={{ background: "#0f172a" }}
+      style={{
+        backgroundColor: ready ? "transparent" : "#0f172a",
+        transition: "background-color 0.6s ease-in-out",
+      }}
     >
       <div ref={box} className="relative h-full w-full" />
-      {!ready && (
-        <div className="absolute inset-0 bg-neutral-950 pointer-events-none" />
-      )}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 40%, rgba(15,23,42,0.9) 0%, rgba(10,12,24,0.96) 55%, rgba(5,7,15,1) 100%)",
+          opacity: ready ? 0 : 1,
+          transition: "opacity 0.45s ease-in-out",
+        }}
+      />
 
       <style jsx global>{`
         ${ready
