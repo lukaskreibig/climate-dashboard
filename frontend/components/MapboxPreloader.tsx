@@ -49,10 +49,35 @@ const preloadImage = (src: string) =>
   new Promise<void>((resolve) => {
     if (typeof Image === "undefined") return resolve();
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = () => resolve();
     img.onerror = () => resolve();
     img.src = src;
   });
+
+let imagesWarmed = false;
+let imageWarmPromise: Promise<void> | null = null;
+
+export function preloadMapImages(): Promise<void> {
+  if (imagesWarmed) return Promise.resolve();
+  if (imageWarmPromise) return imageWarmPromise;
+
+  const imageUrls = getRegisteredMapPreloadImages();
+  if (!imageUrls.length) {
+    imagesWarmed = true;
+    return Promise.resolve();
+  }
+
+  imageWarmPromise = Promise.all(imageUrls.map((src) => preloadImage(src)))
+    .then(() => {
+      imagesWarmed = true;
+    })
+    .finally(() => {
+      imageWarmPromise = null;
+    });
+
+  return imageWarmPromise;
+}
 
 /** externe Helper-Fn für page.tsx  */
 export async function preloadTiles(): Promise<void> {
@@ -128,11 +153,8 @@ export default function MapboxPreloader() {
           if (cancelled) return;
         }
 
-        const imageUrls = getRegisteredMapPreloadImages();
-        if (imageUrls.length) {
-          await Promise.all(imageUrls.map((src) => preloadImage(src)));
-          if (cancelled) return;
-        }
+        await preloadMapImages();
+        if (cancelled) return;
       } finally {
         if (!cancelled) {
           warmed = true;
