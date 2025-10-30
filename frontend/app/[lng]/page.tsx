@@ -10,7 +10,7 @@ import IntroHero from "@/components/IntroHero";
 import ArcticBackgroundSystem, {
   type SnowApi,
 } from "@/components/ArcticBackgroundSystem";
-import MapboxPreloader from "@/components/MapboxPreloader";
+import MapboxPreloader, { preloadTiles } from "@/components/MapboxPreloader";
 import ChartScene from "@/components/scenes/ChartScene";
 import StoryProgress from "@/components/StoryProgress";
 import ChatBot from "@/components/ChatBot";
@@ -40,17 +40,31 @@ export default function Page() {
   const goTo = (pct: number) => setProgress((p) => Math.max(p, pct));
 
   useEffect(() => {
+    let cancelled = false;
+    const mark = (pct: number) => {
+      if (!cancelled) goTo(pct);
+    };
+
     (async () => {
       try {
         setLoading(true);
-        await preloadModules(dynamicModules);
-        goTo(15);
 
-        const [baseJson, fjordData] = await Promise.all([
-          fetchBaseData(),
-          fetchFjordData(),
-        ]);
-        goTo(30);
+        const modulePromise = preloadModules(dynamicModules).then(() => mark(20));
+        const tilesPromise = preloadTiles().then(() => mark(50));
+
+        const basePromise = fetchBaseData().then((base) => {
+          mark(65);
+          return base;
+        });
+        const fjordPromise = fetchFjordData().then((fjord) => {
+          mark(80);
+          return fjord;
+        });
+
+        const [baseJson, fjordData] = await Promise.all([basePromise, fjordPromise]);
+        await Promise.all([modulePromise, tilesPromise]);
+
+        if (cancelled) return;
 
         const combined: DashboardData = {
           dailySeaIce: baseJson.dailySeaIce,
@@ -65,10 +79,10 @@ export default function Page() {
           daily: fjordData.daily,
           seasonLossPct: fjordData.seasonLossPct ?? null,
         };
-        goTo(50);
+        mark(95);
 
+        if (cancelled) return;
         setData(combined);
-        goTo(100);
       } catch (error) {
         if (error instanceof ApiError) {
           console.error("API error:", error.payload ?? error.message);
@@ -76,10 +90,16 @@ export default function Page() {
           console.error(error);
         }
       } finally {
-        setProgress(100);
-        setLoading(false);
+        mark(100);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
