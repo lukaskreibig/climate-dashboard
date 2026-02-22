@@ -4,8 +4,6 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
 from pathlib import Path
 import json
-import chromadb
-from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 from typing import Any, List
 from dotenv import load_dotenv
@@ -17,6 +15,10 @@ from typing import Optional
 from functools import lru_cache
 import logging
 from urllib.parse import urlparse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
 load_dotenv()
@@ -414,22 +416,37 @@ from threading import Lock
 
 _embedder = None
 _embedder_lock = Lock()
+_collection = None
+_collection_lock = Lock()
 
 
-def get_embedder() -> SentenceTransformer:
+def get_embedder() -> "SentenceTransformer":
     global _embedder
     if _embedder is None:
         with _embedder_lock:
             if _embedder is None:
+                # Import lazily to avoid loading torch/sentence-transformers into RAM
+                # until the chat endpoint is actually used.
+                from sentence_transformers import SentenceTransformer
+
                 _embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _embedder
 
 
-chroma_client = chromadb.PersistentClient(path=str(CHROMA_PATH))
-try:
-    collection = chroma_client.get_collection("eskimo-folktales")
-except:
-    collection = chroma_client.create_collection("eskimo-folktales")
+def get_collection():
+    global _collection
+    if _collection is None:
+        with _collection_lock:
+            if _collection is None:
+                # Lazily initialize Chroma so idle API instances stay smaller.
+                import chromadb
+
+                chroma_client = chromadb.PersistentClient(path=str(CHROMA_PATH))
+                try:
+                    _collection = chroma_client.get_collection("eskimo-folktales")
+                except Exception:
+                    _collection = chroma_client.create_collection("eskimo-folktales")
+    return _collection
 
 @app.post("/chat_stream")
 async def chat_stream(req: ChatRequest):
@@ -443,6 +460,7 @@ async def chat_stream(req: ChatRequest):
         )
 
     embedder = get_embedder()
+    collection = get_collection()
     query_embedding = embedder.encode([user_query])[0]
     results = collection.query(query_embeddings=[query_embedding], n_results=3)
     retrieved_chunks = results.get("documents", [[]])[0]
