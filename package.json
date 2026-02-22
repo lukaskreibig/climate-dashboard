@@ -3,7 +3,10 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "dev": "concurrently \"cd backend && uvicorn main:app --host :: --port 8000\" \"cd frontend && yarn dev\""
+        "dev": "yarn dev:full",
+        "dev:full": "concurrently \"cd backend && uvicorn main:app --host :: --port 8000\" \"cd frontend && yarn dev\"",
+        "dev:frontend": "cd frontend && yarn dev",
+        "dev:backend": "cd backend && uvicorn main:app --host :: --port 8000"
     },
     "devDependencies": {
         "concurrently": "^9.2.1"

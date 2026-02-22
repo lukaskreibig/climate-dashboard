@@ -84,7 +84,7 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 
 | Job | Command | Platform | Schedule | Notes |
 |-----|---------|----------|----------|-------|
-| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 03:00 UTC | Writes climate tables and `data/data.json`. `REMOVED` deployment status is normal after a successful one-shot cron container exits. |
+| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 06:00 UTC | Writes climate tables and `data/data.json`. `REMOVED` deployment status is normal after a successful one-shot cron container exits. |
 | Fjord aggregates | `python update_fjord_data.py` | Railway cron | Daily 03:10 UTC | Depends on latest Sentinel‑2 CSV. |
 | Sentinel‑2 segmentation | `python fast_cloudsen12.py` | Manual GPU runner / GitHub self-hosted runner | Ad-hoc (monthly) | Produces `summary_test.csv`. |
 | Data QA notebooks | Jupyter (`backend/jupyter_notebook/`) | Manual | After pipeline changes | Validate smoothing/anomaly outputs. |
