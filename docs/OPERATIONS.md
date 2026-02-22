@@ -85,7 +85,7 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 | Job | Command | Platform | Schedule | Notes |
 |-----|---------|----------|----------|-------|
 | Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 06:00 UTC | Writes climate tables and `data/data.json`. `REMOVED` deployment status is normal after a successful one-shot cron container exits. |
-| Fjord aggregates | `python update_fjord_data.py` | Railway cron | Daily 03:10 UTC | Depends on latest Sentinel‑2 CSV. |
+| Fjord aggregates | `python update_fjord_data.py` | Railway cron (same job chain as global ingest) | Daily 06:00 UTC (after global ingest) | Depends on latest Sentinel‑2 CSV. |
 | Sentinel‑2 segmentation | `python fast_cloudsen12.py` | Manual GPU runner / GitHub self-hosted runner | Ad-hoc (monthly) | Produces `summary_test.csv`. |
 | Data QA notebooks | Jupyter (`backend/jupyter_notebook/`) | Manual | After pipeline changes | Validate smoothing/anomaly outputs. |
 | Frontend build | `yarn build` | Vercel | On push to `main` | ISR handles runtime data freshness. |
@@ -121,7 +121,7 @@ Notify stakeholders via Slack/Email with root cause and remediation steps. Keep 
 |------|------------------|
 | Tail backend logs | `railway logs --service climate-backend` |
 | SSH into pipeline container | `railway shell --service climate-pipeline` |
-| Trigger full data refresh | `railway run python update_pipeline.py && python update_fjord_data.py` |
+| Trigger full data refresh | `railway run bash -lc "python3 wait_for_db.py && PIPELINE_SINGLE_STAGE=1 python3 update_pipeline.py && PIPELINE_SINGLE_STAGE=1 python3 update_fjord_data.py"` |
 | Regenerate JSON fallback | Run pipelines locally and commit `backend/data/data.json` |
 | Clear Mapbox cache (dev) | Call `resetMapPreloadRegistry()` in console, refresh page |
 
