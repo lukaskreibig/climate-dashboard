@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     )
 
     database_url: Optional[str] = None
+    database_public_url: Optional[str] = None
     openai_api_key: Optional[str] = None
 
     seaice_yr_min: int = 1980

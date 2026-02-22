@@ -291,7 +291,7 @@ def update_data():
 
     # ------------------------------------------------------------------
     # 14) Optionally insert each DataFrame into Postgres if DATABASE_URL is set
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL")
     if database_url:
         engine = create_engine(database_url)
         print("[INFO] Inserting DataFrames into Postgres...")
@@ -307,7 +307,7 @@ def update_data():
         )
         print("[INFO] Successfully inserted data into Postgres.")
     else:
-        print("[INFO] No DATABASE_URL found, skipping Postgres insert.")
+        print("[INFO] No DATABASE_URL / DATABASE_PUBLIC_URL found, skipping Postgres insert.")
 
     print(
         f"Data updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "

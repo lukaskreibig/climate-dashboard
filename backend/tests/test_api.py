@@ -9,6 +9,9 @@ client = TestClient(app)
 def test_get_data_returns_payload():
     resp = client.get("/data")
     assert resp.status_code == 200
+    assert resp.headers.get("x-climate-route") == "/data"
+    assert resp.headers.get("x-climate-data-source") in {"database", "json-fallback"}
+    assert resp.headers.get("x-climate-db-status") in {"ok", "error", "not-configured"}
 
     payload = resp.json()
     assert "annual" in payload

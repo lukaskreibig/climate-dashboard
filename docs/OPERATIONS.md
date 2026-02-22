@@ -48,7 +48,8 @@ Secrets are managed in Vercel/Railway dashboards. Do **not** commit credentials.
 
   | Variable | Description |
   |----------|-------------|
-  | `DATABASE_URL` | PostgreSQL connection string. |
+  | `DATABASE_URL` | PostgreSQL connection string (Railway-internal in production). |
+  | `DATABASE_PUBLIC_URL` | Optional public PostgreSQL URL for local/manual runs outside Railway. |
   | `OPENAI_API_KEY` | Optional – only needed when `/chat` endpoints are enabled. |
   | `LOG_LEVEL` | Python logging level (default `INFO`). |
   | `SEAICE_*` | Optional overrides for anomaly calculations (see README). |
@@ -83,7 +84,7 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 
 | Job | Command | Platform | Schedule | Notes |
 |-----|---------|----------|----------|-------|
-| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 03:00 UTC | Writes climate tables and `data/data.json`. |
+| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 03:00 UTC | Writes climate tables and `data/data.json`. `REMOVED` deployment status is normal after a successful one-shot cron container exits. |
 | Fjord aggregates | `python update_fjord_data.py` | Railway cron | Daily 03:10 UTC | Depends on latest Sentinel‑2 CSV. |
 | Sentinel‑2 segmentation | `python fast_cloudsen12.py` | Manual GPU runner / GitHub self-hosted runner | Ad-hoc (monthly) | Produces `summary_test.csv`. |
 | Data QA notebooks | Jupyter (`backend/jupyter_notebook/`) | Manual | After pipeline changes | Validate smoothing/anomaly outputs. |
@@ -98,6 +99,7 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 1. **Frontend outage** — check Vercel dashboard. If caused by data mismatch, roll back to previous deployment (Vercel UI) and inspect backend responses.
 2. **Backend outage** — use Railway logs. If Postgres is unavailable the API falls back to JSON (`backend/data/data.json`). Regenerate it via `update_pipeline.py`.
 3. **Pipeline failure** — re-run job manually; inspect logs for upstream HTTP failures. Apply exponential backoff in scripts when required.
+   - If the error is `DB not ready after ...`, verify Postgres status first. The cron job now waits longer before failing (`DB_WAIT_TIMEOUT_SECONDS`, `DB_WAIT_INTERVAL_SECONDS`).
 4. **Data corruption** — restore from PostgreSQL snapshot or rerun pipelines with historical date ranges. Commit the regenerated JSON fallback for traceability.
 5. **Mapbox quota exceeded** — MapboxPreloader logs warn about 401 responses. Rotate tokens or reduce tile preloading (see `MapboxPreloader.tsx`).
 
