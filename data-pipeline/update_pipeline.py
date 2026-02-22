@@ -127,6 +127,16 @@ def update_data():
     if response.status_code == 200:
         csv_data = io.StringIO(response.text)
         annual_co_emissions = pd.read_csv(csv_data)
+        # Upstream datasets occasionally change column casing; normalize the key
+        # columns we rely on before downstream groupby/pivot operations.
+        co2_colmap = {str(col).strip().lower(): col for col in annual_co_emissions.columns}
+        co2_renames = {}
+        if "year" in co2_colmap and "Year" not in annual_co_emissions.columns:
+            co2_renames[co2_colmap["year"]] = "Year"
+        if "entity" in co2_colmap and "Entity" not in annual_co_emissions.columns:
+            co2_renames[co2_colmap["entity"]] = "Entity"
+        if co2_renames:
+            annual_co_emissions = annual_co_emissions.rename(columns=co2_renames)
         annual_co_emissions.to_csv(
             os.path.join("data", "original_co2_worldindata.csv"), index=False
         )
@@ -154,6 +164,16 @@ def update_data():
     if "emissions_total" not in annual_co_emissions.columns:
         raise KeyError(
             "Missing column 'emissions_total' in CO₂ data. "
+            f"Check actual columns: {annual_co_emissions.columns}"
+        )
+    if "Year" not in annual_co_emissions.columns:
+        raise KeyError(
+            "Missing column 'Year' in CO₂ data after normalization. "
+            f"Check actual columns: {annual_co_emissions.columns}"
+        )
+    if "Entity" not in annual_co_emissions.columns:
+        raise KeyError(
+            "Missing column 'Entity' in CO₂ data after normalization. "
             f"Check actual columns: {annual_co_emissions.columns}"
         )
 
