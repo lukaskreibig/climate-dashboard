@@ -6,8 +6,17 @@ function getBackendBaseUrls() {
     process.env.BACKEND_INTERNAL_URL,
     process.env.RAILWAY_SERVICE_FASTAPI_BACKEND_URL,
     process.env.BACKEND_PUBLIC_URL,
-  ].filter((value): value is string => Boolean(value));
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map(normalizeBackendBaseUrl);
   return [...new Set(urls)];
+}
+
+function normalizeBackendBaseUrl(rawUrl: string) {
+  const url = rawUrl.trim();
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.includes(".railway.internal")) return `http://${url}`;
+  return `https://${url}`;
 }
 
 function forwardClimateHeaders(from: Headers, to: Headers) {
