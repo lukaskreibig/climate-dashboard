@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
@@ -16,6 +16,7 @@ import numpy as np
 from typing import Optional
 from functools import lru_cache
 import logging
+from urllib.parse import urlparse
 
 
 load_dotenv()
@@ -28,6 +29,7 @@ DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "data.json"
 FJORD_DATA_FILE = DATA_DIR / "fjord_data.json"
 CHROMA_PATH = DATA_DIR / "chroma_db"
+LOGGER = logging.getLogger("backend.api")
 
 app = FastAPI(
     title="Climate Report API",
@@ -56,6 +58,34 @@ class DataResponse(BaseModel):
     iqrStats: List[Any]
     partial2025: List[Any]
     decadalAnomaly: Optional[List[Any]] = None
+
+
+def _resolved_database_url() -> Optional[str]:
+    return settings.database_url or getattr(settings, "database_public_url", None)
+
+
+def _database_host(db_url: Optional[str]) -> Optional[str]:
+    if not db_url:
+        return None
+    try:
+        return urlparse(db_url).hostname
+    except Exception:
+        return None
+
+
+def _set_source_headers(
+    response: Response,
+    *,
+    route_name: str,
+    source: str,
+    db_status: str,
+    db_host: Optional[str] = None,
+) -> None:
+    response.headers["X-Climate-Route"] = route_name
+    response.headers["X-Climate-Data-Source"] = source
+    response.headers["X-Climate-Db-Status"] = db_status
+    if db_host:
+        response.headers["X-Climate-Db-Host"] = db_host
 
 def _normalize_daily_columns(df: pd.DataFrame) -> pd.DataFrame:
     # toleriert unterschiedliche Groß/Kleinschreibung / Namen
@@ -163,8 +193,10 @@ def compute_decadal_daily_anomaly(daily_rows: List[dict]) -> List[dict]:
 
 
 @app.get("/data", response_model=DataResponse)
-async def get_data():
-    db_url = settings.database_url
+async def get_data(response: Response):
+    db_url = _resolved_database_url()
+    db_host = _database_host(db_url)
+    db_status = "not-configured"
     if db_url:
         try:
             engine = create_engine(db_url)
@@ -191,9 +223,21 @@ async def get_data():
                 print("[WARN] decadalAnomaly computation failed:", e)
                 data["decadalAnomaly"] = []
 
+            _set_source_headers(
+                response,
+                route_name="/data",
+                source="database",
+                db_status="ok",
+                db_host=db_host,
+            )
             return data
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error reading data from database: {e}")
+            db_status = "error"
+            LOGGER.warning(
+                "Falling back to data.json after /data database read failed (host=%s): %s",
+                db_host or "unknown",
+                e,
+            )
 
     # --- Fallback zu JSON-Datei wie gehabt -------------------
     file_path = DATA_FILE
@@ -206,10 +250,17 @@ async def get_data():
         data["decadalAnomaly"] = compute_decadal_daily_anomaly(data.get("dailySeaIce", []))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading data file: {e}")
+    _set_source_headers(
+        response,
+        route_name="/data",
+        source="json-fallback",
+        db_status=db_status,
+        db_host=db_host,
+    )
     return data
 
 @app.get("/uummannaq", response_model=FjordDataBundle)
-async def get_fjord_data():
+async def get_fjord_data(response: Response):
     from datetime import date, timedelta
 
     def label_for_doy(doy: int) -> str:
@@ -218,7 +269,9 @@ async def get_fjord_data():
         d = date(2020, 1, 1) + timedelta(days=doy - 1)
         return f"{d.day:02d}-{MONTHS[d.month-1]}"
 
-    db_url = settings.database_url
+    db_url = _resolved_database_url()
+    db_host = _database_host(db_url)
+    db_status = "not-configured"
     if db_url:
         engine = create_engine(db_url)
         try:
@@ -263,7 +316,7 @@ async def get_fjord_data():
                         diffs.append(1 - (l / e))
                 season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
 
-                return {
+                payload = {
                     "spring": [dict(r) for r in spring_rows],
                     "season": merged,                   # <— merged Struktur
                     "frac":   [dict(r) for r in frac_rows],
@@ -271,15 +324,36 @@ async def get_fjord_data():
                     "daily":  [dict(r) for r in daily_rows],
                     "seasonLossPct": season_loss_pct,   # optional
                 }
+                _set_source_headers(
+                    response,
+                    route_name="/uummannaq",
+                    source="database",
+                    db_status="ok",
+                    db_host=db_host,
+                )
+                return payload
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error reading fjord data: {e}")
+            db_status = "error"
+            LOGGER.warning(
+                "Falling back to fjord_data.json after /uummannaq database read failed (host=%s): %s",
+                db_host or "unknown",
+                e,
+            )
 
     # fallback: JSON (optional – hier könntest du ebenfalls 'season' schon gemerged vorhalten)
     file_path = FJORD_DATA_FILE
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fjord data file not found")
     with open(file_path, 'r') as f:
-        return json.load(f)
+        payload = json.load(f)
+    _set_source_headers(
+        response,
+        route_name="/uummannaq",
+        source="json-fallback",
+        db_status=db_status,
+        db_host=db_host,
+    )
+    return payload
 
 
 
@@ -297,12 +371,12 @@ async def predict(req: PredictRequest):
     dummy_prediction = req.temperature * 0.5 + req.co2 * 0.1
     return PredictResponse(prediction=dummy_prediction, model_version="v1.0")
 
-LOGGER = logging.getLogger("backend.health")
+HEALTH_LOGGER = logging.getLogger("backend.health")
 
 
 @lru_cache(maxsize=1)
 def _engine():
-    db_url = settings.database_url
+    db_url = _resolved_database_url()
     if not db_url:
         return None
     return create_engine(db_url, pool_pre_ping=True, future=True)
@@ -320,7 +394,7 @@ async def health():
                 conn.execute(text("SELECT 1"))
             db_report = {"status": "ok"}
         except Exception as exc:
-            LOGGER.warning("Healthcheck database probe failed: %s", exc)
+            HEALTH_LOGGER.warning("Healthcheck database probe failed: %s", exc)
             db_report = {"status": "error", "error": str(exc)}
             payload["status"] = "degraded"
 
