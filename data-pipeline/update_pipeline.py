@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import subprocess
+import sys
 from datetime import datetime
 import requests
 import io
@@ -315,5 +317,28 @@ def update_data():
     )
 
 
+def _has_database_url() -> bool:
+    return bool(os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL"))
+
+
+def _should_run_chained_pipeline() -> bool:
+    if os.getenv("PIPELINE_SINGLE_STAGE") == "1":
+        return False
+    # Railway cron currently has drifted service-level commands in some environments.
+    # Running the full chain here keeps the job correct even when the service command
+    # is still `python3 update_pipeline.py`.
+    return bool(os.getenv("RAILWAY_ENVIRONMENT"))
+
+
+def _run_step(script_name: str) -> None:
+    subprocess.run([sys.executable, script_name], check=True)
+
+
 if __name__ == "__main__":
-    update_data()
+    if _should_run_chained_pipeline():
+        if _has_database_url():
+            _run_step("wait_for_db.py")
+        update_data()
+        _run_step("update_fjord_data.py")
+    else:
+        update_data()

@@ -4,6 +4,7 @@ import type { BackendDataResponse, ApiErrorPayload } from "@/types";
 function getBackendBaseUrls() {
   const urls = [
     process.env.BACKEND_INTERNAL_URL,
+    process.env.RAILWAY_SERVICE_FASTAPI_BACKEND_URL,
     process.env.BACKEND_PUBLIC_URL,
   ].filter((value): value is string => Boolean(value));
   return [...new Set(urls)];
@@ -25,9 +26,14 @@ export async function GET(_request: Request) {
   try {
     const backendUrls = getBackendBaseUrls();
     if (backendUrls.length === 0) {
-      console.error("BACKEND_INTERNAL_URL / BACKEND_PUBLIC_URL is not set");
+      console.error(
+        "BACKEND_INTERNAL_URL / RAILWAY_SERVICE_FASTAPI_BACKEND_URL / BACKEND_PUBLIC_URL is not set",
+      );
       return NextResponse.json(
-        { error: "BACKEND_INTERNAL_URL or BACKEND_PUBLIC_URL is not set" },
+        {
+          error:
+            "BACKEND_INTERNAL_URL, RAILWAY_SERVICE_FASTAPI_BACKEND_URL or BACKEND_PUBLIC_URL is not set",
+        },
         { status: 500 }
       );
     }
