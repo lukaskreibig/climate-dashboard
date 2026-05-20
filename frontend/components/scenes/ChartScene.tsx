@@ -28,8 +28,10 @@ const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /* ---------- TYPES ------------------------------------------- */
+type CaptionContent = React.ReactNode | ((data: any) => React.ReactNode);
+
 export interface CaptionCfg {
-  html: React.ReactNode;
+  html: CaptionContent;
   captionSide?: "left" | "right";
   boxClass?: string;
   at?: number;
@@ -42,6 +44,7 @@ export interface CaptionCfg {
 
 export interface SceneCfg {
   key: string;
+  progressTitle?: string;
   chart: (d: any, api: MutableRefObject<any>) => React.ReactElement;
   axesSel: string;
   helperSel?: string;
@@ -169,7 +172,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       const gutterRaw = style.getPropertyValue("--progress-gutter");
       const gutter = gutterRaw ? parseFloat(gutterRaw) || 0 : 0;
       const safetyGap = Math.max(160, wrapWidth * 0.08);
-      const availableForChart = wrapWidth - (maxCaptionWidth + gutter + safetyGap);
+      const sideReserve = Math.max(120, wrapWidth * 0.08);
+      const availableForChart = wrapWidth - (
+        maxCaptionWidth + gutter + safetyGap + sideReserve
+      );
       const shouldStack = availableForChart < MIN_CHART_WIDTH * 0.8;
 
       if (shouldStack) {
@@ -291,12 +297,20 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       const hideOthers = () =>
         document.querySelectorAll<HTMLDivElement>(".chart-layer").forEach(
           (el) => {
-            if (!wrap.current || el !== wrap.current) el.style.visibility = "hidden";
+            if (!wrap.current || el !== wrap.current) {
+              el.style.visibility = "hidden";
+              el.style.opacity = "0";
+              el.style.pointerEvents = "none";
+            }
           }
         );
 
       if (!wrap.current) return;
-      gsap.set(wrap.current, { opacity: 1, xPercent: 0, visibility: "hidden" });
+      gsap.set(wrap.current, {
+        autoAlpha: 0,
+        pointerEvents: "none",
+        xPercent: 0,
+      });
 
       ScrollTrigger.create({
         trigger: sec.current,
@@ -308,6 +322,8 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
+          wrapEl.style.opacity = "1";
+          wrapEl.style.pointerEvents = "auto";
           api.current?.showStage?.(0);
         },
         onEnterBack: () => {
@@ -316,13 +332,23 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
+          wrapEl.style.opacity = "1";
+          wrapEl.style.pointerEvents = "auto";
           api.current?.showStage?.(0);
         },
         onLeave: () => {
-          if (wrap.current) wrap.current.style.visibility = "hidden";
+          if (wrap.current) {
+            wrap.current.style.visibility = "hidden";
+            wrap.current.style.opacity = "0";
+            wrap.current.style.pointerEvents = "none";
+          }
         },
         onLeaveBack: () => {
-          if (wrap.current) wrap.current.style.visibility = "hidden";
+          if (wrap.current) {
+            wrap.current.style.visibility = "hidden";
+            wrap.current.style.opacity = "0";
+            wrap.current.style.pointerEvents = "none";
+          }
         },
       });
 
@@ -492,14 +518,31 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   if (helperEls.length) bind(helperEls, helpIn,  helpOut);
 
   /* evtl. benutzerdefinierte Aktionen der Szene -------------- */
+  const callActionWhenReady = (action: { call: (api?: any) => void }) => {
+    ensureMounted();
+    const startedAt = performance.now();
+
+    const run = () => {
+      if (api.current) {
+        action.call(api.current);
+        return;
+      }
+      if (performance.now() - startedAt < 5000) {
+        requestAnimationFrame(run);
+      }
+    };
+
+    run();
+  };
+
   cfg.actions?.forEach(a => {
     const trg = capEl(clamp(a.captionIdx));
     if (!trg) return;
     ScrollTrigger.create({
       trigger : trg,
       start   : "top 90%",
-      onEnter      : () => a.call(api.current),
-      onEnterBack  : () => a.call(api.current),
+      onEnter      : () => callActionWhenReady(a),
+      onEnterBack  : () => callActionWhenReady(a),
     });
   });
     })();
@@ -615,7 +658,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
             const captionRect = captionEl?.getBoundingClientRect();
             let safeLeft = wrapRect.left + Math.max(96, CAPTION_MARGIN * 3);
             let safeRight =
-              wrapRect.right - Math.max(gutter + CAPTION_MARGIN * 3.5, 180);
+              wrapRect.right - Math.max(gutter + CAPTION_MARGIN * 3.5 + 24, 180);
             const captionBuffer = bufferBase;
 
             if (direction === "left" && captionRect) {
@@ -691,7 +734,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         cfg.captions.forEach((c, i) => {
           if (!c.captionSide || explicit) return;
           const desired = c.captionSide === "left" ? "right" : "left";
-          if (desired === current) return;
           const trg = sec
             .current?.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`);
           if (!trg) return;
@@ -809,23 +851,31 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       marginRight: "clamp(3.5rem, 7vw, 10.5rem)",
     };
   };
+
+  const resolveCaptionContent = (content: CaptionContent) =>
+    typeof content === "function" ? content(globalData) : content;
+
+  const titleContent = resolveCaptionContent(cfg.captions[0]?.html);
+  const progressTitle =
+    cfg.progressTitle ??
+    (titleContent as any)?.props?.children?.[0]?.props?.children ??
+    cfg.key;
   /* ---------- render --------------------------------------- */
   return (
     <section
       ref={sec}
-      className={`relative ${cfg.bgClass ?? ""}`}
+      className={`relative overflow-x-hidden ${cfg.bgClass ?? ""}`}
       style={cfg.bgColor ? { background: cfg.bgColor } : undefined}
       data-scene={cfg.key}
       data-progress={cfg.progressPoint ? "true" : undefined}
       data-title={
-        (cfg.captions[0]?.html as any)?.props?.children?.[0]?.props?.children ??
-        cfg.key
+        progressTitle
       }
     >
       {/* sticky chart layer */}
       <div
         ref={wrap}
-        className={`chart-layer fixed inset-0 flex z-10 ${
+        className={`chart-layer fixed inset-0 flex z-10 invisible opacity-0 pointer-events-none ${
           stackLayout ? "items-start justify-center pt-[min(12vh,5rem)]" : "items-center justify-center"
         }`}
       >
@@ -836,7 +886,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
       {/* captions */}
       {cfg.captions.map((c, i) => {
-        const content = c.html;
+        const content = resolveCaptionContent(c.html);
         const empty = (() => {
           if (content === null || content === undefined) return true;
           if (!React.isValidElement(content)) return false;
@@ -890,7 +940,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
               className={`pointer-events-auto ${finalClass}`}
               style={captionStyle(c.captionSide)}
             >
-              {c.html}
+              {content}
             </div>
           </div>
         );

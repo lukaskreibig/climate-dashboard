@@ -32,14 +32,31 @@ export interface DecadalAnomalyRow {
   n: number | null;
 }
 
+export interface LatestSeaIceSeasonRow {
+  DayOfYear: number;
+  Extent: number | null;
+}
+
+export interface ClimateDataMeta {
+  latestSeaIceDate?: string | null;
+  latestSeaIceYear?: number | null;
+  latestAnnualYear?: number | null;
+  latestTemperatureYear?: number | null;
+  source?: string | null;
+  baselineYears?: string | null;
+  generatedAt?: string | null;
+}
+
 export interface BackendDataResponse {
   annual: AnnualRow[];
   dailySeaIce: DailySeaIceRow[];
   annualAnomaly: AnnualAnomalyRow[];
   corrMatrix: Record<string, number | null>[];
   iqrStats: IqrStatsRow[];
-  partial2025: Record<string, number | null>[];
+  partial2025: LatestSeaIceSeasonRow[];
+  latestSeaIceSeason?: LatestSeaIceSeasonRow[];
   decadalAnomaly?: DecadalAnomalyRow[];
+  meta?: ClimateDataMeta | null;
 }
 
 export interface ApiErrorPayload {

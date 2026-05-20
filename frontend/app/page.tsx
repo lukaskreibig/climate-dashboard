@@ -1,4 +1,5 @@
+import { redirect } from "next/navigation";
 
-
-// /* ──────────────────── MAIN PAGE ──────────────────── */
-// export default function Page() {}
+export default function RootPage() {
+  redirect("/en");
+}

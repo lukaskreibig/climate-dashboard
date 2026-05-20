@@ -55,10 +55,32 @@ const SATELLITE_WAYPOINTS: Waypoint[] = [
 ];
 
 const SATELLITE_IMAGES = ["/images/satellite.jpg", "/images/overlay.jpg"];
+const SATELLITE_COORDS: [[number, number], [number, number], [number, number], [number, number]] = [
+  [-52.333915, 70.798511], // top left
+  [-51.905163, 70.787129], // top right
+  [-51.948045, 70.617879], // bottom right
+  [-52.373222, 70.629154], // bottom left
+];
 
 registerMapPreload({
-  views: [...GEOGRAPHIC_WAYPOINTS, ...SATELLITE_WAYPOINTS],
-  images: SATELLITE_IMAGES,
+  maps: [
+    {
+      id: "geographic-journey",
+      views: GEOGRAPHIC_WAYPOINTS,
+      terrain: true,
+    },
+    {
+      id: "introcharts",
+      views: SATELLITE_WAYPOINTS,
+      images: SATELLITE_IMAGES,
+      terrain: true,
+      satelliteOverlay: {
+        rawImg: SATELLITE_IMAGES[0],
+        maskImg: SATELLITE_IMAGES[1],
+        coords: SATELLITE_COORDS,
+      },
+    },
+  ],
 });
 
 export type PreloadableComponent = ComponentType<any> & {
@@ -91,6 +113,18 @@ const AXES = ".chart-grid, .chart-axis";
 
 type DataBundle = DashboardDataOrNull;
 
+const latestYearFromRows = (rows?: { Year?: number }[]) => {
+  const years = (rows ?? [])
+    .map((row) => row.Year)
+    .filter((year): year is number => typeof year === "number");
+  return years.length ? Math.max(...years) : undefined;
+};
+
+const latestSeaIceYear = (data: DataBundle) =>
+  data?.baseMeta?.latestSeaIceYear ?? latestYearFromRows(data?.dailySeaIce);
+
+const latestTemperatureYear = (data: DataBundle) =>
+  data?.baseMeta?.latestTemperatureYear ?? latestYearFromRows(data?.annual);
 
 export const useScenesWithTranslation = () => {
   const { t } = useTranslation();
@@ -112,6 +146,7 @@ export const useScenesWithTranslation = () => {
           <MapFlyScene
             ref={api}
             waypoints={GEOGRAPHIC_WAYPOINTS}
+            preloadKey="geographic-journey"
           />
 
       ),
@@ -442,14 +477,10 @@ export const useScenesWithTranslation = () => {
     <SatelliteScene
       ref={api}
       waypoints={SATELLITE_WAYPOINTS}
+      preloadKey="introcharts"
       rawImg={SATELLITE_IMAGES[0]}
       maskImg={SATELLITE_IMAGES[1]}
-      coords={[
-        [-52.333915, 70.798511], // ↖
-        [-51.905163, 70.787129], // ↗
-        [-51.948045, 70.617879], // ↘
-        [-52.373222, 70.629154], // ↙
-      ]}
+      coords={SATELLITE_COORDS}
     />
   ),
 
@@ -516,12 +547,13 @@ export const useScenesWithTranslation = () => {
   /* 2 — fade-in the raw Sentinel-2 tile                      */
   { captionIdx: 2, call: api =>  { api?.go?.(2); api?.showStage?.(1)} },
 
-  /* 3 — add the computer-vision mask on top                  */
+  /* 3 — keep the raw image visible while explaining volume    */
   { captionIdx: 3, call: api => {api?.go?.(3); api?.showStage?.(1)} },
-   /* 3 — add the computer-vision mask on top                  */
-  { captionIdx: 4, call: api => {api?.go?.(4); api?.showStage?.(1)} },
 
-  /* 3 — add the computer-vision mask on top                  */
+  /* 4 — add the computer-vision mask on top                   */
+  { captionIdx: 4, call: api => {api?.go?.(4); api?.showStage?.(2)} },
+
+  /* 5 — keep the mask visible for the output explanation      */
   { captionIdx: 5, call: api => api?.showStage?.(2) },
 ],
 },
@@ -658,7 +690,8 @@ export const useScenesWithTranslation = () => {
     ],
   },
   {
-  key: "Downwards Trend",
+  key: "future-trend",
+  progressTitle: t('scenes.future.progressTitle'),
   progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
@@ -868,14 +901,16 @@ export const useScenesWithTranslation = () => {
         </>
       ),
     },
-    // --- NEW CAPTION ❸ – current year ---
+    // --- Latest available year ---
     {
       captionSide: "right",
-      html: (
+      html: (d: DataBundle) => (
         <>
-          <h3 className="text-2xl font-display mb-2">{t('scenes.seasonal.current.title')}</h3>
+          <h3 className="text-2xl font-display mb-2">
+            {t('scenes.seasonal.current.title', { year: latestSeaIceYear(d) ?? "" })}
+          </h3>
           <p className="text-lg">
-            {t('scenes.seasonal.current.description')}
+            {t('scenes.seasonal.current.description', { year: latestSeaIceYear(d) ?? "" })}
           </p>
         </>
       ),
@@ -1045,7 +1080,8 @@ export const useScenesWithTranslation = () => {
 
   /* ─────  BRIDGE · "Anomalies → Drivers"  ───── */
 {
-  key: "Climate Change Drivers",
+  key: "climate-drivers",
+  progressTitle: t('scenes.drivers.progressTitle'),
   progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
@@ -1153,6 +1189,7 @@ export const useScenesWithTranslation = () => {
   },
   {
     key      : "2024-focus",
+    progressTitle: t('scenes.2024.progressTitle'),
     progressPoint: true,
     chart    : (d:DataBundle)=> <Bar24Chart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
@@ -1161,12 +1198,14 @@ export const useScenesWithTranslation = () => {
       {
         captionSide:"right",
         at:0.15, out:1,
-        html:(<>
-          <h3 className="text-2xl font-display mb-2">{t('scenes.2024.title')}</h3>
+        html:(d: DataBundle) => (<>
+          <h3 className="text-2xl font-display mb-2">
+            {t('scenes.2024.title', { year: latestTemperatureYear(d) ?? "" })}
+          </h3>
           <p className="text-lg">
-            {t('scenes.2024.description')}
+            {t('scenes.2024.description', { year: latestTemperatureYear(d) ?? "" })}
             <br/><br/>
-            {t('scenes.2024.warning')}
+            {t('scenes.2024.warning', { year: latestTemperatureYear(d) ?? "" })}
             <br/><br/>
             {t('scenes.2024.conclusion')}
           </p>

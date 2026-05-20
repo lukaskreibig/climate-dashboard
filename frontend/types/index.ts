@@ -1,9 +1,11 @@
 export interface FjordSeasonRow {
-  doy: number;
-  period: string;
-  mean: number | null;
-  p25: number | null;
-  p75: number | null;
+  day: string;
+  eMean: number | null;
+  e25: number | null;
+  e75: number | null;
+  lMean: number | null;
+  l25: number | null;
+  l75: number | null;
 }
 
 export interface FjordSpringAnomaly {
@@ -29,12 +31,32 @@ export interface FjordDailyRow {
   frac: number | null;
 }
 
+export interface FjordDataMeta {
+  latestDate?: string | null;
+  latestYear?: number | null;
+  source?: string | null;
+  baselineYears?: string | null;
+  generatedAt?: string | null;
+}
+
 export interface FjordDataBundle {
   spring: FjordSpringAnomaly[];
   season: FjordSeasonRow[];
   frac: FjordMeanFraction[];
   freeze: FjordFreezeBreakup[];
   daily: FjordDailyRow[];
+  seasonLossPct?: number | null;
+  meta?: FjordDataMeta | null;
 }
 
-export type { DailySeaIceRow, AnnualAnomalyRow, IqrStatsRow, AnnualRow, DecadalAnomalyRow, BackendDataResponse, ApiErrorPayload } from "./api";
+export type {
+  DailySeaIceRow,
+  AnnualAnomalyRow,
+  IqrStatsRow,
+  AnnualRow,
+  DecadalAnomalyRow,
+  LatestSeaIceSeasonRow,
+  ClimateDataMeta,
+  BackendDataResponse,
+  ApiErrorPayload,
+} from "./api";

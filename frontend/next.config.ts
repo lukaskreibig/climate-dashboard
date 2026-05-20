@@ -2,18 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
+    // TypeScript build errors are enforced; lint cleanup remains separate
+    // because archived legacy scene files still trip the strict ESLint setup.
     ignoreDuringBuilds: true,
   },
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
-  /* config options here */
 };
 
 export default nextConfig;

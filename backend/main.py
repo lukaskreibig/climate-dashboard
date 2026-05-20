@@ -16,6 +16,7 @@ from functools import lru_cache
 import logging
 from urllib.parse import urlparse
 from typing import TYPE_CHECKING
+from datetime import datetime, timezone, date, timedelta
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer
@@ -30,8 +31,22 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "data.json"
 FJORD_DATA_FILE = DATA_DIR / "fjord_data.json"
+FJORD_CSV_CANDIDATES = [
+    DATA_DIR / "summary_test_cleaned.csv",
+    BASE_DIR.parent / "data-pipeline" / "data" / "summary_test_cleaned.csv",
+    BASE_DIR.parent / "frontend" / "public" / "data" / "summary_test_cleaned.csv",
+]
 CHROMA_PATH = DATA_DIR / "chroma_db"
 LOGGER = logging.getLogger("backend.api")
+
+FJORD_SUN_START = 45
+FJORD_SUN_END = 180
+FJORD_SPRING_A = 60
+FJORD_SPRING_B = 151
+FJORD_THRESHOLD = 0.15
+FJORD_EARLY_YEARS = [2017, 2018, 2019, 2020]
+FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
+FJORD_KM2 = 3450
 
 app = FastAPI(
     title="Climate Report API",
@@ -59,7 +74,9 @@ class DataResponse(BaseModel):
     corrMatrix: List[Any]
     iqrStats: List[Any]
     partial2025: List[Any]
+    latestSeaIceSeason: Optional[List[Any]] = None
     decadalAnomaly: Optional[List[Any]] = None
+    meta: Optional[dict[str, Any]] = None
 
 
 def _resolved_database_url() -> Optional[str]:
@@ -88,6 +105,247 @@ def _set_source_headers(
     response.headers["X-Climate-Db-Status"] = db_status
     if db_host:
         response.headers["X-Climate-Db-Host"] = db_host
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _as_int(value: Any) -> Optional[int]:
+    try:
+        if value is None:
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _row_year(row: dict[str, Any]) -> Optional[int]:
+    return _as_int(row.get("Year", row.get("year")))
+
+
+def _row_doy(row: dict[str, Any]) -> Optional[int]:
+    return _as_int(row.get("DayOfYear", row.get("doy", row.get("day"))))
+
+
+def _row_date(row: dict[str, Any]) -> Optional[str]:
+    value = row.get("DateStr", row.get("date"))
+    return str(value) if value is not None else None
+
+
+def _latest_daily_row(rows: List[Any]) -> Optional[dict[str, Any]]:
+    dict_rows = [dict(row) for row in rows if isinstance(row, dict)]
+    dated = [row for row in dict_rows if _row_date(row)]
+    if dated:
+        return max(dated, key=lambda row: str(_row_date(row)))
+
+    with_year = [row for row in dict_rows if _row_year(row) is not None]
+    if not with_year:
+        return None
+    return max(with_year, key=lambda row: (_row_year(row) or 0, _row_doy(row) or 0))
+
+
+def _latest_sea_ice_season(
+    data: dict[str, Any],
+    latest_year: Optional[int],
+) -> List[dict[str, Any]]:
+    if latest_year is None:
+        return []
+
+    season = []
+    for row in data.get("dailySeaIce", []):
+        if not isinstance(row, dict) or _row_year(row) != latest_year:
+            continue
+        doy = _row_doy(row)
+        if doy is None:
+            continue
+        season.append({
+            "DayOfYear": doy,
+            "Extent": row.get("Extent", row.get("extent")),
+        })
+
+    return sorted(season, key=lambda row: row["DayOfYear"])
+
+
+def _attach_data_meta(
+    data: dict[str, Any],
+    *,
+    generated_at: Optional[str] = None,
+) -> dict[str, Any]:
+    latest_daily = _latest_daily_row(data.get("dailySeaIce", []))
+    latest_sea_ice_year = _row_year(latest_daily) if latest_daily else None
+    latest_annual_years = [
+        _as_int(row.get("Year", row.get("year")))
+        for row in data.get("annualAnomaly", [])
+        if isinstance(row, dict) and _as_int(row.get("Year", row.get("year"))) is not None
+    ]
+    latest_temperature_years = [
+        _as_int(row.get("Year", row.get("year")))
+        for row in data.get("annual", [])
+        if isinstance(row, dict) and _as_int(row.get("Year", row.get("year"))) is not None
+    ]
+
+    latest_season = _latest_sea_ice_season(data, latest_sea_ice_year)
+    data["latestSeaIceSeason"] = latest_season
+    data["partial2025"] = latest_season
+    data["meta"] = {
+        "latestSeaIceDate": _row_date(latest_daily) if latest_daily else None,
+        "latestSeaIceYear": latest_sea_ice_year,
+        "latestAnnualYear": max(latest_annual_years) if latest_annual_years else None,
+        "latestTemperatureYear": max(latest_temperature_years) if latest_temperature_years else None,
+        "source": "NSIDC Sea Ice Index, NASA GISTEMP, Our World in Data CO2",
+        "baselineYears": f"{settings.seaice_anom_baseline_start}-{settings.seaice_anom_baseline_end}",
+        "generatedAt": generated_at or _utc_now_iso(),
+    }
+    return data
+
+
+def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
+    daily = payload.get("daily", [])
+    latest_daily = _latest_daily_row(daily if isinstance(daily, list) else [])
+    years = [
+        _row_year(row)
+        for row in daily
+        if isinstance(row, dict) and _row_year(row) is not None
+    ]
+    payload["meta"] = {
+        "latestDate": _row_date(latest_daily) if latest_daily else None,
+        "latestYear": _row_year(latest_daily) if latest_daily else (max(years) if years else None),
+        "source": "Sentinel-2 Uummannaq computer-vision pipeline",
+        "baselineYears": "2017-2020 vs 2021-2025",
+        "generatedAt": _utc_now_iso(),
+    }
+    return payload
+
+
+def _label_for_doy(doy: int) -> str:
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    day = date(2020, 1, 1) + timedelta(days=doy - 1)
+    return f"{day.day:02d}-{months[day.month - 1]}"
+
+
+def _json_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _mean_or_none(series: pd.Series) -> Optional[float]:
+    series = pd.to_numeric(series, errors="coerce").dropna()
+    return float(series.mean()) if len(series) else None
+
+
+def _quantile_or_none(series: pd.Series, q: float) -> Optional[float]:
+    series = pd.to_numeric(series, errors="coerce").dropna()
+    return float(series.quantile(q)) if len(series) else None
+
+
+def _find_fjord_csv() -> Optional[Path]:
+    for path in FJORD_CSV_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
+    csv_path = _find_fjord_csv()
+    if csv_path is None:
+        return None
+
+    rows = pd.read_csv(csv_path, parse_dates=["date"])
+    rows.columns = [c.lower() for c in rows.columns]
+    required = {"date", "year", "doy", "frac_smooth"}
+    missing = required.difference(rows.columns)
+    if missing:
+        raise ValueError(f"Missing fjord CSV columns: {', '.join(sorted(missing))}")
+
+    rows = rows[["date", "year", "doy", "frac_smooth"]].rename(columns={"frac_smooth": "frac"}).copy()
+    rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
+    rows["year"] = pd.to_numeric(rows["year"], errors="coerce")
+    rows["doy"] = pd.to_numeric(rows["doy"], errors="coerce")
+    rows["frac"] = pd.to_numeric(rows["frac"], errors="coerce")
+    rows = rows.dropna(subset=["date", "year", "doy"]).sort_values(["date"]).copy()
+    rows["year"] = rows["year"].astype(int)
+    rows["doy"] = rows["doy"].astype(int)
+
+    season = []
+    for doy in range(FJORD_SUN_START, FJORD_SUN_END + 1):
+        early = rows[(rows["year"].isin(FJORD_EARLY_YEARS)) & (rows["doy"] == doy)]["frac"]
+        late = rows[(rows["year"].isin(FJORD_LATE_YEARS)) & (rows["doy"] == doy)]["frac"]
+        season.append({
+            "day": _label_for_doy(doy),
+            "eMean": _mean_or_none(early),
+            "e25": _quantile_or_none(early, 0.25),
+            "e75": _quantile_or_none(early, 0.75),
+            "lMean": _mean_or_none(late),
+            "l25": _quantile_or_none(late, 0.25),
+            "l75": _quantile_or_none(late, 0.75),
+        })
+
+    spring_means = (
+        rows[(rows["doy"] >= FJORD_SPRING_A) & (rows["doy"] <= FJORD_SPRING_B)]
+        .groupby("year")["frac"]
+        .mean()
+    )
+    baseline_years = [year for year in FJORD_EARLY_YEARS if year in spring_means.index]
+    baseline = spring_means.loc[baseline_years].mean() if baseline_years else np.nan
+    spring = []
+    for year, value in spring_means.sort_index().items():
+        anomaly = None
+        if not pd.isna(value) and not pd.isna(baseline):
+            anomaly = round((float(value) - float(baseline)) * FJORD_KM2, 1)
+        spring.append({"year": int(year), "anomaly": anomaly})
+
+    frac_means = (
+        rows[(rows["doy"] >= FJORD_SUN_START) & (rows["doy"] <= FJORD_SUN_END)]
+        .groupby("year")["frac"]
+        .mean()
+    )
+    frac = [
+        {"year": int(year), "mean": round(float(value), 4) if not pd.isna(value) else None}
+        for year, value in frac_means.sort_index().items()
+    ]
+
+    freeze = []
+    for year, grp in rows.groupby("year"):
+        frozen = grp.loc[grp["frac"] >= FJORD_THRESHOLD, "doy"].dropna()
+        freeze.append({
+            "year": int(year),
+            "freeze": int(frozen.min()) if len(frozen) else None,
+            "breakup": int(frozen.max()) if len(frozen) else None,
+        })
+
+    daily = []
+    for row in rows.itertuples(index=False):
+        daily.append({
+            "date": pd.Timestamp(row.date).date().isoformat(),
+            "year": int(row.year),
+            "doy": int(row.doy),
+            "frac": _json_float(row.frac),
+        })
+
+    diffs = []
+    for row in season:
+        early_mean = row["eMean"]
+        late_mean = row["lMean"]
+        if early_mean is not None and late_mean is not None and early_mean != 0:
+            diffs.append(1 - (late_mean / early_mean))
+    season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
+
+    return _attach_fjord_meta({
+        "spring": spring,
+        "season": season,
+        "frac": frac,
+        "freeze": freeze,
+        "daily": daily,
+        "seasonLossPct": season_loss_pct,
+    })
+
 
 def _normalize_daily_columns(df: pd.DataFrame) -> pd.DataFrame:
     # toleriert unterschiedliche Groß/Kleinschreibung / Namen
@@ -232,7 +490,7 @@ async def get_data(response: Response):
                 db_status="ok",
                 db_host=db_host,
             )
-            return data
+            return _attach_data_meta(data)
         except Exception as e:
             db_status = "error"
             LOGGER.warning(
@@ -250,6 +508,7 @@ async def get_data(response: Response):
             data = json.load(f)
         # NEW: auch im File-Fallback berechnen
         data["decadalAnomaly"] = compute_decadal_daily_anomaly(data.get("dailySeaIce", []))
+        data = _attach_data_meta(data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading data file: {e}")
     _set_source_headers(
@@ -263,14 +522,6 @@ async def get_data(response: Response):
 
 @app.get("/uummannaq", response_model=FjordDataBundle)
 async def get_fjord_data(response: Response):
-    from datetime import date, timedelta
-
-    def label_for_doy(doy: int) -> str:
-        # stabile englische Monatskürzel, unabhängig vom Locale
-        MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-        d = date(2020, 1, 1) + timedelta(days=doy - 1)
-        return f"{d.day:02d}-{MONTHS[d.month-1]}"
-
     db_url = _resolved_database_url()
     db_host = _database_host(db_url)
     db_status = "not-configured"
@@ -301,7 +552,7 @@ async def get_fjord_data(response: Response):
                     early = by_doy[doy].get("early")
                     late  = by_doy[doy].get("late")
                     merged.append({
-                        "day":  label_for_doy(doy),
+                        "day":  _label_for_doy(doy),
                         "eMean": early["mean"] if early else None,
                         "e25":  early["p25"]  if early else None,
                         "e75":  early["p75"]  if early else None,
@@ -326,6 +577,7 @@ async def get_fjord_data(response: Response):
                     "daily":  [dict(r) for r in daily_rows],
                     "seasonLossPct": season_loss_pct,   # optional
                 }
+                payload = _attach_fjord_meta(payload)
                 _set_source_headers(
                     response,
                     route_name="/uummannaq",
@@ -342,12 +594,27 @@ async def get_fjord_data(response: Response):
                 e,
             )
 
-    # fallback: JSON (optional – hier könntest du ebenfalls 'season' schon gemerged vorhalten)
+    # fallback: JSON first, then local CSV so the app can run without a database.
     file_path = FJORD_DATA_FILE
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fjord data file not found")
+        try:
+            payload = _build_fjord_payload_from_csv()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error reading fjord CSV fallback: {e}")
+        if payload is None:
+            raise HTTPException(status_code=404, detail="Fjord data file not found")
+        _set_source_headers(
+            response,
+            route_name="/uummannaq",
+            source="csv-fallback",
+            db_status=db_status,
+            db_host=db_host,
+        )
+        return payload
+
     with open(file_path, 'r') as f:
         payload = json.load(f)
+    payload = _attach_fjord_meta(payload)
     _set_source_headers(
         response,
         route_name="/uummannaq",

@@ -14,7 +14,12 @@ import mapboxgl from "mapbox-gl";
 import { useTranslation } from "react-i18next";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
-import { preloadTiles } from "./MapboxPreloader";
+import {
+  applyMapLanguage,
+  claimWarmedMap,
+  preloadTiles,
+  releaseWarmedMap,
+} from "@/lib/mapboxWarmup";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -36,6 +41,7 @@ export interface Waypoint {
 /* public (unchanged) */
 export interface MapFlyApi {
   go: (idx: number) => void;
+  getMap: () => mapboxgl.Map | undefined;
 }
 
 interface Props {
@@ -43,60 +49,99 @@ interface Props {
   flySpeed?: number;     // default 0.5 (fallback when wp.flySpeed is undefined)
   className?: string;
   terrain?: boolean;     // default true
+  preloadKey?: string;
 }
 
 /* ——— component ——— */
 const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
-  { waypoints, flySpeed = 0.5, className = "", terrain = true },
+  { waypoints, flySpeed = 0.5, className = "", terrain = true, preloadKey },
   ref
 ) {
   const { i18n } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const usedWarmedMap = useRef(false);
   const [ready, setReady] = useState(false);
 
   /* ═════════════════ build map once ═════════════════ */
   useEffect(() => {
     let cancelled = false;
+    let styleLoadHandler: (() => void) | null = null;
 
     const buildMap = async () => {
       if (!box.current || !waypoints.length) return;
 
-      await preloadTiles();
+      await preloadTiles({
+        language: i18n.language,
+        timeoutMs: preloadKey ? 10000 : 2500,
+      });
       if (cancelled || !box.current || !waypoints.length) return;
 
       const container = box.current;
       container.innerHTML = "";
 
       const first = waypoints[0];
-      const instance = new mapboxgl.Map({
-        container,
-        style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
-        center: [first.lng, first.lat],
-        zoom: first.zoom,
-        pitch: first.pitch ?? 0,
-        bearing: first.bearing ?? 0,
-        interactive: false,
-        attributionControl: false,
-        maxPitch: 85,
-      });
+      let instance = claimWarmedMap(preloadKey, container);
+
+      if (instance) {
+        usedWarmedMap.current = true;
+        instance.jumpTo({
+          center: [first.lng, first.lat],
+          zoom: first.zoom,
+          pitch: first.pitch ?? 0,
+          bearing: first.bearing ?? 0,
+        });
+      } else {
+        usedWarmedMap.current = false;
+        instance = new mapboxgl.Map({
+          container,
+          style: `mapbox://styles/mapbox/satellite-streets-v12?language=${i18n.language}`,
+          center: [first.lng, first.lat],
+          zoom: first.zoom,
+          pitch: first.pitch ?? 0,
+          bearing: first.bearing ?? 0,
+          interactive: false,
+          attributionControl: false,
+          maxPitch: 85,
+        });
+      }
 
       map.current = instance;
 
-      instance.once("idle", () => {
+      const markReady = () => {
         if (!cancelled) setReady(true);
-      });
+      };
 
-      instance.on("style.load", () => {
+      styleLoadHandler = () => {
         ensureMapTilerLayers(instance, { terrain });
-      });
+        applyMapLanguage(instance, i18n.language);
+      };
+
+      instance.on("style.load", styleLoadHandler);
+      if (instance.isStyleLoaded()) {
+        styleLoadHandler();
+      }
+
+      if (instance.loaded()) {
+        markReady();
+      } else {
+        instance.once("idle", markReady);
+      }
     };
 
     buildMap();
 
     return () => {
       cancelled = true;
-      map.current?.remove();
+      const instance = map.current;
+      if (instance && styleLoadHandler) {
+        instance.off("style.load", styleLoadHandler);
+      }
+      if (usedWarmedMap.current) {
+        releaseWarmedMap(preloadKey, box.current);
+      } else {
+        instance?.remove();
+      }
       map.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,46 +151,35 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   useEffect(() => {
     if (!map.current || !ready) return;
 
-    // Mapbox language mapping
-    const languageMap: { [key: string]: string } = {
-      'de': 'de',
-      'en': 'en',
-      'fr': 'fr',
-      'es': 'es',
-      'it': 'it',
-      'ja': 'ja',
-      'ko': 'ko',
-      'zh': 'zh-Hans',
-      'ru': 'ru'
-    };
+    let cancelled = false;
+    const instance = map.current;
+    const updateLanguage = () => {
+      if (cancelled) return;
 
-    const mapLanguage = languageMap[i18n.language] || 'en';
-    
-    // Update text fields to use the selected language
-    map.current.getStyle().layers?.forEach((layer) => {
-      if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
-        const textField = layer.layout['text-field'];
-        
-        // Only update if it's a name field
-        if (typeof textField === 'string' && textField.includes('name')) {
-          map.current?.setLayoutProperty(
-            layer.id,
-            'text-field',
-            ['coalesce',
-              ['get', `name:${mapLanguage}`],
-              ['get', 'name_international'],
-              ['get', 'name']
-            ]
-          );
+      try {
+        if (!applyMapLanguage(instance, i18n.language)) {
+          instance.once("style.load", updateLanguage);
+        }
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Mapbox language update skipped", error);
         }
       }
-    });
+    };
+
+    updateLanguage();
+
+    return () => {
+      cancelled = true;
+      instance.off("style.load", updateLanguage);
+    };
   }, [i18n.language, ready]);
 
   /* ═════════════════ orbit engine ═════════════════ */
   const orbitDegPerSec = useRef(0);
   const lastT = useRef(performance.now());
   useEffect(() => {
+    let frame = 0;
     const tick = (t: number) => {
       const dt = (t - lastT.current) / 1000;
       lastT.current = t;
@@ -154,9 +188,11 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
           (map.current.getBearing() + orbitDegPerSec.current * dt) % 360
         );
       }
-      requestAnimationFrame(tick);
+      frame = requestAnimationFrame(tick);
     };
-    requestAnimationFrame(tick);
+    frame = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   /* ═════════════════ expose API ═════════════════ */
@@ -187,7 +223,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
   /* ═════════════════ render ═════════════════ */
   return (
     <div
-      className={`relative w-full h-full ${className}`}
+      className={`map-fly-scene relative w-full h-full ${ready ? "is-ready" : ""} ${className}`}
       style={{
         backgroundColor: ready ? "transparent" : "#0f172a",
         transition: "background-color 0.6s ease-in-out",
@@ -206,8 +242,8 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 
       <style jsx global>{`
         ${ready
-          ? `.mapboxgl-canvas { opacity: 1; transition: opacity .35s ease-out; }`
-          : `.mapboxgl-canvas { opacity: 0; }`}
+          ? `.map-fly-scene.is-ready .mapboxgl-canvas { opacity: 1; transition: opacity .35s ease-out; }`
+          : `.map-fly-scene .mapboxgl-canvas { opacity: 0; }`}
       `}</style>
     </div>
   );

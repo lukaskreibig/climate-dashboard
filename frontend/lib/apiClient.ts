@@ -48,11 +48,9 @@ export async function fetchBaseData(): Promise<BackendDataResponse> {
 }
 
 export async function fetchFjordData(): Promise<
-  FjordDataBundle & { seasonLossPct?: number | null }
+  FjordDataBundle
 > {
-  return fetchJson<FjordDataBundle & { seasonLossPct?: number | null }>(
-    "/api/uummannaq"
-  );
+  return fetchJson<FjordDataBundle>("/api/uummannaq");
 }
 
 export { ApiError };

@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+class FjordDataMeta(BaseModel):
+    latestDate: Optional[str] = None
+    latestYear: Optional[int] = None
+    source: Optional[str] = None
+    baselineYears: Optional[str] = None
+    generatedAt: Optional[str] = None
+
 class FjordSpringAnomaly(BaseModel):
     year: int
     anomaly: Optional[float]
@@ -37,3 +44,4 @@ class FjordDataBundle(BaseModel):
     freeze: List[FjordFreezeBreakup]
     daily:  List[FjordDailyRow]
     seasonLossPct: Optional[float] = None   # optionales Zusatzfeld
+    meta: Optional[FjordDataMeta] = None

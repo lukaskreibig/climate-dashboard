@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { useTranslation } from "react-i18next";
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 /* helpers */
@@ -19,6 +20,7 @@ interface Waypoint {
 }
 
 export default function StoryProgress() {
+  const { t } = useTranslation();
   const container = useRef<HTMLDivElement>(null);
   const track     = useRef<HTMLDivElement>(null);
   const fill      = useRef<HTMLDivElement>(null);
@@ -226,7 +228,7 @@ export default function StoryProgress() {
       ref={container}
       className="fixed top-1/2 -translate-y-1/2 lg:right-4 hidden sm:flex flex-col items-center z-50"
     >
-      <div className="text-slate-800 mb-5">Big Melt</div>
+      <div className="text-slate-800 mb-5">{t("arctic.heroTitle")}</div>
 
       <div ref={track} className="relative h-[40vh] w-[2px] bg-slate-400/60 rounded-full mx-auto">
         {/* Fill */}

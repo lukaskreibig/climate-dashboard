@@ -49,6 +49,29 @@ export default function IntroHero() {
     }
 
     const ctx = gsap.context(() => {
+      const revealOutro = () => {
+        if (typeof document !== "undefined") {
+          gsap.set(document.body, { overflow: "hidden" });
+        }
+        const outro = document.getElementById("outro");
+        if (!outro) return;
+
+        const alreadyVisible =
+          outro.dataset.visible === "true" &&
+          !outro.classList.contains("invisible") &&
+          !outro.classList.contains("pointer-events-none");
+        if (alreadyVisible) return;
+
+        outro.dataset.visible = "true";
+        outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
+        gsap.killTweensOf(outro);
+        gsap.fromTo(
+          outro,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" }
+        );
+      };
+
       /* 1️⃣  Main copy timeline (unchanged) */
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -84,29 +107,14 @@ export default function IntroHero() {
         scale: 300,
         y: 3800,
         x: 4000,
-        duration: 4,
+        duration: 2.6,
         ease: "power2.inOut",
         transformOrigin: "center center",
       }) 
       .to(photo.current,
-      { scale: 15, duration: 4, ease: "power2.inOut" },
-      "<");
-
-      tl.add(() => {
-        if (typeof document !== "undefined") {
-          gsap.set(document.body, { overflow: "hidden" });
-        }
-        const outro = document.getElementById("outro");
- if (outro) {
-   // Klicks zulassen + sichtbar schalten
-   outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
-   gsap.fromTo(
-     outro,
-     { opacity: 0 },
-     { opacity: 1, duration: 0.6, ease: "power2.out" }
-   );
- }
-      });
+      { scale: 15, duration: 2.6, ease: "power2.inOut" },
+      "<")
+      .add(revealOutro, "-=0.8");
     }, wrap);
 
     return () => ctx.revert();
