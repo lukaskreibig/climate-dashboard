@@ -16,6 +16,7 @@ import MapboxPreloader, {
 } from "@/components/MapboxPreloader";
 import ChartScene from "@/components/scenes/ChartScene";
 import StoryProgress from "@/components/StoryProgress";
+import SmoothScroll from "@/components/SmoothScroll";
 import ChatBot from "@/components/ChatBot";
 import OutroHero from "@/components/OutroHero";
 import LegalFooter from "@/components/LegalFooter";
@@ -121,6 +122,7 @@ export default function Page() {
 
   return (
     <>
+      <SmoothScroll />
       <MapboxPreloader />
       <ArcticBackgroundSystem ref={snowRef} />
       <main className="relative z-10 overflow-x-hidden text-snow-50">

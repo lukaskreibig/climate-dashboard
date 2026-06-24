@@ -281,8 +281,14 @@ export default function OutroCredits() {
           <Button
             variant="outline"
             onClick={() => {
-              // Scroll back to story
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              // Unlock scroll + resume Lenis (paused while the outro was open)
+              gsap.set(document.body, { overflow: "auto" });
+              const lenis = (window as Window & {
+                __lenis?: { start: () => void; scrollTo: (t: number, o?: { immediate?: boolean }) => void };
+              }).__lenis;
+              lenis?.start?.();
+              if (lenis) lenis.scrollTo(0, { immediate: true });
+              else window.scrollTo({ top: 0, behavior: "smooth" });
               // Hide outro after scroll
               setTimeout(() => {
                 if (outroRef.current) {

@@ -54,6 +54,8 @@ export default function IntroHero() {
         if (typeof document !== "undefined") {
           gsap.set(document.body, { overflow: "hidden" });
         }
+        // pause Lenis so the fixed outro's own scroll (to sources/chatbot) works
+        (window as Window & { __lenis?: { stop: () => void } }).__lenis?.stop?.();
         const outro = document.getElementById("outro");
         if (!outro) return;
 
