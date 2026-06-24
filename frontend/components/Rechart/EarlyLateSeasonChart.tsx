@@ -22,6 +22,10 @@ import {
 } from "recharts";
 import gsap from "gsap";
 import { useTranslation } from 'react-i18next';
+import {
+  ChartEmptyState,
+  ChartSourceBadge,
+} from "@/components/ChartExplainers";
 
 /* ——— incoming data ——— */
 export interface SeasonRow {
@@ -37,7 +41,9 @@ export interface SeasonRow {
 /* ——— GSAP handle ——— */
 export type EarlyLateApi = { 
   nextStep: () => void 
-  highlight: (which: "early" | "late" | "both") => void };
+  highlight: (which: "early" | "late" | "both") => void
+  showMetric: (visible: boolean) => void
+};
 interface Props {
   data: SeasonRow[];
   apiRef?: MutableRefObject<EarlyLateApi | null>;
@@ -49,8 +55,7 @@ interface Props {
 const SUN_START = 45; // 14-Feb
 const SUN_END   = 180; // 29-Jun
 const HEIGHT = 520;
-const TITLE_Y = -29;
-const HALF    = HEIGHT / 2;
+const CHART_H = 470;
 
 /* densify rows und Bandbreiten vorberechnen */
 function buildDense(rows: SeasonRow[]) {
@@ -93,15 +98,17 @@ function deriveLoss(rows: SeasonRow[]) {
 /* ——— tooltip, nur Mittelwerte zeigen ——— */
 const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string; }) => {
   if (!active || !payload?.length) return null;
-  const entry = payload.find((p) => String(p.dataKey).endsWith("Mean"));
-  if (!entry) return null;
+  const means = payload.filter((p) => String(p.dataKey).endsWith("Mean") && p.value != null);
+  if (!means.length) return null;
 
   return (
-    <div style={{ background:"#fff", border:"1px solid #ccc", padding:"6px 10px", fontSize:12, lineHeight:1.3 }}>
-      <strong>{label}</strong><br/>
-      <span style={{ color: entry.color }}>
-        {entry.name}: {(entry.value * 100).toFixed(1)} %
-      </span>
+    <div style={{ background:"#fff", border:"1px solid #ccc", padding:"6px 10px", fontSize:12, lineHeight:1.4 }}>
+      <strong>{label}</strong>
+      {means.map((m) => (
+        <div key={String(m.dataKey)} style={{ color: m.color }}>
+          {m.name}: {(m.value * 100).toFixed(1)} %
+        </div>
+      ))}
     </div>
   );
 };
@@ -110,13 +117,22 @@ const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload
 export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
   const { t } = useTranslation();
 
-  const [stage, setStage] = useState(0);
+  const [metricVisible, setMetricVisible] = useState(false);
   const [focus, setFocus] = useState<"early" | "late" | "both">("both");
 
   useImperativeHandle(apiRef, () => ({
-    nextStep:  () => setStage((s) => Math.min(3, s + 1)),
+    nextStep:  () => setMetricVisible(true),
     highlight: (which) => setFocus(which),
+    showMetric: (visible) => setMetricVisible(visible),
   }), []);
+
+  if (!Array.isArray(data) || !data.length) {
+    return (
+      <ChartEmptyState title={t("charts.earlyLateSeason.emptyTitle")}>
+        {t("charts.earlyLateSeason.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
 
   const dense = useMemo(() => buildDense(data), [data]);
   const meanLossPct = useMemo(
@@ -124,15 +140,15 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
     [lossPct, data]
   );
 
-  /* animate % when red mean appears (stage 2) */
+  /* animate % when red mean appears */
   useEffect(() => {
-    if (stage === 2) {
+    if (metricVisible) {
       gsap.fromTo("#lossValue", { innerText: 0 }, {
         innerText: meanLossPct ?? 0,
         duration: 1.2, ease: "power2.out", snap: { innerText: 0.1 },
       });
     }
-  }, [stage, meanLossPct]);
+  }, [metricVisible, meanLossPct]);
 
   useEffect(() => {
     const earlyEls = gsap.utils.toArray<SVGElement>('.early-epoch');
@@ -154,51 +170,29 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
 
   const AxisStyle = { tick: { fill: "#94a3b8", fontSize: 12 }, className: "chart-axis" };
 
-  const Panel = (which: "early" | "late", color: string, label: string, showBand: boolean) => (
-    <ResponsiveContainer width="100%" height={HEIGHT / 2}>
-      <ComposedChart data={dense} syncId="epoch" margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
-        <CartesianGrid strokeDasharray="1 1" className="chart-grid" />
-        <XAxis dataKey="day" {...AxisStyle} />
-        <YAxis domain={[0, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)} %`} {...AxisStyle} />
-        <Tooltip content={<MeanOnlyTooltip />} />
-        <Area dataKey={`${which[0]}25`} stackId={which} stroke="none" fillOpacity={0} className={`${which}-epoch`} />
-        {showBand && (
-          <Area
-            dataKey={`${which[0]}Band`}
-            stackId={which}
-            name={`${label}${t('charts.earlyLateSeason.iqrSuffix')}`}
-            stroke="none"
-            fill={which === "late" ? "rgba(214,41,41,0.20)" : "rgba(66,135,245,0.25)"}
-            className={`${which}-epoch`}
-          />
-        )}
-        <Line
-          type="monotone"
-          dataKey={`${which[0]}Mean`}
-          name={`${label}${t('charts.earlyLateSeason.meanSuffix')}`}
-          stroke={color}
-          strokeWidth={3}
-          connectNulls
-          dot={false}
-          className={`${which}-epoch`}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-
-  const showEarlyBand = true;
-  const showLateBand = true;
-
   return (
-    <div style={{ position:"relative", width:"100%", height:HEIGHT }}>
-      <div style={{ position:"absolute", left:80, top:`${TITLE_Y}px`, zIndex:5, fontSize:28, fontWeight:600, color:"#0f172a", pointerEvents:"none" }}>
-        {t('charts.earlyLateSeason.earlyTitle')}
+    <div style={{ position:"relative", width:"100%", height:HEIGHT }} role="img" aria-label={t("charts.ariaSummaries.earlyLateSeason")}>
+      {/* inline legend replaces the two stacked panel titles */}
+      <div className="absolute left-16 top-0 z-[5] flex flex-wrap items-center gap-4 text-base font-semibold text-slate-700">
+        <span className="inline-flex items-center gap-2">
+          <span className="inline-block h-1 w-6 rounded-full" style={{ background: "#4287f5" }} />
+          {t('charts.earlyLateSeason.earlyTitle')}
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="inline-block h-1 w-6 rounded-full" style={{ background: "#d62929" }} />
+          {t('charts.earlyLateSeason.lateTitle')}
+        </span>
       </div>
-      <div style={{ position:"absolute", left:80, top:`${HALF+TITLE_Y}px`, zIndex:5, fontSize:28, fontWeight:600, color:"#0f172a", pointerEvents:"none" }}>
-        {t('charts.earlyLateSeason.lateTitle')}
+
+      <div className="absolute right-5 top-[-30px] z-[5]">
+        <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
+          {t("charts.earlyLateSeason.source")}
+        </ChartSourceBadge>
       </div>
-      <div style={{ position:"absolute", right:20, top:`${HALF+TITLE_Y}px`, zIndex:5, display:"flex", flexDirection:"column", alignItems:"flex-end", opacity:stage===2?1:0, pointerEvents:"none" }}>
-        <div style={{ fontSize:42, fontWeight:600, color:"#d62929" }}>
+
+      {/* animated loss metric */}
+      <div style={{ position:"absolute", right:20, top:40, zIndex:5, display:"flex", flexDirection:"column", alignItems:"flex-end", opacity:metricVisible?1:0, transition:"opacity .4s ease", pointerEvents:"none" }}>
+        <div style={{ fontSize:42, fontWeight:600, color:"#d62929", lineHeight:1 }}>
           <span id="lossValue">{typeof meanLossPct === "number" ? meanLossPct : 0}</span>%
         </div>
         <div style={{ fontSize:14, color:"#64748b" }}>
@@ -206,8 +200,69 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
         </div>
       </div>
 
-      {Panel("early","#4287f5","2017-20",showEarlyBand)}
-      {Panel("late" ,"#d62929","2021-25",showLateBand)}
+      <div className="absolute bottom-2 left-20 z-[5] flex gap-3 text-[11px] text-slate-500">
+        <span>{t("charts.earlyLateSeason.bandHint")}</span>
+      </div>
+
+      {/* single overlaid chart: both epochs share one axis so the gap is directly visible */}
+      <div style={{ paddingTop: 44 }}>
+        <ResponsiveContainer width="100%" height={CHART_H}>
+          <ComposedChart data={dense} margin={{ top: 10, right: 24, bottom: 30, left: 20 }}>
+            <CartesianGrid strokeDasharray="1 1" className="chart-grid" />
+            <XAxis dataKey="day" minTickGap={28} {...AxisStyle} />
+            <YAxis domain={[0, 1]} tickFormatter={(v) => `${(v * 100).toFixed(0)} %`} {...AxisStyle} />
+            <Tooltip content={<MeanOnlyTooltip />} />
+
+            {/* early IQR band (e25 invisible base + eBand) */}
+            <Area dataKey="e25" stackId="early" stroke="none" fillOpacity={0} className="early-epoch" isAnimationActive={false} />
+            <Area
+              dataKey="eBand"
+              stackId="early"
+              name={`${t('charts.earlyLateSeason.earlyTitle')}${t('charts.earlyLateSeason.iqrSuffix')}`}
+              stroke="none"
+              fill="rgba(66,135,245,0.18)"
+              className="early-epoch"
+              isAnimationActive={false}
+            />
+
+            {/* late IQR band (l25 invisible base + lBand) */}
+            <Area dataKey="l25" stackId="late" stroke="none" fillOpacity={0} className="late-epoch" isAnimationActive={false} />
+            <Area
+              dataKey="lBand"
+              stackId="late"
+              name={`${t('charts.earlyLateSeason.lateTitle')}${t('charts.earlyLateSeason.iqrSuffix')}`}
+              stroke="none"
+              fill="rgba(214,41,41,0.16)"
+              className="late-epoch"
+              isAnimationActive={false}
+            />
+
+            {/* mean lines on top */}
+            <Line
+              type="monotone"
+              dataKey="eMean"
+              name={t('charts.earlyLateSeason.earlyTitle')}
+              stroke="#4287f5"
+              strokeWidth={3}
+              connectNulls
+              dot={false}
+              className="early-epoch"
+              isAnimationActive={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="lMean"
+              name={t('charts.earlyLateSeason.lateTitle')}
+              stroke="#d62929"
+              strokeWidth={3}
+              connectNulls
+              dot={false}
+              className="late-epoch"
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

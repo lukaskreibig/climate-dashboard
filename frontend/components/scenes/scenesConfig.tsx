@@ -35,9 +35,11 @@ const WhyArcticExplainer = dynamic(()=>import("@/components/WhyArcticExplainer")
 /* ─── Chart components ─── */
 const MeanSpringAnomalyChart = dynamic(() => import("@/components/Rechart/MeanSpringAnomalyChart"), { ssr: false });
 const EarlyLateSeasonChart = dynamic(() => import("@/components/Rechart/EarlyLateSeasonChart"), { ssr: false });
-const MeanIceFractionChart = dynamic(() => import("@/components/Rechart/MeanIceFractionChart"), { ssr: false });
+const BreakupTimingChart = dynamic(() => import("@/components/Rechart/BreakupTimingChart"), { ssr: false });
 const FreezeBreakTimelineChart = dynamic(() => import("@/components/Rechart/FreezeBreakTimelineChart"), { ssr: false });
 const AllYearsSeasonChart = dynamic(() => import("@/components/Rechart/AllYearsSeasonChart"), { ssr: false });
+const MemoryMeasurementTimeline = dynamic(() => import("@/components/Rechart/MemoryMeasurementTimeline"), { ssr: false });
+const SatellitePixelInspector = dynamic(() => import("@/components/SatellitePixelInspector"), { ssr: false });
 
 const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
   { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },
@@ -98,9 +100,11 @@ export const dynamicModules: PreloadableComponent[] = [
   ScatterChart,
   MeanSpringAnomalyChart,
   EarlyLateSeasonChart,
-  MeanIceFractionChart,
+  BreakupTimingChart,
   FreezeBreakTimelineChart,
   AllYearsSeasonChart,
+  MemoryMeasurementTimeline,
+  SatellitePixelInspector,
   WhyArcticExplainer,
   MapFlyScene,
   SatelliteScene,
@@ -113,9 +117,9 @@ const AXES = ".chart-grid, .chart-axis";
 
 type DataBundle = DashboardDataOrNull;
 
-const latestYearFromRows = (rows?: { Year?: number }[]) => {
+const latestYearFromRows = (rows?: { Year?: number; year?: number }[]) => {
   const years = (rows ?? [])
-    .map((row) => row.Year)
+    .map((row) => row.Year ?? row.year)
     .filter((year): year is number => typeof year === "number");
   return years.length ? Math.max(...years) : undefined;
 };
@@ -128,6 +132,8 @@ const latestTemperatureYear = (data: DataBundle) =>
 
 export const useScenesWithTranslation = () => {
   const { t } = useTranslation();
+  const memoryCaptionClass =
+    "caption-box mb-[clamp(2.5rem,7vh,4rem)] max-w-[22.5rem] px-4 text-left text-slate-900 drop-shadow-lg";
   
   const scenes: SceneCfg[] = [
 
@@ -416,7 +422,7 @@ export const useScenesWithTranslation = () => {
       authorSubtitle={t('scenes.quotes.source')}
       fullscreenImageFit="contain" 
       imageSide="right" 
-      backgroundColor="#90a9bf"
+      backgroundColor="#4b677a"
       textColor="white"
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
@@ -557,6 +563,139 @@ export const useScenesWithTranslation = () => {
   { captionIdx: 5, call: api => api?.showStage?.(2) },
 ],
 },
+{
+  key: "pixel-inspector",
+  progressTitle: t("scenes.pixelInspector.title"),
+  chartSide: "fullscreen",
+  progressPoint: true,
+  fadeIn: true,
+  fadeOut: true,
+  parallax: false,
+  snow: false,
+  bgColor: "#020617",
+  chart: (_d, api) => (
+    <SatellitePixelInspector
+      ref={api}
+      rawImg={SATELLITE_IMAGES[0]}
+      maskImg={SATELLITE_IMAGES[1]}
+    />
+  ),
+  axesSel: NO_MATCH,
+  captions: [
+    { html: <></> },
+    { html: <></> },
+    { html: <></> },
+    { html: <></> },
+  ],
+  actions: [
+    { captionIdx: 0, call: api => api?.showStage?.(0) },
+    { captionIdx: 1, call: api => api?.showStage?.(1) },
+    { captionIdx: 2, call: api => api?.showStage?.(2) },
+    { captionIdx: 3, call: api => api?.showStage?.(3) },
+  ],
+},
+{
+  key: "memory-measurement",
+  progressTitle: t("scenes.memoryMeasurement.title"),
+  progressPoint: true,
+  plainCaptions: true,
+  chartSide: "right",
+  fadeIn: true,
+  fadeOut: true,
+  parallax: false,
+  bgColor: "#e8eef3",
+  chart: (d: DataBundle, api) => (
+    <MemoryMeasurementTimeline
+      data={(d?.daily ?? []) as any}
+      lossPct={d?.seasonLossPct ?? null}
+      latestYear={d?.fjordMeta?.latestYear ?? undefined}
+      sourceLabel={t("charts.memoryMeasurement.source", {
+        year: d?.fjordMeta?.latestYear ?? latestYearFromRows(d?.daily),
+      })}
+      apiRef={api}
+    />
+  ),
+  axesSel: NO_MATCH,
+  captions: [
+    {
+      captionSide: "left",
+      boxClass: memoryCaptionClass,
+      html: (
+        <>
+          <h3 className="mb-2 text-2xl font-display">
+            {t("scenes.memoryMeasurement.buildTitle")}
+          </h3>
+          <p className="text-lg leading-relaxed">
+            {t("scenes.memoryMeasurement.build")}
+          </p>
+        </>
+      ),
+    },
+    {
+      captionSide: "left",
+      boxClass: memoryCaptionClass,
+      html: (
+        <>
+          <h3 className="mb-2 text-2xl font-display">
+            {t("scenes.memoryMeasurement.title")}
+          </h3>
+          <p className="text-lg leading-relaxed">
+            {t("scenes.memoryMeasurement.intro")}
+          </p>
+        </>
+      ),
+    },
+    {
+      captionSide: "left",
+      boxClass: memoryCaptionClass,
+      html: (
+        <>
+          <h3 className="mb-2 text-2xl font-display">
+            {t("scenes.memoryMeasurement.earlyTitle")}
+          </h3>
+          <p className="text-lg leading-relaxed">
+            {t("scenes.memoryMeasurement.early")}
+          </p>
+        </>
+      ),
+    },
+    {
+      captionSide: "left",
+      boxClass: memoryCaptionClass,
+      html: (
+        <>
+          <h3 className="mb-2 text-2xl font-display">
+            {t("scenes.memoryMeasurement.lateTitle")}
+          </h3>
+          <p className="text-lg leading-relaxed">
+            {t("scenes.memoryMeasurement.late")}
+          </p>
+        </>
+      ),
+    },
+    {
+      captionSide: "left",
+      boxClass: memoryCaptionClass,
+      html: (
+        <>
+          <h3 className="mb-2 text-2xl font-display">
+            {t("scenes.memoryMeasurement.caveatTitle")}
+          </h3>
+          <p className="text-lg leading-relaxed">
+            {t("scenes.memoryMeasurement.caveat")}
+          </p>
+        </>
+      ),
+    },
+  ],
+  actions: [
+    { captionIdx: 0, call: api => api?.showStage?.(0) },
+    { captionIdx: 1, call: api => api?.showStage?.(1) },
+    { captionIdx: 2, call: api => api?.showStage?.(2) },
+    { captionIdx: 3, call: api => api?.showStage?.(3) },
+    { captionIdx: 4, call: api => api?.showStage?.(4) },
+  ],
+},
 /* ═══ SCENE 6: THE VISUAL PROOF ═══ */
   {
     key: "visual-proof",
@@ -597,7 +736,8 @@ export const useScenesWithTranslation = () => {
     ],
 
     actions: [
-      { captionIdx: 1, call: api => api?.nextStage?.() },
+      { captionIdx: 0, call: api => api?.showMode?.("all") },
+      { captionIdx: 1, call: api => api?.showMode?.("late") },
     ],
   },
 
@@ -645,7 +785,6 @@ export const useScenesWithTranslation = () => {
             <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
             <p className="text-lg">
               {t('scenes.newAbnormal.livingOutside')}
-              <span className="text-red-400 font-bold">{t('scenes.newAbnormal.percentage')}</span> {t('scenes.newAbnormal.consequence')}
               <br/><br/>
               {t('scenes.newAbnormal.result')}
             </p>
@@ -670,23 +809,60 @@ export const useScenesWithTranslation = () => {
   },
     /* ═══ SCENE 9: THE TRAJECTORY ═══ */
   {
-    key: "trajectory",
-    chart: (d: DataBundle) => <MeanIceFractionChart data={(d?.frac ?? []) as any} />,
+    key: "breakup-timing",
+    progressPoint: true,
+    progressTitle: t('scenes.breakup.progressTitle'),
+    chart: (d: DataBundle, api) => (
+      <BreakupTimingChart
+        data={(d?.freeze ?? []) as any}
+        apiRef={api}
+        latestYear={d?.fjordMeta?.latestYear ?? latestYearFromRows(d?.daily)}
+      />
+    ),
     plainCaptions: true,
     axesSel: AXES,
+    axesInIdx: 0,
 
     captions: [
       {
         captionSide: "right",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">{t('scenes.trajectory.title')}</h3>
-            <p className="text-lg max-w-lg">
-              {t('scenes.trajectory.rate')}
+            <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.recall.title')}</h3>
+            <p className="text-lg">
+              {t('scenes.breakup.recall.description')}
             </p>
           </>
         ),
       },
+      {
+        captionSide: "right",
+        html: (
+          <>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.shift.title')}</h3>
+            <p className="text-lg">
+              {t('scenes.breakup.shift.description')}
+            </p>
+          </>
+        ),
+      },
+      {
+        captionSide: "right",
+        html: (
+          <>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.unpredictable.title')}</h3>
+            <p className="text-lg">
+              {t('scenes.breakup.unpredictable.description')}
+            </p>
+          </>
+        ),
+      },
+    ],
+
+    actions: [
+      { captionIdx: 0, call: api => api?.showStage?.(0) },
+      { captionIdx: 1, call: api => api?.showStage?.(1) },
+      { captionIdx: 2, call: api => api?.showStage?.(2) },
     ],
   },
   {
@@ -742,7 +918,7 @@ export const useScenesWithTranslation = () => {
       variant="fullscreen-split"
       fullscreenImageFit="contain" 
       imageSide="right" 
-      backgroundColor="#90a9bf"
+      backgroundColor="#4b677a"
       mainCaption={t('scenes.future.memory')}
       quote={false}
       textColor="white"

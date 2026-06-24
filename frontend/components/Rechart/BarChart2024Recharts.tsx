@@ -45,7 +45,7 @@ export default function BarChart2024Recharts({ data }: Props) {
 
   /* ─── render ─────────────────────────────────────────────────── */
   return (
-    <div style={{ width: "100%", height: 400 }}>
+    <div style={{ width: "100%", height: 400 }} role="img" aria-label={t("charts.ariaSummaries.bar2024")}>
       <div className="text-center font-semibold text-slate-800 mb-2 select-none text-sm sm:text-base">
         {t("charts.bar2024.title", { year: latestRow.Year })}
       </div>

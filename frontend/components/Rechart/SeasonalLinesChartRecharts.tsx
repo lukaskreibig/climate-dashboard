@@ -18,6 +18,11 @@ import {
 } from "recharts";
 import * as d3 from "d3";
 import { useTranslation } from 'react-i18next';
+import {
+  ChartCallout,
+  ChartEmptyState,
+  ChartSourceBadge,
+} from "@/components/ChartExplainers";
 
 /* ------------------------------------------------------------------
    SeasonalLinesChartRecharts – headline, highlight API, delta badge
@@ -55,7 +60,13 @@ export default function SeasonalLinesChartRecharts({
   const { t } = useTranslation();
   const months = t('common.months.short', { returnObjects: true }) as string[];
   
-  if (!Array.isArray(data) || !data.length) return null;
+  if (!Array.isArray(data) || !data.length) {
+    return (
+      <ChartEmptyState title={t("charts.seasonal.emptyTitle")}>
+        {t("charts.seasonal.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
 
   /* ── group & down-sample by year ───────────────────────── */
   const byYear = useMemo(() => {
@@ -133,6 +144,8 @@ export default function SeasonalLinesChartRecharts({
       onMouseLeave={clearHover}
       className="relative"
       style={{ width: "100%", height: 460 }}
+      role="img"
+      aria-label={t("charts.ariaSummaries.seasonal")}
     >
       {/* headline + legend */}
       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
@@ -142,6 +155,11 @@ export default function SeasonalLinesChartRecharts({
           <div className="h-2 w-40 rounded bg-gradient-to-r from-blue-600 via-yellow-400 to-red-600" />
           <span>{maxYear}</span>
         </div>
+      </div>
+      <div className="absolute right-2 top-0 z-10">
+        <ChartSourceBadge href="https://www.ncei.noaa.gov/access/monitoring/seaice/">
+          {t("charts.seasonal.source", { year: maxYear })}
+        </ChartSourceBadge>
       </div>
 
       {/* hover badge */}
@@ -160,6 +178,18 @@ export default function SeasonalLinesChartRecharts({
           {delta.toFixed(1)} M&nbsp;km²
         </div>
       )}
+
+      <ChartCallout
+        tone={highlight === "current" ? "warning" : "ice"}
+        className="absolute bottom-2 left-3 z-10 max-w-[250px]"
+        title={t(`charts.seasonal.callouts.${highlight}.title`, {
+          defaultValue: t("charts.seasonal.callouts.all.title"),
+        })}
+      >
+        {t(`charts.seasonal.callouts.${highlight}.body`, {
+          defaultValue: t("charts.seasonal.callouts.all.body"),
+        })}
+      </ChartCallout>
 
       <ResponsiveContainer height={400}>
         <LineChart margin={{ top: 4, right: 20, bottom: 40, left: 20 }} isAnimationActive={false}>

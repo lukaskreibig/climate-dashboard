@@ -11,6 +11,7 @@ import React, {
   useEffect,
 } from "react";
 import { motion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ────────────────────────── TYPES ────────────────────────── */
 export interface PhotoStoryApi {
@@ -145,6 +146,7 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
   const [idx,   setIdx]   = useState(0);
   const wrapRef           = useRef<HTMLDivElement>(null);
   const [scrollProg, setScrollProg] = useState(0);          // 0 … 1
+  const reducedMotion = usePrefersReducedMotion();
   
 
 
@@ -289,17 +291,21 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
       ? 1 - clamp01((progress - fadeOutAt) / (1 - fadeOutAt))
       : easeOutCubic(lin);
 
-    const bgY    = -progress * window.innerHeight * bgParallax;
-    const quoteY = -progress * window.innerHeight * quoteParallax;
+    const effBgParallax = reducedMotion ? 0 : bgParallax;
+    const effQuoteParallax = reducedMotion ? 0 : quoteParallax;
+    const effBgZoom = reducedMotion ? 0 : bgZoom;
+
+    const bgY    = -progress * window.innerHeight * effBgParallax;
+    const quoteY = -progress * window.innerHeight * effQuoteParallax;
     const fit    = fullscreenImageFit === "cover" ? "object-cover" : "object-contain";
 
-    const baseScale   = 1 + Math.abs(bgParallax);
+    const baseScale   = 1 + Math.abs(effBgParallax);
 
     // ► optional zoom (positive = zoom-in, negative = zoom-out)
     const zoomScale =
-    bgZoom === 0
+    effBgZoom === 0
         ? baseScale
-        : baseScale + bgZoom * progress;   // linear for simplicity
+        : baseScale + effBgZoom * progress;   // linear for simplicity
 
 
     return (
@@ -382,10 +388,13 @@ const FullscreenSplit = () => {
   const opacity  = progress<fadeInAt?0:progress>=fadeOutAt
                    ?1-clamp01((progress-fadeOutAt)/(1-fadeOutAt))
                    :easeOutCubic(lin);
-  const bgY      = -progress*innerHeight*bgParallax;
-  const quoteY   = -progress*innerHeight*quoteParallax;
-  const baseScale=1+Math.abs(bgParallax);
-  const zoomScale=bgZoom===0?baseScale:baseScale+bgZoom*progress;
+  const effBgParallax = reducedMotion ? 0 : bgParallax;
+  const effQuoteParallax = reducedMotion ? 0 : quoteParallax;
+  const effBgZoom = reducedMotion ? 0 : bgZoom;
+  const bgY      = -progress*innerHeight*effBgParallax;
+  const quoteY   = -progress*innerHeight*effQuoteParallax;
+  const baseScale=1+Math.abs(effBgParallax);
+  const zoomScale=effBgZoom===0?baseScale:baseScale+effBgZoom*progress;
 
   /* ── Render ───────────────────────────────────────────── */
   return (

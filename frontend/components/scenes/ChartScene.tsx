@@ -16,6 +16,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 import { SnowApi } from "@/components/ArcticBackgroundSystem";
+import { prefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ===== tweakables =========================================== */
 const CHART_PARALLAX = 0.12;
@@ -122,8 +123,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     maxCaptionWidth: 0,
     availableWidth: MAX_CHART_WIDTH,
   }));
-  const baseStack = isCompact || needsStack;
-  const stackLayout = cfg.chartSide === "fullscreen" ? false : baseStack;
+  const stackLayout = cfg.chartSide === "fullscreen" ? false : isCompact;
 
   const fadeIn = !!cfg.fadeIn;
   const fadeOut = !!cfg.fadeOut;
@@ -237,16 +237,15 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
   /* ─────────────────── prefetch / pre-mount ───────────────────── */
   useEffect(() => {
-    if (!cfg.prefetchMarginPx) return;
     if (hasMounted.current) return;
     if (!sec.current) return;
+    const prefetchMarginPx = cfg.prefetchMarginPx ?? 1600;
 
     if (typeof IntersectionObserver === "undefined") {
       ensureMounted();
       return;
     }
 
-    const margin = cfg.prefetchMarginPx;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -257,7 +256,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         });
       },
       {
-        rootMargin: `${margin}px 0px ${margin}px 0px`,
+        rootMargin: `${prefetchMarginPx}px 0px ${prefetchMarginPx}px 0px`,
         threshold: 0,
       }
     );
@@ -293,6 +292,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     if (!sec.current || !wrap.current || !box.current) return;
 
     const ctx = gsap.context((context) => {
+      const reduce = prefersReducedMotion();
       /* ---------- hide other chart layers ------------------- */
       const hideOthers = () =>
         document.querySelectorAll<HTMLDivElement>(".chart-layer").forEach(
@@ -322,8 +322,8 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
-          wrapEl.style.opacity = "1";
           wrapEl.style.pointerEvents = "auto";
+          gsap.to(wrapEl, { opacity: 1, duration: 0.3, ease: "power1.out", overwrite: "auto" });
           api.current?.showStage?.(0);
         },
         onEnterBack: () => {
@@ -332,8 +332,8 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
-          wrapEl.style.opacity = "1";
           wrapEl.style.pointerEvents = "auto";
+          gsap.to(wrapEl, { opacity: 1, duration: 0.3, ease: "power1.out", overwrite: "auto" });
           api.current?.showStage?.(0);
         },
         onLeave: () => {
@@ -383,7 +383,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           }
         );
         gsap.set(box.current, { yPercent: 0 });
-      } else if (slideIn) {
+      } else if (slideIn && !reduce) {
         gsap.fromTo(
           box.current,
           { yPercent: 150 },
@@ -402,7 +402,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         gsap.set(box.current, { yPercent: 0 });
       }
 
-      if (cfg.parallax !== false && CHART_PARALLAX && box.current) {
+      if (!reduce && cfg.parallax !== false && CHART_PARALLAX && box.current) {
         gsap.fromTo(
           box.current,
           { y: () => window.innerHeight * CHART_PARALLAX },
@@ -434,12 +434,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
             },
           }
         );
-      } else if (slideUp) {
+      } else if (slideUp && !reduce) {
         gsap.fromTo(
           box.current,
-          { yPercent: 0 },
+          { yPercent: 0, opacity: 1 },
           {
-            yPercent: -120,
+            yPercent: -60,
+            opacity: 0,
             ease: "none",
             scrollTrigger: {
               trigger: lastCap,
@@ -642,7 +643,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         ) => {
           if (!box.current) return 0;
           let target = pxShift(direction, captionEl);
-          const immediate = opts?.immediate ?? false;
+          const immediate = (opts?.immediate ?? false) || reduce;
 
           if (wrap.current) {
             const prevShift = lastShift;
@@ -762,11 +763,17 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         const el = sec
           .current?.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`);
         if (!el) return;
+        if (reduce) {
+          gsap.set(el, { opacity: 1, x: 0, y: 0 });
+          return;
+        }
         const fromX =
-          c.captionSide === "left"
-            ? "-4rem"
+          stackLayout
+            ? "0rem"
+            : c.captionSide === "left"
+            ? "-1.25rem"
             : c.captionSide === "right"
-            ? "4rem"
+            ? "1.25rem"
             : "0rem";
         const fracIn = (c.at ?? i * 0.05) - 1;
         const fracOut = (c.out ?? 1.01) - 1;
@@ -814,7 +821,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         };
 
   const capFlex = (s?: "left" | "right") => {
-    if (stackLayout) return "items-start justify-center px-4";
+    if (stackLayout) return "items-end justify-center px-4 pb-[clamp(5.5rem,12vh,7rem)]";
     return s === "left"
       ? "items-end justify-start pl-[clamp(2.5rem,7vw,8rem)] pr-[clamp(1.5rem,5vw,4rem)]"
       : s === "right"
@@ -876,10 +883,14 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       <div
         ref={wrap}
         className={`chart-layer fixed inset-0 flex z-10 invisible opacity-0 pointer-events-none ${
-          stackLayout ? "items-start justify-center pt-[min(12vh,5rem)]" : "items-center justify-center"
+          stackLayout ? "items-start justify-center pt-[clamp(1rem,4vh,2.5rem)]" : "items-center justify-center"
         }`}
       >
-        <div ref={box} className={chartW} style={chartStyle}>
+        <div
+          ref={box}
+          className={`${chartW} ${stackLayout ? "origin-top scale-[0.78] sm:scale-100" : ""}`}
+          style={chartStyle}
+        >
           {mounted ? cfg.chart(globalData, api) : <div className="w-full h-full" />}
         </div>
       </div>
@@ -909,10 +920,11 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           c.boxClass,
           capText(c.captionSide),
           "w-full max-w-xl sm:max-w-2xl",
-          "p-5 sm:p-6 lg:p-7",
-          "bg-white/95 backdrop-blur-lg",
-          "rounded-2xl shadow-2xl ring-1 ring-white/50",
-          "text-slate-900"
+          "max-h-[38vh] overflow-y-auto p-4 sm:p-5",
+          "bg-white backdrop-blur-lg",
+          "rounded-md shadow-2xl ring-1 ring-white/50",
+          "text-slate-900",
+          "[&_h3]:text-xl [&_p]:text-base [&_p]:leading-relaxed"
         ]
           .filter(Boolean)
           .join(" ");

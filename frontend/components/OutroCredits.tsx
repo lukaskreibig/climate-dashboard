@@ -216,10 +216,31 @@ export default function OutroCredits() {
     <section
       ref={outroRef}
       id="outro"
-      className="fixed inset-0 bg-neutral-950 text-white flex flex-col lg:flex-row
-             items-stretch justify-between z-50 opacity-0 pointer-events-none
+      className="fixed inset-0 bg-neutral-950 text-white flex flex-col overflow-y-auto
+             z-50 opacity-0 pointer-events-none
              invisible transition-opacity duration-700"
     >
+      {/* ═══ REFLECTIVE CLOSE — pays off "Will we listen?" ═══ */}
+      <div className="flex min-h-[100dvh] shrink-0 flex-col items-center justify-center px-8 py-16 text-center">
+        <div className="max-w-2xl space-y-6">
+          <p className="text-2xl font-light leading-relaxed text-gray-100 md:text-3xl">
+            {t("outro.closing.lead")}
+          </p>
+          <p className="text-base leading-relaxed text-gray-400 md:text-lg">
+            {t("outro.closing.body")}
+          </p>
+          <p className="text-base leading-relaxed text-gray-200 md:text-lg">
+            {t("outro.closing.question")}
+          </p>
+        </div>
+        <div className="mt-12 flex flex-col items-center gap-2 text-xs uppercase tracking-[0.2em] text-gray-500">
+          <span>{t("outro.closing.scrollCue")}</span>
+          <span aria-hidden className="animate-bounce text-lg">↓</span>
+        </div>
+      </div>
+
+      {/* ═══ CREDITS + CHATBOT ═══ */}
+      <div className="flex min-h-[100dvh] shrink-0 flex-col items-stretch justify-between lg:flex-row">
       {/* ═══ LEFT COLUMN - Credits & Methodology ═══ */}
       <div className="flex-1 flex flex-col justify-center px-8 py-10 max-w-lg">
         {/* Personal Credits */}
@@ -414,6 +435,7 @@ export default function OutroCredits() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </section>
   );

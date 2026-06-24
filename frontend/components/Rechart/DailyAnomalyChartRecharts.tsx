@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useMemo, useState, useImperativeHandle } from "react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
 import { useTranslation } from 'react-i18next';
+import { ChartEmptyState, ChartSourceBadge } from "@/components/ChartExplainers";
 
 export interface DecadeRow { decade: string; day: number; an: number; sd?: number|null; n: number; }
 export interface Props { data: DecadeRow[]; apiRef?: React.MutableRefObject<any>; }
@@ -55,10 +56,23 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
   const [visible,setVisible]=useState(1);
   useImperativeHandle(apiRef,()=>({ showLevel:(lvl:number)=>setVisible(Math.max(1, Math.min(lvl, series.length))) }),[series.length]);
 
+  if (!Array.isArray(data) || !data.length || !series.length) {
+    return (
+      <ChartEmptyState title={t("charts.dailyAnomaly.emptyTitle")}>
+        {t("charts.dailyAnomaly.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
+
   return (
-    <div className="h-[400px] w-full">
+    <div className="relative h-[400px] w-full" role="img" aria-label={t("charts.ariaSummaries.dailyAnomaly")}>
       <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
         {t('charts.dailyAnomaly.title')}
+      </div>
+      <div className="absolute right-2 top-0 z-10">
+        <ChartSourceBadge href="https://www.ncei.noaa.gov/access/monitoring/seaice/">
+          {t("charts.dailyAnomaly.source")}
+        </ChartSourceBadge>
       </div>
       <ResponsiveContainer>
         <LineChart data={chartData} margin={{top:20,right:20,bottom:20,left:40}}>
@@ -74,6 +88,17 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
             labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}
           />
           <Legend/>
+          <ReferenceLine
+            y={0}
+            stroke="#475569"
+            strokeDasharray="4 4"
+            label={{
+              value: t("charts.dailyAnomaly.zeroLine"),
+              fill: "#475569",
+              fontSize: 11,
+              position: "insideTopRight",
+            }}
+          />
           {series.slice(0,visible).map(({decade,color})=>(
             <Line
               key={decade}

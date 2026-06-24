@@ -16,6 +16,11 @@ import {
   Legend,
 } from "recharts";
 import { useTranslation } from "react-i18next";
+import {
+  ChartCallout,
+  ChartEmptyState,
+  ChartSourceBadge,
+} from "@/components/ChartExplainers";
 
 /* ---------------- types ---------------------------------------- */
 export interface RowZ {
@@ -58,41 +63,33 @@ export default function ZScoreChartRecharts({
   /* ─── legend hide / show state ───────────────────────────────── */
   const [hidden, setHidden] = useState<string[]>([]);
 
-  /* ----------------------------------------------------------------
-     HEADLINE:
-     – Einige Übersetzungen enthalten „CO₂ … arctic sea ice … Arctic“,
-       andere (z. B. Deutsch) nicht. Darum:
-       1.  Wir holen den Titel als *reinen* String (default = "").
-       2.  Nur wenn CO₂ & co. vorkommen, bauen wir das bunte Label
-           wie bisher; sonst nehmen wir einfach den Titel selbst.
-  -----------------------------------------------------------------*/
-  const rawTitle: string =
-    typeof t("charts.zScore.title") === "string"
-      ? (t("charts.zScore.title") as string)
-      : t("zscore.title", ""); // Fallback auf scenes-Titel
-
-  const HEADLINE = rawTitle.includes("CO₂") ? (
-    <>
-      {rawTitle.split("CO₂")[0]}CO₂&nbsp;
-      <span className="inline-block w-3 h-3 bg-green-500 align-baseline rounded-sm" />
-      &nbsp;
-      {rawTitle.split("CO₂")[1]?.split("arctic sea ice")[0]}arctic sea ice&nbsp;
-      <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
-      &nbsp;
-      {rawTitle.split("arctic sea ice")[1]?.split("Arctic")[0]}Arctic&nbsp;
-      <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
-    </>
-  ) : (
-    rawTitle || "CO₂ · Sea-Ice · Arctic"
-  );
+  if (!Array.isArray(data) || !data.length) {
+    return (
+      <ChartEmptyState title={t("charts.zScore.emptyTitle")}>
+        {t("charts.zScore.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
 
   /* ---------------- render -------------------------------------- */
   return (
-    <div className="w-full">
+    <div className="relative w-full" role="img" aria-label={t("charts.ariaSummaries.zScore")}>
       <div className="h-[400px] w-full">
         <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-          {HEADLINE}
+          {t("charts.zScore.title")}
         </div>
+        <div className="absolute right-2 top-0 z-10">
+          <ChartSourceBadge href="https://data.giss.nasa.gov/gistemp/">
+            {t("charts.zScore.source")}
+          </ChartSourceBadge>
+        </div>
+        <ChartCallout
+          tone={inv ? "warning" : "neutral"}
+          className="absolute bottom-2 left-3 z-10 max-w-[270px]"
+          title={inv ? t("charts.zScore.calloutInvertedTitle") : t("charts.zScore.calloutRawTitle")}
+        >
+          {inv ? t("charts.zScore.calloutInvertedBody") : t("charts.zScore.calloutRawBody")}
+        </ChartCallout>
 
         <ResponsiveContainer>
           <LineChart data={plotted} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>

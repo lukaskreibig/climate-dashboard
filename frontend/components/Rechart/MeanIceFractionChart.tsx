@@ -7,6 +7,11 @@ import {
 } from "recharts";
 import gsap from "gsap";
 import { useTranslation } from 'react-i18next';
+import {
+  ChartCallout,
+  ChartEmptyState,
+  ChartSourceBadge,
+} from "@/components/ChartExplainers";
 
 /* ─── types ────────────────────────────────────────────────────────── */
 interface Datum { year: number; mean: number }
@@ -42,7 +47,7 @@ export default function MeanIceFractionChart({ data }: Props) {
   /* animate headline */
   useEffect(() => {
     gsap.fromTo("#pctLoss", { innerText: 0 }, {
-      innerText: 3,
+      innerText: Math.abs(pctDrop),
       duration: 1.4,
       ease: "power2.out",
       snap: { innerText: 0.1 },
@@ -52,6 +57,14 @@ export default function MeanIceFractionChart({ data }: Props) {
   const HEIGHT = 420;
   const TITLE_Y = -26;
 
+  if (!Array.isArray(data) || !data.length) {
+    return (
+      <ChartEmptyState title={t("charts.meanIceFraction.emptyTitle")}>
+        {t("charts.meanIceFraction.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
+
   return (
     <div style={{ position: "relative", width: "100%", height: HEIGHT }}>
       {/* title */}
@@ -60,6 +73,11 @@ export default function MeanIceFractionChart({ data }: Props) {
         fontSize: 28, fontWeight: 600, color: "#0f172a", pointerEvents: "none",
       }}>
         {t('charts.meanIceFraction.title')}
+      </div>
+      <div className="absolute right-5 top-[-30px] z-[5]">
+        <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
+          {t("charts.meanIceFraction.source")}
+        </ChartSourceBadge>
       </div>
 
       {/* finding */}
@@ -71,6 +89,13 @@ export default function MeanIceFractionChart({ data }: Props) {
           -<span id="pctLoss">0</span>{t('charts.meanIceFraction.perYear')}
         </div>
       </div>
+      <ChartCallout
+        tone="warning"
+        className="absolute bottom-2 right-4 z-[5] max-w-[260px]"
+        title={t("charts.meanIceFraction.calloutTitle")}
+      >
+        {t("charts.meanIceFraction.calloutBody")}
+      </ChartCallout>
 
       {/* chart */}
       <ResponsiveContainer width="100%" height={HEIGHT}>

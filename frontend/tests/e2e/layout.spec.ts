@@ -87,7 +87,47 @@ test.describe('story layout guardrails', () => {
     expect(imageRequests.overlay).toBeLessThanOrEqual(2);
   });
 
+  test('new chart explainers render with localized copy', async ({ page, baseURL }) => {
+    await gotoStory(page, baseURL, 'de');
+
+    const pixelScene = page.locator('section[data-scene="pixel-inspector"]');
+    await pixelScene.scrollIntoViewIfNeeded();
+    await expect(pixelScene).toContainText('Wie aus einer Szene ein Wert wird');
+    await expect(pixelScene).not.toContainText('Ergebnis');
+    await expect(page.getByTestId('satellite-pixel-inspector')).toBeVisible();
+
+    const memoryScene = page.locator('section[data-scene="memory-measurement"]');
+    await memoryScene.scrollIntoViewIfNeeded();
+    await expect(memoryScene).toContainText('Erinnerung trifft Messung');
+    await expect(page.getByTestId('memory-measurement-chart')).toBeVisible();
+    await memoryScene.locator('[data-cap-idx="0"]').scrollIntoViewIfNeeded();
+    await page.getByTestId('memory-cell-2025-105').hover();
+    await expect(page.getByTestId('memory-cell-tooltip')).toContainText('15. April 2025');
+    await expect(page.getByTestId('memory-cell-tooltip')).toContainText('71,8');
+  });
+
+  test('memory measurement table does not jump between scroll stages', async ({ page, baseURL }) => {
+    await gotoStory(page, baseURL, 'de');
+
+    const memoryScene = page.locator('section[data-scene="memory-measurement"]');
+    const boxes: Array<{ y: number; height: number }> = [];
+
+    for (let index = 0; index <= 5; index += 1) {
+      await memoryScene.locator(`[data-cap-idx="${index}"]`).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(700);
+      const box = await page.getByTestId('memory-measurement-table').boundingBox();
+      if (!box) throw new Error(`Memory table not measurable at stage ${index}`);
+      boxes.push({ y: Math.round(box.y), height: Math.round(box.height) });
+    }
+
+    const yValues = boxes.map((box) => box.y);
+    const hValues = boxes.map((box) => box.height);
+    expect(Math.max(...yValues) - Math.min(...yValues)).toBeLessThanOrEqual(2);
+    expect(Math.max(...hValues) - Math.min(...hValues)).toBeLessThanOrEqual(2);
+  });
+
   test('charts respect gutters and caption separation', async ({ page, baseURL }) => {
+    test.setTimeout(90_000);
     await gotoStory(page, baseURL, 'de');
     await page.waitForTimeout(1000); // allow GSAP to settle
 
@@ -134,5 +174,40 @@ test.describe('story layout guardrails', () => {
         expect(captionRight).toBeLessThan(chartBox.x - 8);
       }
     }
+  });
+
+  test('reduced-motion disables chart parallax drift', async ({ page, baseURL }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await gotoStory(page, baseURL, 'en');
+
+    const scene = page.locator('section[data-scene="connections"]');
+    const top = await scene.evaluate(
+      (el) => el.getBoundingClientRect().top + window.scrollY,
+    );
+
+    const boxY = () =>
+      page.evaluate(() => {
+        const vis = Array.from(document.querySelectorAll('.chart-layer')).find(
+          (l) =>
+            getComputedStyle(l as HTMLElement).visibility !== 'hidden' &&
+            parseFloat(getComputedStyle(l as HTMLElement).opacity) > 0.5,
+        );
+        const box = vis?.firstElementChild as HTMLElement | undefined;
+        if (!box) return null;
+        const m = new DOMMatrixReadOnly(getComputedStyle(box).transform);
+        return Math.round(m.f);
+      });
+
+    await page.evaluate((y) => window.scrollTo(0, y), top + 150);
+    await page.waitForTimeout(400);
+    const y1 = await boxY();
+    await page.evaluate((y) => window.scrollTo(0, y), top + 650);
+    await page.waitForTimeout(400);
+    const y2 = await boxY();
+
+    expect(y1).not.toBeNull();
+    expect(y2).not.toBeNull();
+    // Pinned chart must not drift vertically with scroll when motion is reduced.
+    expect(Math.abs((y1 ?? 0) - (y2 ?? 0))).toBeLessThanOrEqual(6);
   });
 });

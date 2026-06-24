@@ -12,6 +12,7 @@ import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from "react-i18next";
+import { prefersReducedMotion } from "@/lib/reducedMotion";
 
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -101,20 +102,24 @@ export default function IntroHero() {
         .fromTo(line6.current, { opacity: 0, y: 500 }, { opacity: 1, y: 160 }, "<");
 
 
-      /* 3️⃣  Giant “Will we listen?” */
-      tl.to(line6.current, {
-        color: "#000",
-        scale: 300,
-        y: 3800,
-        x: 4000,
-        duration: 2.6,
-        ease: "power2.inOut",
-        transformOrigin: "center center",
-      }) 
-      .to(photo.current,
-      { scale: 15, duration: 2.6, ease: "power2.inOut" },
-      "<")
-      .add(revealOutro, "-=0.8");
+      /* 3️⃣  Giant “Will we listen?” — skipped under reduced-motion (vestibular) */
+      if (prefersReducedMotion()) {
+        tl.to({}, { duration: 0.6 }).add(revealOutro);
+      } else {
+        tl.to(line6.current, {
+          color: "#000",
+          scale: 300,
+          y: 3800,
+          x: 4000,
+          duration: 2.6,
+          ease: "power2.inOut",
+          transformOrigin: "center center",
+        })
+        .to(photo.current,
+        { scale: 15, duration: 2.6, ease: "power2.inOut" },
+        "<")
+        .add(revealOutro, "-=0.8");
+      }
     }, wrap);
 
     return () => ctx.revert();
