@@ -11,6 +11,7 @@ import React, {
   useEffect,
 } from "react";
 import { motion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ────────────────────────── TYPES ────────────────────────── */
 export interface PhotoStoryApi {
@@ -145,6 +146,7 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
   const [idx,   setIdx]   = useState(0);
   const wrapRef           = useRef<HTMLDivElement>(null);
   const [scrollProg, setScrollProg] = useState(0);          // 0 … 1
+  const reducedMotion = usePrefersReducedMotion();
   
 
 
@@ -289,17 +291,21 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
       ? 1 - clamp01((progress - fadeOutAt) / (1 - fadeOutAt))
       : easeOutCubic(lin);
 
-    const bgY    = -progress * window.innerHeight * bgParallax;
-    const quoteY = -progress * window.innerHeight * quoteParallax;
+    const effBgParallax = reducedMotion ? 0 : bgParallax;
+    const effQuoteParallax = reducedMotion ? 0 : quoteParallax;
+    const effBgZoom = reducedMotion ? 0 : bgZoom;
+
+    const bgY    = -progress * window.innerHeight * effBgParallax;
+    const quoteY = -progress * window.innerHeight * effQuoteParallax;
     const fit    = fullscreenImageFit === "cover" ? "object-cover" : "object-contain";
 
-    const baseScale   = 1 + Math.abs(bgParallax);
+    const baseScale   = 1 + Math.abs(effBgParallax);
 
     // ► optional zoom (positive = zoom-in, negative = zoom-out)
     const zoomScale =
-    bgZoom === 0
+    effBgZoom === 0
         ? baseScale
-        : baseScale + bgZoom * progress;   // linear for simplicity
+        : baseScale + effBgZoom * progress;   // linear for simplicity
 
 
     return (
@@ -382,10 +388,16 @@ const FullscreenSplit = () => {
   const opacity  = progress<fadeInAt?0:progress>=fadeOutAt
                    ?1-clamp01((progress-fadeOutAt)/(1-fadeOutAt))
                    :easeOutCubic(lin);
-  const bgY      = -progress*innerHeight*bgParallax;
-  const quoteY   = -progress*innerHeight*quoteParallax;
-  const baseScale=1+Math.abs(bgParallax);
-  const zoomScale=bgZoom===0?baseScale:baseScale+bgZoom*progress;
+  const effBgParallax = reducedMotion ? 0 : bgParallax;
+  const effQuoteParallax = reducedMotion ? 0 : quoteParallax;
+  const effBgZoom = reducedMotion ? 0 : bgZoom;
+  const bgY      = -progress*innerHeight*effBgParallax;
+  const quoteY   = -progress*innerHeight*effQuoteParallax;
+  const baseScale=1+Math.abs(effBgParallax);
+  const zoomScale=effBgZoom===0?baseScale:baseScale+effBgZoom*progress;
+  /* subtle perspective tilt: the photo leans a few degrees as it passes,
+     giving the split scenes real depth without distorting the image */
+  const tilt = reducedMotion ? 0 : (0.5 - progress) * 7;
 
   /* ── Render ───────────────────────────────────────────── */
   return (
@@ -397,11 +409,11 @@ const FullscreenSplit = () => {
 
       {/* Bild links */}
       {imageSide==="left"&&(
-        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
           <motion.img
             src={photos[0].src} alt={photos[0].alt}
             className="max-h-[90vh] w-auto object-contain"
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30 }}
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30, rotateY: tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
           />
         </div>
@@ -418,11 +430,11 @@ const FullscreenSplit = () => {
 
       {/* Bild rechts */}
       {imageSide==="right"&&(
-        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
           <motion.img
             src={photos[0].src} alt={photos[0].alt}
             className="max-h-[90vh] w-auto object-contain"
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign }}
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign, rotateY: -tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
           />
         </div>

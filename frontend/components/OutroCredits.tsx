@@ -216,18 +216,40 @@ export default function OutroCredits() {
     <section
       ref={outroRef}
       id="outro"
-      className="fixed inset-0 bg-neutral-950 text-white flex flex-col lg:flex-row
-             items-stretch justify-between z-50 opacity-0 pointer-events-none
+      data-lenis-prevent
+      className="fixed inset-0 bg-neutral-950 text-white flex flex-col overflow-y-auto
+             z-50 opacity-0 pointer-events-none
              invisible transition-opacity duration-700"
     >
+      {/* ═══ REFLECTIVE CLOSE — pays off "Will we listen?" ═══ */}
+      <div className="flex min-h-[100dvh] shrink-0 flex-col items-center justify-center px-8 py-16 text-center">
+        <div className="max-w-2xl space-y-6">
+          <p className="text-2xl font-light leading-relaxed text-gray-100 md:text-3xl">
+            {t("outro.closing.lead")}
+          </p>
+          <p className="text-base leading-relaxed text-gray-400 md:text-lg">
+            {t("outro.closing.body")}
+          </p>
+          <p className="text-base leading-relaxed text-gray-200 md:text-lg">
+            {t("outro.closing.question")}
+          </p>
+        </div>
+        <div className="mt-12 flex flex-col items-center gap-2 text-xs uppercase tracking-[0.2em] text-gray-500">
+          <span>{t("outro.closing.scrollCue")}</span>
+          <span aria-hidden className="animate-bounce text-lg">↓</span>
+        </div>
+      </div>
+
+      {/* ═══ CREDITS + CHATBOT ═══ */}
+      <div className="flex min-h-[100dvh] shrink-0 flex-col items-stretch justify-between lg:flex-row">
       {/* ═══ LEFT COLUMN - Credits & Methodology ═══ */}
       <div className="flex-1 flex flex-col justify-center px-8 py-10 max-w-lg">
         {/* Personal Credits */}
         <div className="space-y-6 mb-8">
           <h3 className="text-3xl font-bold">Lukas Kreibig</h3>
           <p className="text-sm leading-relaxed text-gray-300">
-            Data journalism, coding & visual design.<br/>
-            © 2025 – All rights reserved
+            {t("outro.role")}<br/>
+            {t("outro.rights")}
           </p>
           
           {/* Contact Information */}
@@ -260,8 +282,14 @@ export default function OutroCredits() {
           <Button
             variant="outline"
             onClick={() => {
-              // Scroll back to story
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              // Unlock scroll + resume Lenis (paused while the outro was open)
+              gsap.set(document.body, { overflow: "auto" });
+              const lenis = (window as Window & {
+                __lenis?: { start: () => void; scrollTo: (t: number, o?: { immediate?: boolean }) => void };
+              }).__lenis;
+              lenis?.start?.();
+              if (lenis) lenis.scrollTo(0, { immediate: true });
+              else window.scrollTo({ top: 0, behavior: "smooth" });
               // Hide outro after scroll
               setTimeout(() => {
                 if (outroRef.current) {
@@ -284,7 +312,7 @@ export default function OutroCredits() {
             <div className="mb-6 text-center">
               <Image 
                 src="/images/knud.jpg" 
-                alt="Knud Rasmussen" 
+                alt={t("alt.knudPortrait")}
                 width={192}
                 height={192}
                 className="w-48 h-48 rounded-full object-cover mx-auto mb-4 ring-4 ring-blue-500/20"
@@ -323,7 +351,7 @@ export default function OutroCredits() {
             <div className="flex items-center gap-3 p-4 border-b border-gray-700">
               <Image 
                 src="/images/knud.jpg" 
-                alt="Knud" 
+                alt={t("alt.knudAvatar")}
                 width={32} 
                 height={32} 
                 className="rounded-full" 
@@ -345,7 +373,7 @@ export default function OutroCredits() {
                   {!msg.fromUser && (
                     <Image 
                       src="/images/knud.jpg" 
-                      alt="Knud avatar" 
+                      alt={t("alt.knudAvatar")}
                       width={24} 
                       height={24} 
                       className="rounded-full mr-2 self-start" 
@@ -373,7 +401,7 @@ export default function OutroCredits() {
                 <div className="flex items-center gap-2">
                   <Image 
                     src="/images/knud.jpg" 
-                    alt="Knud avatar" 
+                    alt={t("alt.knudAvatar")}
                     width={24} 
                     height={24} 
                     className="rounded-full" 
@@ -414,6 +442,7 @@ export default function OutroCredits() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </section>
   );

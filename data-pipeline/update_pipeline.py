@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import subprocess
+import sys
 from datetime import datetime
 import requests
 import io
@@ -125,6 +127,16 @@ def update_data():
     if response.status_code == 200:
         csv_data = io.StringIO(response.text)
         annual_co_emissions = pd.read_csv(csv_data)
+        # Upstream datasets occasionally change column casing; normalize the key
+        # columns we rely on before downstream groupby/pivot operations.
+        co2_colmap = {str(col).strip().lower(): col for col in annual_co_emissions.columns}
+        co2_renames = {}
+        if "year" in co2_colmap and "Year" not in annual_co_emissions.columns:
+            co2_renames[co2_colmap["year"]] = "Year"
+        if "entity" in co2_colmap and "Entity" not in annual_co_emissions.columns:
+            co2_renames[co2_colmap["entity"]] = "Entity"
+        if co2_renames:
+            annual_co_emissions = annual_co_emissions.rename(columns=co2_renames)
         annual_co_emissions.to_csv(
             os.path.join("data", "original_co2_worldindata.csv"), index=False
         )
@@ -152,6 +164,16 @@ def update_data():
     if "emissions_total" not in annual_co_emissions.columns:
         raise KeyError(
             "Missing column 'emissions_total' in CO₂ data. "
+            f"Check actual columns: {annual_co_emissions.columns}"
+        )
+    if "Year" not in annual_co_emissions.columns:
+        raise KeyError(
+            "Missing column 'Year' in CO₂ data after normalization. "
+            f"Check actual columns: {annual_co_emissions.columns}"
+        )
+    if "Entity" not in annual_co_emissions.columns:
+        raise KeyError(
+            "Missing column 'Entity' in CO₂ data after normalization. "
             f"Check actual columns: {annual_co_emissions.columns}"
         )
 
@@ -291,7 +313,7 @@ def update_data():
 
     # ------------------------------------------------------------------
     # 14) Optionally insert each DataFrame into Postgres if DATABASE_URL is set
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL")
     if database_url:
         engine = create_engine(database_url)
         print("[INFO] Inserting DataFrames into Postgres...")
@@ -307,7 +329,7 @@ def update_data():
         )
         print("[INFO] Successfully inserted data into Postgres.")
     else:
-        print("[INFO] No DATABASE_URL found, skipping Postgres insert.")
+        print("[INFO] No DATABASE_URL / DATABASE_PUBLIC_URL found, skipping Postgres insert.")
 
     print(
         f"Data updated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
@@ -315,5 +337,28 @@ def update_data():
     )
 
 
+def _has_database_url() -> bool:
+    return bool(os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL"))
+
+
+def _should_run_chained_pipeline() -> bool:
+    if os.getenv("PIPELINE_SINGLE_STAGE") == "1":
+        return False
+    # Railway cron currently has drifted service-level commands in some environments.
+    # Running the full chain here keeps the job correct even when the service command
+    # is still `python3 update_pipeline.py`.
+    return bool(os.getenv("RAILWAY_ENVIRONMENT"))
+
+
+def _run_step(script_name: str) -> None:
+    subprocess.run([sys.executable, script_name], check=True)
+
+
 if __name__ == "__main__":
-    update_data()
+    if _should_run_chained_pipeline():
+        if _has_database_url():
+            _run_step("wait_for_db.py")
+        update_data()
+        _run_step("update_fjord_data.py")
+    else:
+        update_data()

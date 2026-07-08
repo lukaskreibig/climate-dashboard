@@ -4,8 +4,10 @@ import type {
   IqrStatsRow,
   AnnualRow,
   DecadalAnomalyRow,
+  LatestSeaIceSeasonRow,
+  ClimateDataMeta,
 } from "./api";
-import type { FjordDataBundle } from "./index";
+import type { FjordDataBundle, FjordDataMeta } from "./index";
 
 export interface CoreDataBundle {
   dailySeaIce: DailySeaIceRow[];
@@ -13,6 +15,8 @@ export interface CoreDataBundle {
   iqrStats: IqrStatsRow[];
   annual: AnnualRow[];
   decadalAnomaly?: DecadalAnomalyRow[];
+  latestSeaIceSeason?: LatestSeaIceSeasonRow[];
+  baseMeta?: ClimateDataMeta | null;
 }
 
 export interface DashboardData extends CoreDataBundle {
@@ -22,6 +26,7 @@ export interface DashboardData extends CoreDataBundle {
   freeze: FjordDataBundle["freeze"];
   daily: FjordDataBundle["daily"];
   seasonLossPct?: number | null;
+  fjordMeta?: FjordDataMeta | null;
 }
 
 export type DashboardDataOrNull = DashboardData | null;

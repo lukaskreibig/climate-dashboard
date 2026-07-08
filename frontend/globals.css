@@ -244,3 +244,98 @@
 .mapboxgl-map {
   background: #1e293b;       /* same slate-700 you already use */
 }
+
+/* ── Responsive caption typography ──────────────────────────────
+   Long German compounds (e.g. "verschwindet") overflow big caption
+   headings on phones. Break/hyphenate as a safety net, and scale the
+   heading type down on small screens so titles fit and wrap cleanly.
+   (.caption-box h2/h3 out-specifies Tailwind's text-4xl utility.) */
+.caption-box {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (max-width: 480px) {
+  .caption-box h1 { font-size: clamp(1.75rem, 8.5vw, 2.5rem); line-height: 1.1; }
+  .caption-box h2 { font-size: clamp(1.4rem, 7vw, 2.25rem); line-height: 1.15; }
+  .caption-box h3 { font-size: clamp(1.2rem, 6vw, 1.75rem); line-height: 1.2; }
+}
+
+/* ── Editorial kicker (chapter label above a caption title) ───── */
+.caption-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #0284c7; /* sky-600 — the story's data accent */
+  margin-bottom: 0.65rem;
+}
+
+/* ── StatChip: big counted number + small label ───────────────── */
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 1.1rem 0 0.25rem;
+}
+.stat-chip-value {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #0c4a6e; /* sky-900 */
+  font-variant-numeric: tabular-nums;
+}
+.stat-chip-label {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #475569;
+}
+
+/* ── Unified chart theme ───────────────────────────────────────
+   Charts opt in via className="chart-grid" / "chart-axis"; CSS wins
+   over SVG presentation attributes, so per-chart strokes unify here. */
+.chart-grid line { stroke: #e2e8f0; }
+.chart-axis text,
+.chart-axis .recharts-cartesian-axis-tick text { fill: #64748b; font-size: 11px; }
+
+/* ── Scroll cue: pulsing "keep scrolling" hint on pinned scenes ── */
+.scroll-cue {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  color: #64748b;
+  pointer-events: none;
+  z-index: 30;
+}
+.scroll-cue-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.scroll-cue svg {
+  animation: scroll-cue-bounce 1.6s ease-in-out infinite;
+}
+@keyframes scroll-cue-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(5px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue svg { animation: none; }
+}
+
+/* Recharts default tooltips → same glass language as the captions */
+.recharts-default-tooltip {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.16);
+}

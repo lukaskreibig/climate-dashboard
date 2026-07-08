@@ -2,6 +2,7 @@ import {
   registerMapPreload,
   getRegisteredMapPreloadViews,
   getRegisteredMapPreloadImages,
+  getRegisteredMapPreloadMaps,
   resetMapPreloadRegistry,
   type MapPreloadView,
 } from "@/lib/mapPreloadRegistry";
@@ -47,5 +48,42 @@ describe("mapPreloadRegistry", () => {
     const views = getRegisteredMapPreloadViews();
     expect(views).toHaveLength(2);
     expect(getRegisteredMapPreloadImages()).toHaveLength(2);
+  });
+
+  it("stores concrete warmup maps and contributes their assets globally", () => {
+    const view: MapPreloadView = { lng: -52, lat: 70, zoom: 10 };
+
+    registerMapPreload({
+      maps: [
+        {
+          id: "introcharts",
+          views: [view, view],
+          images: ["/satellite.jpg"],
+          satelliteOverlay: {
+            rawImg: "/satellite.jpg",
+            maskImg: "/overlay.jpg",
+            coords: [
+              [-52.3, 70.8],
+              [-51.9, 70.8],
+              [-51.9, 70.6],
+              [-52.3, 70.6],
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(getRegisteredMapPreloadMaps()).toEqual([
+      expect.objectContaining({
+        id: "introcharts",
+        views: [view],
+        images: ["/satellite.jpg", "/overlay.jpg"],
+      }),
+    ]);
+    expect(getRegisteredMapPreloadViews()).toEqual([view]);
+    expect(getRegisteredMapPreloadImages()).toEqual([
+      "/satellite.jpg",
+      "/overlay.jpg",
+    ]);
   });
 });

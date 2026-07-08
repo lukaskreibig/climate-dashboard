@@ -21,7 +21,14 @@ EARLY_YRS = [2017, 2018, 2019, 2020]
 LATE_YRS  = [2021, 2022, 2023, 2024, 2025]
 FJORD_KM2 = 3450
 
-engine = create_engine(os.environ["DATABASE_URL"])
+def _database_url() -> str:
+    url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL or DATABASE_PUBLIC_URL must be set")
+    return url
+
+
+engine = create_engine(_database_url())
 
 def create_tables(engine):
     """Create tables if they do not already exist."""

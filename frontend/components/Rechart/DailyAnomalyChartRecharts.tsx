@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useMemo, useState, useImperativeHandle } from "react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from "recharts";
 import { useTranslation } from 'react-i18next';
+import { ChartEmptyState, ChartSourceBadge } from "@/components/ChartExplainers";
 
 export interface DecadeRow { decade: string; day: number; an: number; sd?: number|null; n: number; }
 export interface Props { data: DecadeRow[]; apiRef?: React.MutableRefObject<any>; }
@@ -55,11 +56,26 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
   const [visible,setVisible]=useState(1);
   useImperativeHandle(apiRef,()=>({ showLevel:(lvl:number)=>setVisible(Math.max(1, Math.min(lvl, series.length))) }),[series.length]);
 
+  if (!Array.isArray(data) || !data.length || !series.length) {
+    return (
+      <ChartEmptyState title={t("charts.dailyAnomaly.emptyTitle")}>
+        {t("charts.dailyAnomaly.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
+
   return (
-    <div className="h-[400px] w-full">
-      <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {t('charts.dailyAnomaly.title')}
+    <div className="relative flex h-[420px] w-full flex-col" role="img" aria-label={t("charts.ariaSummaries.dailyAnomaly")}>
+      {/* flow header: title and source badge wrap instead of overlapping */}
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-1">
+        <div className="min-w-0 flex-1 basis-52 font-semibold text-slate-800 select-none text-sm sm:text-base">
+          {t('charts.dailyAnomaly.title')}
+        </div>
+        <ChartSourceBadge href="https://nsidc.org/sea-ice-today" className="shrink-0">
+          {t("charts.dailyAnomaly.source")}
+        </ChartSourceBadge>
       </div>
+      <div className="min-h-0 flex-1">
       <ResponsiveContainer>
         <LineChart data={chartData} margin={{top:20,right:20,bottom:20,left:40}}>
           <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>
@@ -74,6 +90,17 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
             labelFormatter={(d:number)=>`${monthOf(d)} (${t('common.day')} ${d})`}
           />
           <Legend/>
+          <ReferenceLine
+            y={0}
+            stroke="#475569"
+            strokeDasharray="4 4"
+            label={{
+              value: t("charts.dailyAnomaly.zeroLine"),
+              fill: "#475569",
+              fontSize: 11,
+              position: "insideTopRight",
+            }}
+          />
           {series.slice(0,visible).map(({decade,color})=>(
             <Line
               key={decade}
@@ -89,6 +116,7 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
           ))}
         </LineChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

@@ -20,6 +20,7 @@ export default forwardRef<Api, Props>(function SeaIceScene({ waypoints }, ref) {
   /* bubble up both imperative sub-APIs ----------------------- */
   useImperativeHandle(ref, () => ({
     go:   (i) => mapRef.current?.go(i),
+    getMap: () => mapRef.current?.getMap(),
     show: (y) => iceRef.current?.show(y),
   }));
 

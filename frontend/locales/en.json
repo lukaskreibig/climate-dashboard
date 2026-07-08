@@ -3,180 +3,265 @@
     "title": "The Arctic: Our Planet's Canary",
     "heroTitle": "THE BIG MELT",
     "heroSubtitle": "A data-driven story of sea-ice decline by Lukas Kreibig",
-    "heroLine1": "The Arctic is Warming Four Times Faster Than the Global Average",
-    "heroLine2": "In the Fast-Warming Arctic, Sea-Ice Melt Is Now a Constant Reality",
+    "heroLine1": "The Arctic Is Warming Nearly Four Times Faster Than the Global Average",
+    "heroLine2": "Sea-Ice Melt Is Now Everyday Reality",
     "heroLine3": "Scientists forecast ice-free Arctic summers before 2050",
     "heroLine4": "The Arctic is the planet's canary.",
     "heroLine5": "Will we listen?"
   },
+  "loading": {
+    "eyebrow": "Loading",
+    "title": "Preparing the map and satellite layers",
+    "detail": "Data, imagery, and the Arctic flyover are loaded before the story begins.",
+    "progress": "{{progress}} %"
+  },
+  "alt": {
+    "uummannaqView": "View of Uummannaq",
+    "pushingSled": "A person pushing a sled across the ice",
+    "snowstorm": "A heavy snowstorm in Uummannaq",
+    "motorsledge": "A snowmobile in Uummannaq",
+    "kids": "Children in Uummannaq",
+    "dogsSnowstorm": "Sled dogs in a snowstorm",
+    "fisherboat": "A fishing boat in the harbour",
+    "polarBear": "A polar bear on fragile sea ice",
+    "arcticPanorama": "Arctic panorama",
+    "knudPortrait": "Portrait of Knud Rasmussen",
+    "knudAvatar": "Knud Rasmussen avatar"
+  },
   "scenes": {
+    "kickers": {
+      "place": "The Place",
+      "ground": "On the Ground",
+      "voices": "The Voices",
+      "measurement": "The Measurement",
+      "pattern": "The Pattern",
+      "consequences": "The Consequences",
+      "arctic": "The Arctic",
+      "drivers": "The Drivers"
+    },
     "geographic": {
-      "title": "How the Ice is Vanishing",
-      "intro": "In the Arctic, entire communities depend on sea ice for survival. But what happens when that ice starts disappearing faster than ever before?",
+      "title": "How the Ice Is Vanishing",
+      "intro": "In the Arctic, sea ice is not just scenery. For many places it is route, workplace, and risk. What changes when that season becomes shorter and harder to trust?",
       "greenland": {
         "title": "Greenland",
-        "description": "The world's largest island. 80% ice sheet, 20% rugged coastline. Along this coast, deep fjords carve hundreds of kilometers inland, creating sheltered harbors where Arctic communities have thrived for millennia."
+        "description": "The world's largest island is mostly ice sheet. Along the rocky coast, deep fjords cut inland and create sheltered places where people have lived with the Arctic sea for millennia."
       },
       "uummannaqBay": {
         "title": "Uummannaq Bay",
-        "description": "600 kilometers north of the Arctic Circle, this bay opens into one of Greenland's most dramatic fjord systems. For most of the year, sea ice turns these waters into frozen highways."
+        "description": "600 kilometers north of the Arctic Circle, this bay opens into one of Greenland's most dramatic fjord systems. In winter, the sea itself becomes the road."
       },
       "uummannaqIsland": {
         "title": "Uummannaq Island",
-        "description": "Home to 1,300 people living beneath a distinctive heart-shaped mountain. This community represents hundreds of Arctic settlements whose existence depends entirely on predictable sea ice patterns.",
-        "changing": "But those patterns are changing..."
+        "description": "About 1,300 people live here beneath a distinctive heart-shaped mountain. In Uummannaq, ice is not scenery. It is mobility, timing, and safety.",
+        "changing": "The question is how that reliability is changing."
       }
     },
     "heartOfSeal": {
       "title": "Heart of a Seal",
-      "description": "The Arctic island of Uummannaq is named after its iconic mountain that is shaped like the Heart of a Seal. Beneath it lies the town with the same name: Uummannaq."
+      "description": "Uummannaq takes its name from the mountain known as the Heart of a Seal. Beneath it, the town sits between harbor, fjord, and winter routes."
     },
     "winterMonths": {
-      "description": "In the winter months, the sea ice around Uummannaq starts to freeze and connects it to the mainland. Inhabitants can travel freely around and are not restricted to the island anymore."
+      "description": "When the fjord freezes, the map changes. Routes that do not exist in summer become possible by sled, snowmobile, or on foot, but only while the ice can be trusted."
     },
     "fishing": {
-      "description": "Fishing is a crucial part of this town, most people live from this industry. Traditionally fisherman go ice-fishing on the sea ice. But all of this is in danger..."
+      "description": "Fishing still shapes Uummannaq. But the story is not only climate loss: ice conditions, harbor access, markets, boats, and deliberate ice breakup all affect daily life."
     },
     "voices": {
-      "title": "Voices from the Community",
-      "description": "In interviews gathered for the Life on Thin Ice study, Uummannaq residents explain how fast-shrinking winter ice is altering travel, hunting and tradition. Lets listen to their problems.",
+      "title": "Voices from Uummannaq",
+      "description": "In the Life on Thin Ice study, residents describe how winter ice, travel, hunting, and fishing are changing. Their observations are where this measurement begins.",
        "learnMoreLink": "Find out more about the study \"Life on thin ice\"",
     "learnMoreTitle": "Life on thin ice",
-    "learnMoreContent": "The paper, \"Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities\" from Juan Baztan, Mateo Cordier, Jean-Michel Huctin, Zhiwei Zhu and Jean-Paul Vanderlinden published in Polar Science 13: 100–108 (2017), integrates ten years of participatory fieldwork in Uummannaq Bay with a bibliometric review of > 3 700 sea-ice papers to assess whether mainstream climate science meets Inuit community needs. Semi-structured interviews and a 2015 focus-group reveal that predictable winter sea-ice is essential for hunting, fishing and over-ice travel, yet melt-season onset now arrives several weeks earlier than in the 1990s. Only ≈ 1 % of the global literature examines coastal winter ice-thickness, the parameter most needed for safe travel, indicating a significant relevance gap. The authors conclude that climate knowledge must be co-produced with Indigenous communities to be salient, credible and legitimate for local adaptation and decision-making.",
+    "learnMoreContent": "The paper \"Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities\" connects fieldwork in Uummannaq Bay with a review of sea-ice research. Interviews and a focus group show why predictable winter ice matters for hunting, fishing, and travel, and why coastal ice thickness is underrepresented in mainstream research. Newer work on co-production adds an important caution: local ice change is not a single-cause story. Fishing, harbor access, deliberate ice breakup, modernization, and local knowledge all shape how ice is used and experienced.",
     "learnMoreLinkUrl": "https://doi.org/10.1016/j.polar.2017.05.002"
     },
     "quotes": {
-      "iceDisappears": "When I was a child, the ice was gone in June and July, now it is gone in April and May.",
-      "unstableClimate": "The most important change, is that the climate has become more instable now and the wind is more unpredictable and stronger.",
-      "motorsledge": "A lot of hunters prefer the motorsledge over dogsledding, because the winters are too short, the snowmobiles are faster to transport the catch.",
+      "iceDisappears": "When I was a child,\nthe ice was gone in June or July.\nNow it is gone in April or May.",
+      "unstableClimate": "The most important change is the less stable weather.\nThe wind has become stronger\nand harder to predict.",
+      "motorsledge": "Many hunters now prefer snowmobiles to dog sleds.\nThe winters are shorter,\nand the catch has to move faster.",
       "participant": "Interview participant, Uummannaq",
       "source": "from the \"Life on Thin Ice\" study"
     },
     "measurement": {
-      "title": "How to measure ice?",
-      "intro": "But how can we measure this feeling of the Uummannaq residents? The answer lies in space: Satellite photos can provide us with reliable information.",
-      "step1": "First, here's the top-down view our satellite sees.",
-      "step2": "Now the raw winter image we analyse. One of those for every day.",
-      "step3": "One picture a day since 2017. Thats a LOT of pictures. So how do we automatize that and make the images into?",
-      "step4": "The answer AI: A self built Computer Vision pipeline that detects Clouds, Land and calculates how much Ice is in a picture.",
-      "step5": "This is how the results look like. After computer-vision processing, ice (yellow and turquoise) pops out. Now if we do this for every day we have data for we can look at almost a decade of data. Shall we?",
+      "title": "Only a Feeling?",
+      "intro": "But how do you test an observation like that? From above. For years, ESA's Sentinel-2 satellites have passed over Greenland and captured the fjord: image by image, winter by winter, until they add up to a comparable record.",
+      "step1": "First, the view from above: this is Uummannaq as the satellite sees it.",
+      "step2": "Now the raw winter image. Scenes like this are the basis for the measurement.",
+      "step3": "Since 2017, ESA's Sentinel programme has provided regular images. Thousands of scenes have to become one consistent record.",
+      "step4": "A computer-vision pipeline reads each image. It masks clouds and land, then separates ice from open water.",
+      "step5": "The overlay is not the conclusion. It is the audit trail between satellite image, model, and chart.",
       "learnMoreLink": "Learn More about the Computer Vision Pipeline",
       "learnMoreTitle": "Computer Vision Pipeline for Sea Ice Detection",
       "learnMoreContent": "High-resolution Sentinel-2 images (all 13 bands) are streamed from AWS and pass through a four-stage segmentation pipeline:\\n\\n• Black-border filter removes corrupt edge pixels.\\n• Cloud mask: a U-Net model (CloudSEN12+) flags thin clouds and shadows.\\n• Land mask: a static coastline raster excludes rock and tundra.\\n• Ice/Water mask: spectral indices separate\\n  – solid ice  NDSI > 0.52\\n  – light / wet ice 0.31–0.52\\n  – open water NDWI > 0.25.\\n\\nMasks are merged into a colour overlay (yellow = solid ice, cyan = light ice, blue = water). Statistics for every tile are stored in a CSV file for later analysis.",
-      "learnMoreLinkUrl": "https://www.github.com/lukaskreibig/"
+      "learnMoreLinkUrl": "https://github.com/lukaskreibig"
+    },
+    "pixelInspector": {
+      "title": "From Image to Evidence",
+      "raw": "The satellite image is still a photograph of light. It has texture, shadows, snow, water, and uncertainty.",
+      "maskTitle": "The Mask Is a Reading",
+      "mask": "The overlay turns that image into classes. It does not replace judgment; it makes the judgment visible.",
+      "classTitle": "Pixel by Pixel",
+      "classification": "Each classified pixel is small. Together, thousands of them become an estimate of ice cover for that scene.",
+      "outputTitle": "Then It Becomes a Time Series",
+      "output": "Only after the same procedure is repeated across many scenes can one winter be compared with another."
+    },
+    "memoryMeasurement": {
+      "title": "Memory Meets Measurement",
+      "buildTitle": "One Winter, Day by Day",
+      "build": "Watch one season fill in: the ice forms in February, holds through spring, then breaks apart by June. Each mark is one day, one satellite scene.",
+      "dayTitle": "One scene becomes one daily value",
+      "day": "This day is the bridge between the satellite image and the table: the pipeline estimates how much of the water surface is covered by ice.",
+      "seasonTitle": "One day is not enough",
+      "season": "The sequence shows how a winter builds, holds, and breaks apart.",
+      "intro": "Now all measured seasons are in view. Each row is one winter in Uummannaq; each small mark is one day.",
+      "earlyTitle": "The Earlier Measured Winters",
+      "early": "The early years are the comparison point, not a perfect past.",
+      "lateTitle": "The Later Measured Winters",
+      "late": "The later years carry the summary value. It is a guide to the shift, not the whole explanation.",
+      "latestTitle": "The Latest Season",
+      "latest": "One year alone is never the story. It matters because it belongs to the pattern around it.",
+      "caveatTitle": "What the Chart Cannot Decide",
+      "caveat": "Clouds, missing scenes, and local use remain part of the uncertainty. Weather, fishing economics, harbor access, deliberate ice breakup, and local knowledge all shape what ice means in practice."
     },
     "visualProof": {
-      "title": "A Decade of Seasons",
-      "description": "Here our results: Each small chart shows one season of sea ice from February to June.",
-      "numbersTitle": "The Numbers Don't Lie",
-      "numbersDescription": "When we look at all the years, we can already see a trend here:",
-      "trend": "Shorter Sea Ice Winters",
-      "conclusion": "The statement: \"When I was a child, the ice was gone in June and July, now it is gone in April and May\" is precisely correct."
+      "title": "Season by Season",
+      "description": "Each small chart shows one Uummannaq ice season from February to June. The point is not one dramatic year, but the rhythm across years.",
+      "numbersTitle": "What the Record Shows",
+      "numbersDescription": "Across the measured years, the later seasons sit lower in the same calendar window.",
+      "trend": "Less ice in the measured season",
+      "conclusion": "The satellite record and local memory point the same way: earlier breakup, while leaving room for local causes and year-to-year variability."
     },
     "newAbnormal": {
       "title": "When \"Normal\" Shifts",
-      "description": "Lets compress our collected data into two comparable timeframes: Before 2021 and after. We look here at the average (mean) of 2017 to 2020 and 2021 to 2025.",
-      "earlyPeriod": "The blue line shows the 2017-2020 mean: what was considered normal just four years ago. The light blue band represents typical seasonal variation.",
-      "livingOutsideTitle": "Living Outside the Lines",
-      "livingOutside": "The red line shows 2021-2025 mean: the new reality.",
+      "description": "To make the shift legible, we compare the first four measured seasons with the later measured years.",
+      "earlyPeriod": "The blue line shows the 2017-2020 mean. The light band shows how much those years varied.",
+      "livingOutsideTitle": "A Changed Season",
+      "livingOutside": "The red line shows the 2021-2025 mean. In this comparison, the later years sit lower across much of the season.",
       "percentage": "11.9% less ice coverage",
-      "consequence": "means the community now lives permanently outside what was once normal variation.",
-      "result": "Hence: motorsleds replacing dog teams, boats replacing ice roads."
+      "consequence": "is the estimate for this comparison window.",
+      "result": "That does not explain every local decision, but it does show that the physical season has shifted."
     },
     "trajectory": {
-      "title": "Where This Is Heading",
-      "rate": "Current rate of change: 3% loss per year."
+      "title": "A Direction, Not a Fate",
+      "rate": "The yearly record slopes downward. Treat the line as evidence of direction, not as a fixed date for the future."
+    },
+    "breakup": {
+      "progressTitle": "Earlier, less predictable breakup",
+      "recall": {
+        "title": "Back to the Opening Memory",
+        "description": "The story began with a memory that spans a lifetime: as a child, the ice held into June or July. Nine years of satellite data is far too short to test a childhood recollection. But it can ask the same question in numbers. Each dot is the day one Uummannaq winter's ice broke up."
+      },
+      "shift": {
+        "title": "Earlier, on Average",
+        "statUnit": "days",
+        "statLabel": "mean breakup, 2021–25 vs. 2017–20",
+        "description": "Across the measured years, breakup moved from a late-May average toward mid-May, about eleven days earlier. It is a short, nine-year window, so read it as a direction, not a fixed date."
+      },
+      "unpredictable": {
+        "title": "And Harder to Predict",
+        "description": "The bigger change is the swing: recent winters break up as early as late April or as late as June. That matches the other thing residents stressed: the season has become less stable and harder to trust. The satellite and the people on the ice describe one change from two sides: one measures the area, the other lives the risk."
+      }
     },
     "future": {
-      "trend": "If this trend continues, the people in Uuummannaq will experience completely ice-free conditions within 15 years.",
-      "memory": "The Arctic their grandparents knew will exist only in memory.",
-      "traditions": "Century old traditions like Dogsledding will only be stories of the past. Greenland Dogs will have no use anymore."
+      "progressTitle": "Fewer reliable ice days",
+      "trend": "A shorter period of reliable ice changes the balance between ice roads, boats, harbor work, and safety decisions.",
+      "memory": "For children in Uummannaq, ice is both inherited memory and a changing practical problem.",
+      "traditions": "Dog teams, snowmobiles, boats, and local judgment now share a more unstable season."
     },
     "toArctic": {
-      "title": "From Uummannaq to Arctic",
-      "description": "The Data showed us Sea Ice loss in Uummannaq is imminent. But what about the arctic in general? Lets look at some more comprehend data that explains the whole arctic situation.",
-      "learnMoreLink": "Where does the Arctic data come from? Click for methodology.",
+      "title": "From Uummannaq to the Arctic",
+      "description": "Uummannaq shows one local shift. The Arctic-wide record gives the scale: winter maximums, summer minimums, old ice, and rapid regional warming.",
+      "learnMoreLink": "Methodology",
       "learnMoreTitle": "Methodology & Data Sources – Arctic Sea-Ice Dashboard",
-    "learnMoreContent": "The dashboard combines peer-reviewed datasets and refreshes them daily via an automated Python pipeline.\\n\\nData sources\\nNASA GISS – temperature anomalies: https://data.giss.nasa.gov/gistemp/\\nNOAA – daily Arctic sea-ice extent: https://www.ncei.noaa.gov/access/monitoring/seaice/\\nOur World in Data – global CO₂ emissions: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nProcessing steps\\n1. A GitHub Actions workflow triggers an update every night.\\n2. Latest CSV / JSON files are downloaded, validated and reshaped with Pandas.\\n3. Z-scores standardise temperature, ice extent and CO₂ to a common scale.\\n4. The cleaned dataset is written to data.json and served by FastAPI to the Next.js frontend."
+    "learnMoreContent": "The dashboard combines peer-reviewed datasets and refreshes them daily via an automated Python pipeline.\\n\\nData sources\\nNASA GISS – temperature anomalies: https://data.giss.nasa.gov/gistemp/\\nNOAA – daily Arctic sea-ice extent: https://nsidc.org/sea-ice-today\\nOur World in Data – global CO₂ emissions: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nProcessing steps\\n1. A GitHub Actions workflow triggers an update every night.\\n2. Latest CSV / JSON files are downloaded, validated and reshaped with Pandas.\\n3. Z-scores standardise temperature, ice extent and CO₂ to a common scale.\\n4. The cleaned dataset is written to data.json and served by FastAPI to the Next.js frontend."
+    },
+    "arcticGlobe": {
+      "title": "What Summer Leaves Behind",
+      "description": "At the end of each summer the sea ice pulls back to its yearly minimum. Seen from above, decade by decade, the loss is unmistakable: the September minimum is shrinking by about 13 percent per decade.",
+      "septemberIce": "September sea ice",
+      "statLabel": "September minimum, per decade",
+      "attribution": "Sea ice: NSIDC Sea Ice Index",
+      "aria": "Animated map: Arctic September sea ice shown on a 3-D globe. From 1980 to 2024 the ice cap visibly retreats; the September minimum is shrinking by roughly 13 percent per decade. Source: NSIDC Sea Ice Index."
     },
     "seasonal": {
-      "title": "A Spaghetti Bowl of Bad News",
-      "description": "Each line traces a year of Arctic sea ice from minimum to maximum and back again. Blue lines show colder years, red lines show warmer years.",
+      "title": "The Arctic Seasonal Record",
+      "description": "Each line traces one year of Arctic sea-ice extent, from autumn minimum to spring maximum and back again. Blue lines show older years, red lines show recent years.",
       "early": {
-        "title": "1979 - 2000: The Cold(er) Half",
-        "description": "Let's focus on the first half of our record, from 1979 to 2000. Hover and notice how much higher the blue lines sit."
+        "title": "1979–2000: The Cold(er) Half",
+        "description": "The first half of the record sits visibly higher. The ice had more room to recover through the year."
       },
       "late": {
-        "title": "2000 - 2025: The Hot Half",
-        "description": "Now the most recent century takes the centre‑stage. The red lines cluster lower and lower."
+        "title": "2000 onward: The Recent Half",
+        "description": "In the more recent years, the lines sit lower through much of the season."
       },
       "current": {
-        "title": "This Year, Right Now",
-        "description": "Finally, isolate the current year. Where does it sit? Spoiler: below the historical average once again."
+        "title": "Latest Available Year {{year}}",
+        "description": "Finally, isolate {{year}} and compare it with the rest of the record."
       },
       "breaking": {
-        "title": "Breaking Through the Floor",
-        "description": "This isn't natural variation, it's a system in free fall."
+        "title": "Below the Earlier Range",
+        "description": "Recent years often sit below the older envelope, especially around the winter maximum and late-summer minimum."
       }
     },
     "decades": {
       "title": "Six Decades, One Direction",
-      "description": "Each colored band represents a decade of Arctic ice measurements. Watch them appear one by one and notice the unmistakable staircase downward. We open in the 1980s—the last decade before the losses dive below zero.",
+      "description": "Each colored band represents a decade of Arctic ice measurements. Watch them appear one by one and notice the unmistakable staircase downward. We open in the 1980s, the last decade before the losses dive below zero.",
       "1980s": {
         "title": "The 1980s: The Old Normal",
-        "description": "This soft blue band is our starting point. Late-summer values still hovered around zero million km²—close to the historical average and a world many remember as 'normal.'"
+        "description": "This soft blue band is our starting point. Late-summer values still hovered around zero million km², close to the historical average and a world many remember as 'normal.'"
       },
       "1990s": {
         "title": "The 1990s: First Cracks",
         "description": "Each new decade settles slightly lower than the last. The changes seem gradual, but they're building momentum."
       },
       "2000s": {
-        "title": "The 2000s: Going Down",
-        "description": "For the first time the curve spends the entire season below the old baseline. The shift from stability to loss is no longer subtle—it is the new default."
+        "title": "The 2000s: A Lower Baseline",
+        "description": "For the first time, the curve spends much of the season below the older baseline. The shift is no longer subtle."
       },
       "2010s": {
         "title": "The 2010s: Acceleration",
-        "description": "The decline steepens. Values around -0.6 million km² become common—territory that was unthinkable just decades earlier."
+        "description": "The decline steepens. Values around -0.6 million km² become common, territory that was unthinkable just decades earlier."
       },
       "2020s": {
-        "title": "The 2020s: Free Fall",
-        "description": "The current decade sits at the bottom of the stack. Values around -0.9 million km² show how quickly the \"new normal\" keeps shifting downward.",
-        "acceleration": "We're not just losing ice—we're accelerating into unknown territory."
+        "title": "The 2020s: A Lower Range",
+        "description": "The current decade sits near the bottom of the stack. The gap from the old baseline is especially clear late in the melt season.",
+        "acceleration": "The data shows no short-term return to the older range."
       }
     },
     "bridge": {
       "decades": "Each new decade stepped lower. But how did single years behave inside those stair-steps?"
     },
     "annual": {
-      "title": "The Tipping Point",
+      "title": "Below the Average",
       "description": "Each bar shows how much above (blue) or below (red) the long-term average that year finished. Think of zero as the \"normal\" line.",
-      "analysis": "The 1980s and 90s danced around normal. The 2000s leaned negative. The 2010s and 2020s? Almost entirely red.",
-      "conclusion": "We've crossed a threshold, and there's no going back."
+      "analysis": "The 1980s and 90s still moved around the average. From the 2000s onward, negative years become the rule rather than the exception.",
+      "conclusion": "The single-year view tells the same story: the baseline has moved lower."
     },
     "drivers": {
-      "intro": "What's pushing the ice away? We've seen declining coverage and record anomalies. Next, we layer the drivers, CO₂, global and Arctic temperatures, on the same scale."
+      "intro": "What is pushing the ice away? We have seen declining coverage and strong anomalies. Next, we put CO₂, global temperature, and Arctic temperature on the same scale.",
+      "progressTitle": "Warming drivers"
     },
     "connections": {
-      "title": "The Smoking Gun",
-      "description": "Three lines, one story: atmospheric CO₂ (green), global temperature (blue), and Arctic temperature (red) have marched in lockstep for decades.",
-      "causation": "This isn't correlation, it's causation. More CO₂ traps more heat, and the Arctic feels it first and fastest.",
-      "conclusion": "The connection is undeniable."
+      "title": "The Warming Signal",
+      "description": "Three lines, one story: global CO₂ emissions (green), global temperature (blue), and Arctic temperature (red) have climbed for decades.",
+      "causation": "The physical link is well established: more greenhouse gases trap more heat. In the Arctic, that warming shows up especially strongly.",
+      "conclusion": "The Arctic is an early warning system because regional change there connects back to weather, oceans, and climate elsewhere."
     },
     "zscore": {
       "title": "Apples to Apples",
-      "description": "How do you compare CO₂ levels (measured in parts per million) with temperature (degrees) and ice extent (square kilometers)?",
-      "method": "By converting everything to the same scale: how many standard deviations each measurement is from its historical average. Now we can see the patterns clearly.",
+      "description": "How do you compare CO₂ emissions (measured in tonnes) with temperature (degrees) and ice extent (square kilometers)?",
+      "method": "By converting each series to the same kind of distance from its own historical average. Different units become comparable without pretending they are the same.",
       "mirror": {
         "title": "The Mirror Image",
-        "description": "When we flip the ice loss data upside down, something remarkable appears: the rise in CO₂ and temperature perfectly mirrors the loss of ice.",
-        "conclusion": "Three different measurements, one unified story. This is what climate change looks like in data."
+        "description": "When we flip the ice-loss data upside down, the pattern becomes easier to compare: rising CO₂ and temperature move against falling ice.",
+        "conclusion": "Three different measurements do not become the same thing. They become readable on the same scale."
       }
     },
     "2024": {
-      "title": "2024: The Exclamation Point",
-      "description": "While global temperatures broke records in 2024, Arctic temperatures soared even higher—rising at roughly twice the global rate.",
-      "warning": "That towering red bar isn't just data, it's a warning. Climate impacts don't spread evenly across our planet. They hit the Arctic first, and they hit it hardest.",
-      "conclusion": "What happens in the Arctic doesn't stay in the Arctic."
+      "title": "{{year}}: The Latest Comparison",
+      "progressTitle": "Latest comparison",
+      "description": "In the latest available year, {{year}}, the Arctic temperature anomaly sits well above the global mean.",
+      "warning": "The red bar is more than a number. It shows how unevenly warming is distributed.",
+      "conclusion": "The comparison is a reminder that global averages can hide sharp regional change."
     }
   },
   "legal": {
@@ -257,77 +342,236 @@
     "sourcesMethodology": "Sources & Methodology",
     "backToStory": "← Back to Story",
     "startConversation": "Start Conversation",
+    "role": "Data journalism, coding & visual design.",
+    "rights": "© 2026 – All rights reserved",
     "explorerSubtitle": "Explorer • Storyteller • Guide",
     "contact": "Contact",
     "phone": "Phone",
     "email": "Email",
     "voicesButton": "Life on Thin Ice Study",
     "measurementButton": "Computer Vision Pipeline",
-    "arcticButton": "Arctic Data Sources"
+    "arcticButton": "Arctic Data Sources",
+    "closing": {
+      "lead": "Listening is not the same as measuring.",
+      "body": "The satellites count the ice. The people of Uummannaq live with what its absence takes: routes, timing, trust, a way of being on the sea. The record here is nine years; the memory is a lifetime. Both point the same way.",
+      "question": "The future is unwritten. What we make of the measurement and the memory is the open question.",
+      "scrollCue": "Sources & a conversation below"
+    }
   },
     "beta": {
     "title": "Beta Preview",
     "description": "This interactive Arctic story is still under development. You might encounter rough edges, visual hiccups or missing features while I smooth things out.",
-    "feedback": "I'd love your feedback on the way!",
+    "feedback": "I'd love your feedback along the way!",
     "loading": "Loading assets … {{progress}} %",
     "enter": "Enter"
   },
   "charts": {
+      "ariaSummaries": {
+        "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window.",
+        "memoryMeasurement": "Calendar heatmap of measured ice days for each Uummannaq winter, February to June; later winters show fewer ice days.",
+        "breakupTiming": "Scatter of the day each Uummannaq winter's ice broke up, 2017 to 2025; breakup is about eleven days earlier on average and far more variable.",
+        "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on 2021 to 2025 (red) across the season; the later period sits about 11.9 percent lower.",
+        "seasonal": "Line chart of Arctic sea-ice extent by year since 1979; recent years (red) sit below older years (blue), especially at the winter maximum and late-summer minimum.",
+        "dailyAnomaly": "Arctic sea-ice anomaly by decade; each decade steps lower, from near the average in the 1980s to well below it in the 2020s.",
+        "annualAnomaly": "Yearly Arctic sea-ice anomaly bars; from the 2000s onward most years fall below the long-term average.",
+        "multiLine": "Atmospheric CO2, global temperature, and Arctic temperature since the 1980s all rise, with Arctic temperature rising fastest.",
+        "zScore": "CO2, temperature, and sea ice standardized to one scale; rising CO2 and temperature move opposite to falling sea ice.",
+        "bar2024": "Bar chart comparing the Arctic and global temperature anomaly in the latest year; the Arctic anomaly is far larger."
+      },
       "allYearsSeason": {
-        "title": "Daily ice fraction, every season"
+        "title": "Daily ice fraction in every season",
+        "source": "Uummannaq data through latest processed season",
+        "emptyTitle": "No Uummannaq daily data loaded",
+        "emptyBody": "The story can continue, but this chart needs the /uummannaq response."
+      },
+      "memoryMeasurement": {
+        "title": "Measured ice days from February to June",
+        "subtitle": "Each row is one Uummannaq season. Dark cells are open water; blue cells are ice.",
+        "axisLabel": "February to June, day by day",
+        "source": "Uummannaq data through {{year}}",
+        "sourceFallback": "Uummannaq Sentinel-2 record",
+        "contextSource": "Life on Thin Ice",
+        "metricLabel": "Later period",
+        "metricDetail": "Mean change in the comparison window",
+        "emptyTitle": "No local daily ice record",
+        "emptyBody": "The memory-vs-measurement view needs daily fjord ice fractions.",
+        "caveatTitle": "Local signal, local context",
+        "caveatBody": "The chart measures ice cover. It does not measure every reason people can or cannot use the ice.",
+        "legend": {
+          "iceScale": "Ice fraction",
+          "low": "0%",
+          "mid": "50%",
+          "high": "100%",
+          "estimated": "estimated from neighboring days",
+          "missing": "no usable scene / gap"
+        },
+        "status": {
+          "measured": "Pipeline daily value",
+          "estimated": "Estimated from neighboring days",
+          "missing": "No usable scene"
+        },
+        "tooltip": {
+          "iceFraction": "Ice fraction",
+          "noValue": "no value"
+        }
+      },
+      "pixelInspector": {
+        "source": "Sample scene from Sentinel-2",
+        "originalSource": "Sentinel-2",
+        "methodSource": "Pipeline and method",
+        "kicker": "Measurement pipeline",
+        "title": "How a scene becomes a number",
+        "body": "The chart later shows one value per day. This is the step that creates it: raw pixels become classes, then a scene-level ice fraction.",
+        "rawAlt": "Raw Sentinel-2 winter scene near Uummannaq",
+        "maskAlt": "Computer-vision sea-ice mask overlay",
+        "rawOnly": "Raw image only",
+        "calloutRaw": "At this stage it is still an image. Bright snow, ice, clouds, and shadows can look similar.",
+        "calloutMask": "The colored overlay is the model's reading of the same image.",
+        "calloutOutput": "Many daily values like this become the record shown in the next table.",
+        "metricLabel": "Output",
+        "metricValue": "ice fraction",
+        "metricDetail": "The same calculation is repeated for every usable scene.",
+        "samples": {
+          "ice": {
+            "title": "solid ice",
+            "body": "Bright, continuous surfaces are counted as ice when the spectral signal is consistent."
+          },
+          "thinIce": {
+            "title": "thin or wet ice",
+            "body": "Mixed surfaces sit between ice and water and carry more uncertainty."
+          },
+          "water": {
+            "title": "open water",
+            "body": "Dark areas are read as water after land and cloud masks are removed."
+          }
+        }
       },
       "dailyAnomaly": {
-        "title": "Arctic Sea Ice Anomaly (in million km²) over the decades",
-        "yAxisLabel": "Anomaly (10⁶ km²)"
+        "title": "Arctic sea-ice anomaly by decade",
+        "yAxisLabel": "Anomaly (10⁶ km²)",
+        "source": "NOAA daily Arctic sea-ice extent",
+        "zeroLine": "long-term average",
+        "emptyTitle": "No decadal anomaly data",
+        "emptyBody": "The chart needs the decadal anomaly series from /data."
       },
       "earlyLateSeason": {
-        "earlyTitle": "2017-20 Sea Ice (Mean)",
-        "lateTitle": "2021-25 Sea Ice (Mean)",
+        "earlyTitle": "Sea Ice 2017–20 (Mean)",
+        "lateTitle": "Sea Ice 2021–25 (Mean)",
         "lessIce": "less ice coverage",
         "iqrSuffix": " IQR",
-        "meanSuffix": " mean"
+        "meanSuffix": " mean",
+        "source": "Uummannaq comparison window",
+        "bandHint": "Bands show the middle spread of each period.",
+        "emptyTitle": "No early/late comparison data",
+        "emptyBody": "The comparison needs seasonal summary rows from /uummannaq."
       },
       "seasonal": {
-        "title": "Arctic Sea Ice Extent (million km²)",
+        "title": "Arctic sea-ice extent",
         "xAxisLabel": "Month",
-        "yAxisLabel": "Sea Ice Extent",
-        "recordLow": "All-Time Record Low"
+        "yAxisLabel": "Extent (million km²)",
+        "recordLow": "record-low window",
+        "source": "NOAA/NSIDC record through {{year}}",
+        "emptyTitle": "No Arctic sea-ice record",
+        "emptyBody": "The chart needs daily Arctic sea-ice extent from /data.",
+        "callouts": {
+          "all": {
+            "title": "How to read it",
+            "body": "Each line is one year. The whole bundle is the seasonal rhythm."
+          },
+          "both": {
+            "title": "How to read it",
+            "body": "Older and newer years stay visible so the shift can be compared."
+          },
+          "first": {
+            "title": "Earlier years",
+            "body": "The earlier half sits higher through much of the year."
+          },
+          "early": {
+            "title": "Earlier years",
+            "body": "The earlier half sits higher through much of the year."
+          },
+          "second": {
+            "title": "Recent years",
+            "body": "The recent half clusters lower, especially near the seasonal extremes."
+          },
+          "late": {
+            "title": "Recent years",
+            "body": "The recent half clusters lower, especially near the seasonal extremes."
+          },
+          "current": {
+            "title": "Latest year",
+            "body": "One year matters most when it is read against the full record."
+          }
+        }
       },
       "annualAnomaly": {
-        "title": "Yearly Arctic Sea ice Anomaly (in million km²) compared to the long-term average",
+        "title": "Yearly Arctic sea-ice anomaly",
         "noData": "No anomaly data found.",
-        "anomaly": "Anomaly"
+        "emptyBody": "The chart needs yearly anomaly rows from /data.",
+        "anomaly": "Anomaly",
+        "source": "NOAA Arctic sea-ice extent",
+        "zeroLine": "average"
       },
       "multiLine": {
-        "title": "Comparing atmospheric CO₂ with global and Arctic temperature",
-        "tempAxisLabel": "Temp Anomaly (°C)",
+        "title": "CO₂, global temperature, Arctic temperature",
+        "tempAxisLabel": "Temp anomaly (°C)",
         "co2AxisLabel": "CO₂ (Gt)",
         "yearPrefix": "Year: ",
         "arctic": "Arctic",
         "global": "Global",
-        "co2": "CO₂"
+        "co2": "CO₂",
+        "source": "NASA GISS / OWID",
+        "emptyTitle": "No driver data",
+        "emptyBody": "The chart needs annual temperature and CO₂ rows from /data."
       },
       "zScore": {
-        "title": "Comparing atmospheric CO₂ exhaust with arctic sea ice extend and Arctic temperature",
-        "arcticTemp": "Arctic Temp (z)",
-        "seaIce": "Sea Ice (z)",
-        "seaIceInv": "Sea Ice (inv, z)",
-        "co2": "CO₂ (z)"
+        "title": "CO₂, temperature, sea ice on one scale",
+        "arcticTemp": "Arctic temp (z)",
+        "seaIce": "Sea ice (z)",
+        "seaIceInv": "Sea ice loss (z)",
+        "co2": "CO₂ (z)",
+        "source": "Standardized annual series",
+        "emptyTitle": "No standardized driver data",
+        "emptyBody": "The chart needs annual z-score fields from /data.",
+        "calloutRawTitle": "Same scale",
+        "calloutRawBody": "Z-scores show how far each series sits from its own average.",
+        "calloutInvertedTitle": "Ice loss mirrored",
+        "calloutInvertedBody": "Flipping sea ice makes the relationship easier to see: more heat, less ice."
       },
       "bar2024": {
-        "title": "Comparing Arctic Temperature Anomaly and Mean Global Temperature Anomaly in 2024",
-        "noData": "No 2024 data found for Arctic/Global.",
+        "title": "Arctic and global temperature anomaly in {{year}}",
+        "noData": "No usable Arctic/global temperature data found.",
         "arctic": "Arctic",
         "global": "Global",
-        "meanAnomaly": "Mean Anomaly"
+        "meanAnomaly": "Mean anomaly"
       },
       "meanIceFraction": {
-        "title": "Average Sea‑Ice Fraction Trend:",
-        "perYear": "% per year",
-        "yAxisLabel": "ice-covered area in",
+        "title": "Yearly mean ice fraction",
+        "perYear": "% over the record",
+        "yAxisLabel": "ice-covered area",
         "yearPrefix": "Year ",
         "yearMean": "year mean",
-        "trend": "trend"
+        "trend": "trend",
+        "source": "Uummannaq yearly mean",
+        "emptyTitle": "No yearly fjord data",
+        "emptyBody": "The trend needs yearly mean ice fractions from /uummannaq.",
+        "calloutTitle": "Read as direction",
+        "calloutBody": "The trend describes the measured record. It is not a fixed forecast."
+      },
+      "breakupTiming": {
+        "title": "When the ice broke up, year by year",
+        "source": "Sentinel-2 analysis, Uummannaq",
+        "breakupLabel": "Breakup",
+        "earlyLabel": "2017–20 mean",
+        "lateLabel": "2021–25 mean",
+        "daysEarlier": "days earlier",
+        "memoryNote": "remembered, a generation ago",
+        "shiftMetricLabel": "Later period",
+        "shiftMetricDetail": "Mean breakup vs. 2017–2020",
+        "spreadMetricLabel": "Recent range",
+        "spreadMetricDetail": "Earliest to latest breakup, 2021–2025",
+        "emptyTitle": "No breakup record",
+        "emptyBody": "This view needs yearly breakup days from /uummannaq."
       }
     },
     "common": {
@@ -337,7 +581,9 @@
   },
   "dayOfYear": "Day of Year",
   "day": "day",
-  "openSource": "Open Source",
+  "openSource": "Open original source",
+  "jumpTo": "Jump to {{title}}",
+  "scrollCue": "Keep scrolling",
   "close": "Close"
 }
 }

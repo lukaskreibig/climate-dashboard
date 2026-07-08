@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { useTranslation } from 'react-i18next';
+import { ChartEmptyState, ChartSourceBadge } from "@/components/ChartExplainers";
 
 interface AnnualRow {
   Year: number;
@@ -36,24 +37,26 @@ export default function MultiLineChartRecharts({ data }: Props) {
     return [typeof value === "number" ? value.toFixed(2) : value, name];
   };
 
-  const HEADLINE = (
-    <>
-      {t('charts.multiLine.title').split('CO₂')[0]}CO₂&nbsp;
-      <span className="inline-block w-3 h-3 bg-green-500 align-baseline rounded-sm" />
-      &nbsp;{t('charts.multiLine.title').split('CO₂')[1].split('global')[0]}{t('charts.multiLine.global').toLowerCase()}&nbsp;
-      <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
-      &nbsp;{t('charts.multiLine.title').split('global')[1].split('Arctic')[0]}{t('charts.multiLine.arctic')}&nbsp;
-      <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
-    </>
-  );
-  
   // Filter valid data and sort by Year
   const valid = data.filter((d) => d.Year != null).sort((a, b) => a.Year - b.Year);
 
+  if (!valid.length) {
+    return (
+      <ChartEmptyState title={t("charts.multiLine.emptyTitle")}>
+        {t("charts.multiLine.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
+
   return (
-    <div style={{ width: "100%", height: 400 }}>
+    <div className="relative" style={{ width: "100%", height: 400 }} role="img" aria-label={t("charts.ariaSummaries.multiLine")}>
        <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {HEADLINE}
+        {t("charts.multiLine.title")}
+      </div>
+      <div className="absolute right-2 top-0 z-10">
+        <ChartSourceBadge href="https://data.giss.nasa.gov/gistemp/">
+          {t("charts.multiLine.source")}
+        </ChartSourceBadge>
       </div>
       <ResponsiveContainer>
         <ComposedChart data={valid} margin={{ top: 20, right: 30, bottom: 40, left: 0 }}>

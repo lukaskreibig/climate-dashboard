@@ -12,6 +12,7 @@ import { useGSAP } from "@gsap/react";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from "react-i18next";
+import { prefersReducedMotion } from "@/lib/reducedMotion";
 
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -49,6 +50,38 @@ export default function IntroHero() {
     }
 
     const ctx = gsap.context(() => {
+      const revealOutro = () => {
+        if (typeof document !== "undefined") {
+          gsap.set(document.body, { overflow: "hidden" });
+        }
+        const outro = document.getElementById("outro");
+        if (!outro) return;
+
+        const alreadyVisible =
+          outro.dataset.visible === "true" &&
+          !outro.classList.contains("invisible") &&
+          !outro.classList.contains("pointer-events-none");
+        if (alreadyVisible) return;
+
+        outro.dataset.visible = "true";
+        outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
+        // open at the reflective close AND swallow leftover scroll momentum —
+        // otherwise the reader's trackpad inertia shoves the fresh container
+        // straight down to the credits
+        outro.scrollTop = 0;
+        outro.style.overflow = "hidden";
+        window.setTimeout(() => {
+          outro.style.overflow = "";
+          outro.scrollTop = 0;
+        }, 900);
+        gsap.killTweensOf(outro);
+        gsap.fromTo(
+          outro,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.9, ease: "power1.out" } // exhale: settle gently after the zoom
+        );
+      };
+
       /* 1️⃣  Main copy timeline (unchanged) */
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -78,35 +111,24 @@ export default function IntroHero() {
         .fromTo(line6.current, { opacity: 0, y: 500 }, { opacity: 1, y: 160 }, "<");
 
 
-      /* 3️⃣  Giant “Will we listen?” */
-      tl.to(line6.current, {
-        color: "#000",
-        scale: 300,
-        y: 3800,
-        x: 4000,
-        duration: 4,
-        ease: "power2.inOut",
-        transformOrigin: "center center",
-      }) 
-      .to(photo.current,
-      { scale: 15, duration: 4, ease: "power2.inOut" },
-      "<");
-
-      tl.add(() => {
-        if (typeof document !== "undefined") {
-          gsap.set(document.body, { overflow: "hidden" });
-        }
-        const outro = document.getElementById("outro");
- if (outro) {
-   // Klicks zulassen + sichtbar schalten
-   outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
-   gsap.fromTo(
-     outro,
-     { opacity: 0 },
-     { opacity: 1, duration: 0.6, ease: "power2.out" }
-   );
- }
-      });
+      /* 3️⃣  Giant “Will we listen?” — skipped under reduced-motion (vestibular) */
+      if (prefersReducedMotion()) {
+        tl.to({}, { duration: 0.6 }).add(revealOutro);
+      } else {
+        tl.to(line6.current, {
+          color: "#000",
+          scale: 300,
+          y: 3800,
+          x: 4000,
+          duration: 1.7,
+          ease: "power2.inOut",
+          transformOrigin: "center center",
+        })
+        .to(photo.current,
+        { scale: 15, duration: 1.7, ease: "power2.inOut" },
+        "<")
+        .add(revealOutro, "-=0.9");
+      }
     }, wrap);
 
     return () => ctx.revert();
@@ -119,7 +141,7 @@ export default function IntroHero() {
       <motion.img
         ref={photo}
         src="/images/heartofaseal-28.jpg"
-        alt="Arctic panorama"
+        alt={t("alt.arcticPanorama")}
         className="absolute inset-0 w-full h-full object-cover"
         initial={{ opacity: 0 }}
       />

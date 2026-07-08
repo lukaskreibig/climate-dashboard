@@ -1,11 +1,9 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
 from pathlib import Path
 import json
-import chromadb
-from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
 from typing import Any, List
 from dotenv import load_dotenv
@@ -16,18 +14,61 @@ import numpy as np
 from typing import Optional
 from functools import lru_cache
 import logging
+from urllib.parse import urlparse
+from typing import TYPE_CHECKING
+from datetime import datetime, timezone, date, timedelta
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
 
 
-load_dotenv()
+# load backend/.env regardless of the process working directory (so the key is
+# found whether you launch from repo root or from backend/). On Railway there is
+# no .env — real env vars are used and take priority.
+load_dotenv(Path(__file__).resolve().parent / ".env")
 from settings import get_settings  # noqa: E402  (after load_dotenv)
 
 settings = get_settings()
-client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+
+# Chat LLM: prefer OpenRouter (OpenAI-compatible API), fall back to direct
+# OpenAI. Claude Haiku 4.5 gives fast first tokens with strong storytelling
+# and native-quality German — right fit for a persona chatbot.
+if settings.openrouter_api_key:
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=settings.openrouter_api_key,
+        default_headers={
+            "HTTP-Referer": "https://github.com/lukaskreibig",
+            "X-Title": "Schmelzpunkt - Knud Rasmussen",
+        },
+    )
+    CHAT_MODEL = "anthropic/claude-haiku-4.5"
+elif settings.openai_api_key:
+    client = OpenAI(api_key=settings.openai_api_key)
+    CHAT_MODEL = "gpt-4o-mini"
+else:
+    client = None
+    CHAT_MODEL = ""
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "data.json"
 FJORD_DATA_FILE = DATA_DIR / "fjord_data.json"
+FJORD_CSV_CANDIDATES = [
+    DATA_DIR / "summary_test_cleaned.csv",
+    BASE_DIR.parent / "data-pipeline" / "data" / "summary_test_cleaned.csv",
+    BASE_DIR.parent / "frontend" / "public" / "data" / "summary_test_cleaned.csv",
+]
 CHROMA_PATH = DATA_DIR / "chroma_db"
+LOGGER = logging.getLogger("backend.api")
+
+FJORD_SUN_START = 45
+FJORD_SUN_END = 180
+FJORD_SPRING_A = 60
+FJORD_SPRING_B = 151
+FJORD_THRESHOLD = 0.15
+FJORD_EARLY_YEARS = [2017, 2018, 2019, 2020]
+FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
+FJORD_KM2 = 3450
 
 app = FastAPI(
     title="Climate Report API",
@@ -55,7 +96,278 @@ class DataResponse(BaseModel):
     corrMatrix: List[Any]
     iqrStats: List[Any]
     partial2025: List[Any]
+    latestSeaIceSeason: Optional[List[Any]] = None
     decadalAnomaly: Optional[List[Any]] = None
+    meta: Optional[dict[str, Any]] = None
+
+
+def _resolved_database_url() -> Optional[str]:
+    return settings.database_url or getattr(settings, "database_public_url", None)
+
+
+def _database_host(db_url: Optional[str]) -> Optional[str]:
+    if not db_url:
+        return None
+    try:
+        return urlparse(db_url).hostname
+    except Exception:
+        return None
+
+
+def _set_source_headers(
+    response: Response,
+    *,
+    route_name: str,
+    source: str,
+    db_status: str,
+    db_host: Optional[str] = None,
+) -> None:
+    response.headers["X-Climate-Route"] = route_name
+    response.headers["X-Climate-Data-Source"] = source
+    response.headers["X-Climate-Db-Status"] = db_status
+    if db_host:
+        response.headers["X-Climate-Db-Host"] = db_host
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _as_int(value: Any) -> Optional[int]:
+    try:
+        if value is None:
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _row_year(row: dict[str, Any]) -> Optional[int]:
+    return _as_int(row.get("Year", row.get("year")))
+
+
+def _row_doy(row: dict[str, Any]) -> Optional[int]:
+    return _as_int(row.get("DayOfYear", row.get("doy", row.get("day"))))
+
+
+def _row_date(row: dict[str, Any]) -> Optional[str]:
+    value = row.get("DateStr", row.get("date"))
+    return str(value) if value is not None else None
+
+
+def _latest_daily_row(rows: List[Any]) -> Optional[dict[str, Any]]:
+    dict_rows = [dict(row) for row in rows if isinstance(row, dict)]
+    dated = [row for row in dict_rows if _row_date(row)]
+    if dated:
+        return max(dated, key=lambda row: str(_row_date(row)))
+
+    with_year = [row for row in dict_rows if _row_year(row) is not None]
+    if not with_year:
+        return None
+    return max(with_year, key=lambda row: (_row_year(row) or 0, _row_doy(row) or 0))
+
+
+def _latest_sea_ice_season(
+    data: dict[str, Any],
+    latest_year: Optional[int],
+) -> List[dict[str, Any]]:
+    if latest_year is None:
+        return []
+
+    season = []
+    for row in data.get("dailySeaIce", []):
+        if not isinstance(row, dict) or _row_year(row) != latest_year:
+            continue
+        doy = _row_doy(row)
+        if doy is None:
+            continue
+        season.append({
+            "DayOfYear": doy,
+            "Extent": row.get("Extent", row.get("extent")),
+        })
+
+    return sorted(season, key=lambda row: row["DayOfYear"])
+
+
+def _attach_data_meta(
+    data: dict[str, Any],
+    *,
+    generated_at: Optional[str] = None,
+) -> dict[str, Any]:
+    latest_daily = _latest_daily_row(data.get("dailySeaIce", []))
+    latest_sea_ice_year = _row_year(latest_daily) if latest_daily else None
+    latest_annual_years = [
+        _as_int(row.get("Year", row.get("year")))
+        for row in data.get("annualAnomaly", [])
+        if isinstance(row, dict) and _as_int(row.get("Year", row.get("year"))) is not None
+    ]
+    latest_temperature_years = [
+        _as_int(row.get("Year", row.get("year")))
+        for row in data.get("annual", [])
+        if isinstance(row, dict) and _as_int(row.get("Year", row.get("year"))) is not None
+    ]
+
+    latest_season = _latest_sea_ice_season(data, latest_sea_ice_year)
+    data["latestSeaIceSeason"] = latest_season
+    data["partial2025"] = latest_season
+    data["meta"] = {
+        "latestSeaIceDate": _row_date(latest_daily) if latest_daily else None,
+        "latestSeaIceYear": latest_sea_ice_year,
+        "latestAnnualYear": max(latest_annual_years) if latest_annual_years else None,
+        "latestTemperatureYear": max(latest_temperature_years) if latest_temperature_years else None,
+        "source": "NSIDC Sea Ice Index, NASA GISTEMP, Our World in Data CO2",
+        "baselineYears": f"{settings.seaice_anom_baseline_start}-{settings.seaice_anom_baseline_end}",
+        "generatedAt": generated_at or _utc_now_iso(),
+    }
+    return data
+
+
+def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
+    daily = payload.get("daily", [])
+    latest_daily = _latest_daily_row(daily if isinstance(daily, list) else [])
+    years = [
+        _row_year(row)
+        for row in daily
+        if isinstance(row, dict) and _row_year(row) is not None
+    ]
+    payload["meta"] = {
+        "latestDate": _row_date(latest_daily) if latest_daily else None,
+        "latestYear": _row_year(latest_daily) if latest_daily else (max(years) if years else None),
+        "source": "Sentinel-2 Uummannaq computer-vision pipeline",
+        "baselineYears": "2017-2020 vs 2021-2025",
+        "generatedAt": _utc_now_iso(),
+    }
+    return payload
+
+
+def _label_for_doy(doy: int) -> str:
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    day = date(2020, 1, 1) + timedelta(days=doy - 1)
+    return f"{day.day:02d}-{months[day.month - 1]}"
+
+
+def _json_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _mean_or_none(series: pd.Series) -> Optional[float]:
+    series = pd.to_numeric(series, errors="coerce").dropna()
+    return float(series.mean()) if len(series) else None
+
+
+def _quantile_or_none(series: pd.Series, q: float) -> Optional[float]:
+    series = pd.to_numeric(series, errors="coerce").dropna()
+    return float(series.quantile(q)) if len(series) else None
+
+
+def _find_fjord_csv() -> Optional[Path]:
+    for path in FJORD_CSV_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
+    csv_path = _find_fjord_csv()
+    if csv_path is None:
+        return None
+
+    rows = pd.read_csv(csv_path, parse_dates=["date"])
+    rows.columns = [c.lower() for c in rows.columns]
+    required = {"date", "year", "doy", "frac_smooth"}
+    missing = required.difference(rows.columns)
+    if missing:
+        raise ValueError(f"Missing fjord CSV columns: {', '.join(sorted(missing))}")
+
+    rows = rows[["date", "year", "doy", "frac_smooth"]].rename(columns={"frac_smooth": "frac"}).copy()
+    rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
+    rows["year"] = pd.to_numeric(rows["year"], errors="coerce")
+    rows["doy"] = pd.to_numeric(rows["doy"], errors="coerce")
+    rows["frac"] = pd.to_numeric(rows["frac"], errors="coerce")
+    rows = rows.dropna(subset=["date", "year", "doy"]).sort_values(["date"]).copy()
+    rows["year"] = rows["year"].astype(int)
+    rows["doy"] = rows["doy"].astype(int)
+
+    season = []
+    for doy in range(FJORD_SUN_START, FJORD_SUN_END + 1):
+        early = rows[(rows["year"].isin(FJORD_EARLY_YEARS)) & (rows["doy"] == doy)]["frac"]
+        late = rows[(rows["year"].isin(FJORD_LATE_YEARS)) & (rows["doy"] == doy)]["frac"]
+        season.append({
+            "day": _label_for_doy(doy),
+            "eMean": _mean_or_none(early),
+            "e25": _quantile_or_none(early, 0.25),
+            "e75": _quantile_or_none(early, 0.75),
+            "lMean": _mean_or_none(late),
+            "l25": _quantile_or_none(late, 0.25),
+            "l75": _quantile_or_none(late, 0.75),
+        })
+
+    spring_means = (
+        rows[(rows["doy"] >= FJORD_SPRING_A) & (rows["doy"] <= FJORD_SPRING_B)]
+        .groupby("year")["frac"]
+        .mean()
+    )
+    baseline_years = [year for year in FJORD_EARLY_YEARS if year in spring_means.index]
+    baseline = spring_means.loc[baseline_years].mean() if baseline_years else np.nan
+    spring = []
+    for year, value in spring_means.sort_index().items():
+        anomaly = None
+        if not pd.isna(value) and not pd.isna(baseline):
+            anomaly = round((float(value) - float(baseline)) * FJORD_KM2, 1)
+        spring.append({"year": int(year), "anomaly": anomaly})
+
+    frac_means = (
+        rows[(rows["doy"] >= FJORD_SUN_START) & (rows["doy"] <= FJORD_SUN_END)]
+        .groupby("year")["frac"]
+        .mean()
+    )
+    frac = [
+        {"year": int(year), "mean": round(float(value), 4) if not pd.isna(value) else None}
+        for year, value in frac_means.sort_index().items()
+    ]
+
+    freeze = []
+    for year, grp in rows.groupby("year"):
+        frozen = grp.loc[grp["frac"] >= FJORD_THRESHOLD, "doy"].dropna()
+        freeze.append({
+            "year": int(year),
+            "freeze": int(frozen.min()) if len(frozen) else None,
+            "breakup": int(frozen.max()) if len(frozen) else None,
+        })
+
+    daily = []
+    for row in rows.itertuples(index=False):
+        daily.append({
+            "date": pd.Timestamp(row.date).date().isoformat(),
+            "year": int(row.year),
+            "doy": int(row.doy),
+            "frac": _json_float(row.frac),
+        })
+
+    diffs = []
+    for row in season:
+        early_mean = row["eMean"]
+        late_mean = row["lMean"]
+        if early_mean is not None and late_mean is not None and early_mean != 0:
+            diffs.append(1 - (late_mean / early_mean))
+    season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
+
+    return _attach_fjord_meta({
+        "spring": spring,
+        "season": season,
+        "frac": frac,
+        "freeze": freeze,
+        "daily": daily,
+        "seasonLossPct": season_loss_pct,
+    })
+
 
 def _normalize_daily_columns(df: pd.DataFrame) -> pd.DataFrame:
     # toleriert unterschiedliche Groß/Kleinschreibung / Namen
@@ -163,8 +475,10 @@ def compute_decadal_daily_anomaly(daily_rows: List[dict]) -> List[dict]:
 
 
 @app.get("/data", response_model=DataResponse)
-async def get_data():
-    db_url = settings.database_url
+async def get_data(response: Response):
+    db_url = _resolved_database_url()
+    db_host = _database_host(db_url)
+    db_status = "not-configured"
     if db_url:
         try:
             engine = create_engine(db_url)
@@ -191,9 +505,21 @@ async def get_data():
                 print("[WARN] decadalAnomaly computation failed:", e)
                 data["decadalAnomaly"] = []
 
-            return data
+            _set_source_headers(
+                response,
+                route_name="/data",
+                source="database",
+                db_status="ok",
+                db_host=db_host,
+            )
+            return _attach_data_meta(data)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error reading data from database: {e}")
+            db_status = "error"
+            LOGGER.warning(
+                "Falling back to data.json after /data database read failed (host=%s): %s",
+                db_host or "unknown",
+                e,
+            )
 
     # --- Fallback zu JSON-Datei wie gehabt -------------------
     file_path = DATA_FILE
@@ -204,21 +530,23 @@ async def get_data():
             data = json.load(f)
         # NEW: auch im File-Fallback berechnen
         data["decadalAnomaly"] = compute_decadal_daily_anomaly(data.get("dailySeaIce", []))
+        data = _attach_data_meta(data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading data file: {e}")
+    _set_source_headers(
+        response,
+        route_name="/data",
+        source="json-fallback",
+        db_status=db_status,
+        db_host=db_host,
+    )
     return data
 
 @app.get("/uummannaq", response_model=FjordDataBundle)
-async def get_fjord_data():
-    from datetime import date, timedelta
-
-    def label_for_doy(doy: int) -> str:
-        # stabile englische Monatskürzel, unabhängig vom Locale
-        MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-        d = date(2020, 1, 1) + timedelta(days=doy - 1)
-        return f"{d.day:02d}-{MONTHS[d.month-1]}"
-
-    db_url = settings.database_url
+async def get_fjord_data(response: Response):
+    db_url = _resolved_database_url()
+    db_host = _database_host(db_url)
+    db_status = "not-configured"
     if db_url:
         engine = create_engine(db_url)
         try:
@@ -246,7 +574,7 @@ async def get_fjord_data():
                     early = by_doy[doy].get("early")
                     late  = by_doy[doy].get("late")
                     merged.append({
-                        "day":  label_for_doy(doy),
+                        "day":  _label_for_doy(doy),
                         "eMean": early["mean"] if early else None,
                         "e25":  early["p25"]  if early else None,
                         "e75":  early["p75"]  if early else None,
@@ -263,7 +591,7 @@ async def get_fjord_data():
                         diffs.append(1 - (l / e))
                 season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
 
-                return {
+                payload = {
                     "spring": [dict(r) for r in spring_rows],
                     "season": merged,                   # <— merged Struktur
                     "frac":   [dict(r) for r in frac_rows],
@@ -271,15 +599,52 @@ async def get_fjord_data():
                     "daily":  [dict(r) for r in daily_rows],
                     "seasonLossPct": season_loss_pct,   # optional
                 }
+                payload = _attach_fjord_meta(payload)
+                _set_source_headers(
+                    response,
+                    route_name="/uummannaq",
+                    source="database",
+                    db_status="ok",
+                    db_host=db_host,
+                )
+                return payload
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error reading fjord data: {e}")
+            db_status = "error"
+            LOGGER.warning(
+                "Falling back to fjord_data.json after /uummannaq database read failed (host=%s): %s",
+                db_host or "unknown",
+                e,
+            )
 
-    # fallback: JSON (optional – hier könntest du ebenfalls 'season' schon gemerged vorhalten)
+    # fallback: JSON first, then local CSV so the app can run without a database.
     file_path = FJORD_DATA_FILE
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fjord data file not found")
+        try:
+            payload = _build_fjord_payload_from_csv()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error reading fjord CSV fallback: {e}")
+        if payload is None:
+            raise HTTPException(status_code=404, detail="Fjord data file not found")
+        _set_source_headers(
+            response,
+            route_name="/uummannaq",
+            source="csv-fallback",
+            db_status=db_status,
+            db_host=db_host,
+        )
+        return payload
+
     with open(file_path, 'r') as f:
-        return json.load(f)
+        payload = json.load(f)
+    payload = _attach_fjord_meta(payload)
+    _set_source_headers(
+        response,
+        route_name="/uummannaq",
+        source="json-fallback",
+        db_status=db_status,
+        db_host=db_host,
+    )
+    return payload
 
 
 
@@ -297,12 +662,12 @@ async def predict(req: PredictRequest):
     dummy_prediction = req.temperature * 0.5 + req.co2 * 0.1
     return PredictResponse(prediction=dummy_prediction, model_version="v1.0")
 
-LOGGER = logging.getLogger("backend.health")
+HEALTH_LOGGER = logging.getLogger("backend.health")
 
 
 @lru_cache(maxsize=1)
 def _engine():
-    db_url = settings.database_url
+    db_url = _resolved_database_url()
     if not db_url:
         return None
     return create_engine(db_url, pool_pre_ping=True, future=True)
@@ -320,7 +685,7 @@ async def health():
                 conn.execute(text("SELECT 1"))
             db_report = {"status": "ok"}
         except Exception as exc:
-            LOGGER.warning("Healthcheck database probe failed: %s", exc)
+            HEALTH_LOGGER.warning("Healthcheck database probe failed: %s", exc)
             db_report = {"status": "error", "error": str(exc)}
             payload["status"] = "degraded"
 
@@ -340,22 +705,37 @@ from threading import Lock
 
 _embedder = None
 _embedder_lock = Lock()
+_collection = None
+_collection_lock = Lock()
 
 
-def get_embedder() -> SentenceTransformer:
+def get_embedder() -> "SentenceTransformer":
     global _embedder
     if _embedder is None:
         with _embedder_lock:
             if _embedder is None:
+                # Import lazily to avoid loading torch/sentence-transformers into RAM
+                # until the chat endpoint is actually used.
+                from sentence_transformers import SentenceTransformer
+
                 _embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _embedder
 
 
-chroma_client = chromadb.PersistentClient(path=str(CHROMA_PATH))
-try:
-    collection = chroma_client.get_collection("eskimo-folktales")
-except:
-    collection = chroma_client.create_collection("eskimo-folktales")
+def get_collection():
+    global _collection
+    if _collection is None:
+        with _collection_lock:
+            if _collection is None:
+                # Lazily initialize Chroma so idle API instances stay smaller.
+                import chromadb
+
+                chroma_client = chromadb.PersistentClient(path=str(CHROMA_PATH))
+                try:
+                    _collection = chroma_client.get_collection("eskimo-folktales")
+                except Exception:
+                    _collection = chroma_client.create_collection("eskimo-folktales")
+    return _collection
 
 @app.post("/chat_stream")
 async def chat_stream(req: ChatRequest):
@@ -365,10 +745,11 @@ async def chat_stream(req: ChatRequest):
     if client is None:
         raise HTTPException(
             status_code=503,
-            detail="OpenAI client is not configured on this deployment.",
+            detail="No chat LLM configured. Set OPENROUTER_API_KEY (or OPENAI_API_KEY).",
         )
 
     embedder = get_embedder()
+    collection = get_collection()
     query_embedding = embedder.encode([user_query])[0]
     results = collection.query(query_embeddings=[query_embedding], n_results=3)
     retrieved_chunks = results.get("documents", [[]])[0]
@@ -378,31 +759,38 @@ async def chat_stream(req: ChatRequest):
     if not context:
         raise HTTPException(status_code=404, detail="No relevant context found")
 
-    prompt = f"""
-            You are Knud Rasmussen, the renowned Danish-Greenlandic explorer who traveled extensively across Greenland, carefully gathering stories from the Inuit people. You share these traditional Eskimo folktales as vividly and respectfully as when you first heard them.
+    system_prompt = """You are Knud Rasmussen (1879-1933), the Danish-Greenlandic polar explorer who travelled Greenland by dog sled and collected the oral tradition of the Inuit, published as the "Eskimo Folk-Tales".
 
-            Here is context from your collected Eskimo Folk-Tales:
-            {context}
+Setting: the listener has just scrolled through "Schmelzpunkt" / "The Big Melt", a data story about the vanishing winter sea ice around Uummannaq. These are the same fjords you once crossed on the frozen sea. You are the bridge between the elders' knowledge of the ice and what the listener has just seen in the satellite data.
 
-            A listener has approached you with the following question or request:
-            "{user_query}"
+How you speak:
+- ALWAYS answer in the language of the question (German question, German answer; English question, English answer).
+- Warm, vivid, concrete; never kitschy. 2-4 short paragraphs, at most ~180 words, unless the listener asks for a full tale.
+- When it fits naturally, connect then and now: what reliable ice meant on your journeys, and how the listener has just seen it becoming shorter and less predictable. Do not invent modern statistics; the story itself has shown them.
+- End with a small opening: a question back, or the offer of another tale.
 
-            Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture don't invent anything, but only draw from the context provided.
+Honesty:
+- Retell tales and details ONLY from the excerpts provided in the user message. If nothing there fits, say plainly that your memory does not recall such a tale, and offer what you do have.
+- If asked whether you are real: say you are a computer program giving voice to Knud Rasmussen, drawing on his published collection."""
 
-            If the provided context does not contain relevant information or if you're unsure, respond gently and thoughtfully with something like: "Ah, my friend, my memory does not recall such a tale clearly."
-            Also tell the the listener that you are not a real person, but a computer program that simulates the voice of Knud Rasmussen if they ask.
-            """
-    
+    user_prompt = f"""Excerpts from your collected Eskimo Folk-Tales:
+{context}
+
+The listener asks:
+"{user_query}"
+"""
+
     try:
         stream = client.chat.completions.create(
-            model="gpt-4o",
+            model=CHAT_MODEL,
             messages=[
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
             ],
-            stream=True, 
+            stream=True,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
+        raise HTTPException(status_code=500, detail=f"Error calling chat API: {e}")
 
     def event_generator():
         try:

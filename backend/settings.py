@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -8,13 +9,16 @@ class Settings(BaseSettings):
     """Centralised, typed application configuration."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # absolute path → found no matter which directory the app starts from
+        env_file=Path(__file__).resolve().parent / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     database_url: Optional[str] = None
+    database_public_url: Optional[str] = None
     openai_api_key: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
 
     seaice_yr_min: int = 1980
     seaice_yr_max: int = 2100

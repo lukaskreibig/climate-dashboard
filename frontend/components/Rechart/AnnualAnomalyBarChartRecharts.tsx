@@ -13,6 +13,7 @@ import {
   Cell
 } from "recharts";
 import { useTranslation } from 'react-i18next';
+import { ChartEmptyState, ChartSourceBadge } from "@/components/ChartExplainers";
 
 interface Row {
   Year: number;
@@ -30,13 +31,22 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
     .sort((a, b) => a.Year - b.Year);
 
   if (!valid.length) {
-    return <p className="text-gray-500 p-2">{t('charts.annualAnomaly.noData')}</p>;
+    return (
+      <ChartEmptyState title={t('charts.annualAnomaly.noData')}>
+        {t("charts.annualAnomaly.emptyBody")}
+      </ChartEmptyState>
+    );
   }
 
   return (
-    <div style={{ width: "100%", height: 400 }}>
+    <div className="relative" style={{ width: "100%", height: 400 }} role="img" aria-label={t("charts.ariaSummaries.annualAnomaly")}>
        <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
         {t('charts.annualAnomaly.title')}
+      </div>
+      <div className="absolute right-2 top-0 z-10">
+        <ChartSourceBadge href="https://nsidc.org/sea-ice-today">
+          {t("charts.annualAnomaly.source")}
+        </ChartSourceBadge>
       </div>
       <ResponsiveContainer>
         <BarChart data={valid} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
@@ -53,12 +63,22 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
           <Tooltip formatter={(val) => (typeof val === "number" ? val.toFixed(2) : val)} />
           {/* <Legend className="chart-grid" /> */}
           {/* Dashed zero line */}
-          <ReferenceLine y={0} stroke="#000" strokeDasharray="3 3" />
+          <ReferenceLine
+            y={0}
+            stroke="#334155"
+            strokeDasharray="3 3"
+            label={{
+              value: t("charts.annualAnomaly.zeroLine"),
+              fill: "#334155",
+              fontSize: 11,
+              position: "insideTopLeft",
+            }}
+          />
 
           <Bar dataKey="AnnualAnomaly" name={t('charts.annualAnomaly.anomaly')}>
             {valid.map((entry, index) => {
               const val = entry.AnnualAnomaly!;
-              const color = val >= 0 ? "blue" : "red";
+              const color = val >= 0 ? "#2563eb" : "#dc2626";
               return <Cell key={index} fill={color} />;
             })}
           </Bar>

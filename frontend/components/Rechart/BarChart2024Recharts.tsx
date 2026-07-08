@@ -28,49 +28,36 @@ interface Props {
 export default function BarChart2024Recharts({ data }: Props) {
   const { t } = useTranslation();
 
-  /* ─── Headline-Schutz: immer String & nur split(), wenn möglich ── */
-  const rawTitle: string =
-    typeof t("charts.bar2024.title") === "string"
-      ? (t("charts.bar2024.title") as string)
-      : t("zscore.title", ""); // einfacher Fallback
+  const latestRow = [...(data ?? [])]
+    .filter((d) => d["64N-90N"] != null && d.Glob != null)
+    .sort((a, b) => b.Year - a.Year)[0];
 
-  const hasArcticGlobal =
-    rawTitle.includes("Arctic") && rawTitle.includes("Global");
-
-  const HEADLINE = hasArcticGlobal ? (
-    <>
-      {rawTitle.split("Arctic")[0]}
-      {t("charts.bar2024.arctic")}&nbsp;
-      <span className="inline-block w-3 h-3 bg-red-500 align-baseline rounded-sm" />
-      &nbsp;
-      {rawTitle.split("Arctic")[1]?.split("Global")[0]}
-      {t("charts.bar2024.global")}&nbsp;
-      <span className="inline-block w-3 h-3 bg-blue-500 align-baseline rounded-sm" />
-      &nbsp;
-      {rawTitle.split("Global")[1]}
-    </>
-  ) : (
-    rawTitle || `${t("charts.bar2024.arctic")} vs. ${t("charts.bar2024.global")}`
-  );
-
-  /* ─── Datensatz nur für 2024 herausfiltern ───────────────────── */
-  const row2024 = data.find((d) => d.Year === 2024);
-  if (!row2024 || row2024["64N-90N"] == null || row2024.Glob == null) {
+  if (!latestRow) {
     return (
       <p className="text-gray-500 p-2">{t("charts.bar2024.noData")}</p>
     );
   }
 
   const chartData = [
-    { location: t("charts.bar2024.arctic"), value: row2024["64N-90N"] },
-    { location: t("charts.bar2024.global"), value: row2024.Glob },
+    { location: t("charts.bar2024.arctic"), value: latestRow["64N-90N"] },
+    { location: t("charts.bar2024.global"), value: latestRow.Glob },
   ];
 
   /* ─── render ─────────────────────────────────────────────────── */
   return (
-    <div style={{ width: "100%", height: 400 }}>
-      <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {HEADLINE}
+    <div style={{ width: "100%", height: 400 }} role="img" aria-label={t("charts.ariaSummaries.bar2024")}>
+      <div className="text-center font-semibold text-slate-800 mb-2 select-none text-sm sm:text-base">
+        {t("charts.bar2024.title", { year: latestRow.Year })}
+      </div>
+      <div className="mb-1 flex items-center justify-center gap-4 text-xs text-slate-600">
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded-sm bg-red-500" />
+          {t("charts.bar2024.arctic")}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-3 w-3 rounded-sm bg-blue-500" />
+          {t("charts.bar2024.global")}
+        </span>
       </div>
 
       <ResponsiveContainer>

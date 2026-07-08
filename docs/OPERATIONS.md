@@ -48,7 +48,8 @@ Secrets are managed in Vercel/Railway dashboards. Do **not** commit credentials.
 
   | Variable | Description |
   |----------|-------------|
-  | `DATABASE_URL` | PostgreSQL connection string. |
+  | `DATABASE_URL` | PostgreSQL connection string (Railway-internal in production). |
+  | `DATABASE_PUBLIC_URL` | Optional public PostgreSQL URL for local/manual runs outside Railway. |
   | `OPENAI_API_KEY` | Optional – only needed when `/chat` endpoints are enabled. |
   | `LOG_LEVEL` | Python logging level (default `INFO`). |
   | `SEAICE_*` | Optional overrides for anomaly calculations (see README). |
@@ -98,6 +99,7 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 1. **Frontend outage** — check Vercel dashboard. If caused by data mismatch, roll back to previous deployment (Vercel UI) and inspect backend responses.
 2. **Backend outage** — use Railway logs. If Postgres is unavailable the API falls back to JSON (`backend/data/data.json`). Regenerate it via `update_pipeline.py`.
 3. **Pipeline failure** — re-run job manually; inspect logs for upstream HTTP failures. Apply exponential backoff in scripts when required.
+   - If the error is `DB not ready after ...`, verify Postgres status first. The cron job now waits longer before failing (`DB_WAIT_TIMEOUT_SECONDS`, `DB_WAIT_INTERVAL_SECONDS`).
 4. **Data corruption** — restore from PostgreSQL snapshot or rerun pipelines with historical date ranges. Commit the regenerated JSON fallback for traceability.
 5. **Mapbox quota exceeded** — MapboxPreloader logs warn about 401 responses. Rotate tokens or reduce tile preloading (see `MapboxPreloader.tsx`).
 
@@ -119,7 +121,7 @@ Notify stakeholders via Slack/Email with root cause and remediation steps. Keep 
 |------|------------------|
 | Tail backend logs | `railway logs --service climate-backend` |
 | SSH into pipeline container | `railway shell --service climate-pipeline` |
-| Trigger full data refresh | `railway run python update_pipeline.py && python update_fjord_data.py` |
+| Trigger full data refresh | `railway run bash -lc "python3 wait_for_db.py && PIPELINE_SINGLE_STAGE=1 python3 update_pipeline.py && PIPELINE_SINGLE_STAGE=1 python3 update_fjord_data.py"` |
 | Regenerate JSON fallback | Run pipelines locally and commit `backend/data/data.json` |
 | Clear Mapbox cache (dev) | Call `resetMapPreloadRegistry()` in console, refresh page |
 

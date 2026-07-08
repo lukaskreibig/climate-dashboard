@@ -2,183 +2,268 @@
   "arctic": {
     "title": "Die Arktis: Frühwarnsystem unseres Planeten",
     "heroTitle": "SCHMELZPUNKT",
-    "heroSubtitle": "Eine datenbasierte Geschichte über das Verschwinden des Meereises von Lukas Kreibig",
-    "heroLine1": "Die Arktis erwärmt sich 4x schneller als der globale Durchschnitt",
-    "heroLine2": "Das Schmelzen des Meereises ist zur Realität geworden",
+    "heroSubtitle": "Eine Datengeschichte von Lukas Kreibig über das Verschwinden des Meereises",
+    "heroLine1": "Die Arktis erwärmt sich fast viermal so schnell wie der Rest der Welt",
+    "heroLine2": "Das Schmelzen des Meereises ist längst Realität",
     "heroLine3": "Forscher erwarten eisfreie Sommer noch vor 2050",
     "heroLine4": "Die Arktis ist das Frühwarnsystem unseres Planeten",
     "heroLine5": "Hören wir rechtzeitig zu?"
   },
+  "loading": {
+    "eyebrow": "Lädt",
+    "title": "Karte und Satellitenbilder werden vorbereitet",
+    "detail": "Daten, Bilder und die Arktis-Karte werden geladen, bevor die Geschichte beginnt.",
+    "progress": "{{progress}} %"
+  },
+  "alt": {
+    "uummannaqView": "Blick auf Uummannaq",
+    "pushingSled": "Eine Person schiebt einen Schlitten über das Eis",
+    "snowstorm": "Heftiger Schneesturm in Uummannaq",
+    "motorsledge": "Ein Motorschlitten in Uummannaq",
+    "kids": "Kinder in Uummannaq",
+    "dogsSnowstorm": "Schlittenhunde im Schneesturm",
+    "fisherboat": "Ein Fischerboot im Hafen",
+    "polarBear": "Ein Eisbär auf brüchigem Meereis",
+    "arcticPanorama": "Arktisches Panorama",
+    "knudPortrait": "Porträt von Knud Rasmussen",
+    "knudAvatar": "Avatar von Knud Rasmussen"
+  },
   "scenes": {
+    "kickers": {
+      "place": "Der Ort",
+      "ground": "Vor Ort",
+      "voices": "Die Stimmen",
+      "measurement": "Die Messung",
+      "pattern": "Das Muster",
+      "consequences": "Die Folgen",
+      "arctic": "Die Arktis",
+      "drivers": "Die Ursachen"
+    },
     "geographic": {
       "title": "Wie das Eis verschwindet",
-      "intro": "In der Arktis hängen viele Gemeinschaften vom Meereis ab. Doch was passiert, wenn das Eis schneller denn je schwindet?",
+      "intro": "In der Arktis ist Meereis mehr als Landschaft. Es ist Verkehrsweg, Arbeitsplatz und Gefahr in einem. Was geschieht, wenn dieser Winter kürzer und unberechenbarer wird?",
       "greenland": {
         "title": "Grönland",
-        "description": "Die größte Insel der Welt. Zu 80 % mit Eis bedeckt, 20 % felsige Küstenlinie. Tief eingeschnittene Fjorde reichen Hunderte Kilometer ins Inland und bieten geschützte Häfen, wo arktische Gemeinschaften seit Jahrtausenden leben."
+        "description": "Die größte Insel der Welt ist zu rund 80 Prozent von Eis bedeckt. An der felsigen Küste schneiden Fjorde tief ins Land und schaffen geschützte Orte, an denen Menschen seit Jahrtausenden mit dem arktischen Meer leben."
       },
       "uummannaqBay": {
         "title": "Uummannaq-Bucht",
-        "description": "600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der spektakulärsten Fjordsysteme Grönlands. In den Wintermonaten verwandelt sich das Wasser hier in Eis."
+        "description": "Rund 600 Kilometer nördlich des Polarkreises öffnet sich die Bucht in eines der eindrucksvollsten Fjordsysteme Grönlands. Im Winter wird das Meer hier selbst zum Weg."
       },
       "uummannaqIsland": {
         "title": "Insel Uummannaq",
-        "description": "Heimat von 1.300 Menschen, die unter einem herzförmigen Berg leben. Sie steht stellvertretend für hunderte arktische Siedlungen, deren Existenz vollkommen von verlässlichem Meereis abhängt.",
-        "changing": "Doch diese Verlässlichkeit schwindet..."
+        "description": "Etwa 1.300 Menschen leben hier unter dem herzförmigen Berg. Für sie ist Eis keine Kulisse. Es entscheidet, wohin man kommt, wann und wie sicher.",
+        "changing": "Entscheidend ist, wie sich diese Verlässlichkeit verändert."
       }
     },
     "heartOfSeal": {
       "title": "Das Herz einer Robbe",
-      "description": "Die arktische Insel Uummannaq verdankt ihrem Namen einem robbenherzförmigen Berg, unter dem sich die gleichnamige Stadt befindet."
+      "description": "Uummannaq verdankt seinen Namen dem Berg, der als Herz einer Robbe bekannt ist. Darunter liegt die Stadt, zwischen Hafen, Fjord und Winterwegen."
     },
     "winterMonths": {
-      "description": "In den Wintermonaten friert das Meereis rund um Uummannaq und verbindet die Insel mit dem Festland. Die Einwohner können sich frei bewegen und sind nicht mehr auf die Insel beschränkt."
+      "description": "Friert der Fjord zu, wird das Meer zur Straße. Strecken, die es im Sommer nicht gibt, lassen sich nun mit dem Hundeschlitten, dem Motorschlitten oder zu Fuß zurücklegen, solange das Eis trägt."
     },
     "fishing": {
-      "description": "Der Fischfang ist das Rückgrat dieser Gemeinschaft, die Meisten leben davon. Traditionell fischen die Menschen direkt auf dem Meereis. Doch diese und andere Lebensweisen sind in Gefahr."
+      "description": "Bis heute lebt Uummannaq vom Fischfang. Doch es ist nicht bloß eine Geschichte des Verlusts: Eislage, Hafenzugang, Absatzmärkte, Boote und das gezielte Aufbrechen des Eises prägen den Alltag mit."
     },
     "voices": {
-      "title": "Die Stimmen der Arktis",
-      "description": "In Interviews der Studie „Life on Thin Ice“ erklären Bewohner Uummannaqs, wie das rapide schwindende Wintereis Reisen, Jagd und Traditionen verändert. Was berichten Sie?",
-      "learnMoreLink": "Mehr über die Studie \"Life on thin ice\" erfahren",
+      "title": "Stimmen aus Uummannaq",
+      "description": "In der Studie „Life on Thin Ice“ erzählen Menschen aus Uummannaq, wie sich Wintereis, Wege, Jagd und Fischfang verändern. Ihre Beobachtungen sind der Ausgangspunkt für das, was hier gemessen wird.",
+      "learnMoreLink": "Mehr über die Studie „Life on thin ice“ erfahren",
       "learnMoreTitle": "Life on thin ice",
-    "learnMoreContent": "Die Studie \"Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities\" von Juan Baztan, Mateo Cordier, Jean-Michel Huctin, Zhiwei Zhu und Jean-Paul Vanderlinden erscheint in Polar Science 13: 100–108 (2017) und verbindet zehn Jahre partizipative Feldforschung in der Bucht von Uummannaq mit einer bibliometrischen Analyse von über 3 700 Meereis-Publikationen. Interviews und eine Fokusgruppe (2014/15) zeigen: Verlässliches Wintereis bildet das Rückgrat von Jagd, Fischerei und Mobilität, bricht jedoch heute Wochen früher auf als noch in den 1990er-Jahren. Nur rund 1 % der Fachliteratur untersucht die für die Gemeinde entscheidende Eisdicke nahe der Küste, was eine erhebliche Wissenslücke offenbart. Die Autoren fordern daher eine gemeinsam mit Inuit-Gemeinschaften erstellte Klimaforschung, um Ergebnisse relevant, glaubwürdig und legitim für lokale Anpassungsentscheidungen zu machen.",
+    "learnMoreContent": "Die Studie „Life on thin ice: Insights from Uummannaq, Greenland for connecting climate science with Arctic communities“ verbindet Feldforschung in der Bucht von Uummannaq mit einer Analyse der Meereisforschung. Interviews und eine Fokusgruppe zeigen, warum verlässliches Wintereis für Jagd, Fischerei und Wege so wichtig ist und weshalb küstennahe Eisdicke in der Forschung oft zu kurz kommt. Neuere Arbeiten zur gemeinsamen Wissensproduktion ergänzen eine wichtige Einordnung: Lokale Eisveränderungen haben nicht nur eine Ursache. Fischerei, Hafenzugang, gezieltes Aufbrechen von Eis, Modernisierung und Erfahrungswissen prägen, wie Eis genutzt und erlebt wird.",
         "learnMoreLinkUrl": "https://doi.org/10.1016/j.polar.2017.05.002"
 
     },
     "quotes": {
-      "iceDisappears": "Als ich ein Kind war, verschwand das Eis erst im Juni oder Juli. Heute ist es bereits im April oder Mai weg.",
-      "unstableClimate": "Die wichtigste Veränderung ist, dass das Klima viel instabiler geworden ist und der Wind immer stärker und unberechenbarer weht.",
-      "motorsledge": "Viele Jäger bevorzugen heute Motorschlitten statt Hundeschlitten, weil die Winter zu kurz geworden sind und sie ihre Fänge schneller transportieren müssen.",
+      "iceDisappears": "Als ich ein Kind war,\nverschwand das Eis erst im Juni oder Juli.\nHeute ist es schon im April oder Mai weg.",
+      "unstableClimate": "Am stärksten hat sich das Wetter verändert.\nDer Wind ist heftiger geworden\nund schwerer einzuschätzen.",
+      "motorsledge": "Viele Jäger nutzen heute lieber Motorschlitten als Hundeschlitten.\nDie Winter sind kürzer,\nund der Fang muss schneller transportiert werden.",
       "participant": "Interviewteilnehmer, Uummannaq",
-      "source": "aus der \"Life on Thin Ice\" Studie" 
+      "source": "aus der Studie „Life on Thin Ice“"
     },
     "measurement": {
       "title": "Nur ein Gefühl?",
-      "intro": "Aber wie lässt sich das Gefühl der Bewohner messen? Die Antwort liegt im Weltall: Satelliten können uns verlässliche Daten liefern.",
-      "step1": "Zuerst der Blick des Satelliten von oben. So sieht der Satellit auf Uummannaq.",
-      "step2": "Nun das originale Winterbild des Satelliten. Solch ein Bild entsteht jeden Tag.",
-      "step3": "Das Sentinel Programm ESA liefert uns ein Bild pro Tag seit 2017. Das sind tausende von Aufnahmen. Wie automatisieren wir das?",
-      "step4": "Die Lösung: Künstliche Intelligenz. Eine selbstentwickelte Computer-Vision-Pipeline, die Wolken und Land erkennt und berechnet, wie viel Eis ein Bild enthält.",
-      "step5": "So sehen die Ergebnisse aus: Nach der Verarbeitung hebt sich das Eis (gelb und türkis) deutlich hervor. Wenn wir das für jeden Tag machen, bekommen wir fast ein Jahrzehnt an Daten.",
+      "intro": "Doch wie überprüft man eine solche Beobachtung? Von oben. Seit Jahren ziehen die Sentinel-2-Satelliten der ESA über Grönland hinweg und halten den Fjord fest: Bild für Bild, Winter für Winter, bis daraus eine vergleichbare Reihe wird.",
+      "step1": "Zuerst der Blick von oben: So erscheint Uummannaq im Satellitenbild.",
+      "step2": "Dann das rohe Winterbild. Solche Aufnahmen sind die Grundlage der Messung.",
+      "step3": "Seit 2017 liefert das Sentinel-Programm der ESA regelmäßig Bilder. Aus Tausenden Szenen muss eine konsistente Zeitreihe werden.",
+      "step4": "Dafür wertet eine Computer-Vision-Pipeline jedes Bild aus. Sie erkennt Wolken und Land und trennt Eis von offenem Wasser.",
+      "step5": "Diese Einfärbung ist noch nicht das Ergebnis. Sie macht sichtbar, wie aus einem Satellitenbild über das Modell am Ende eine Zahl im Diagramm wird, Schritt für Schritt nachvollziehbar.",
       "learnMoreLink": "Erfahre mehr über die Computer Vision Pipeline",
       "learnMoreTitle": "Computer Vision Pipeline für Meereiserkennung",
       "learnMoreContent": "Rohdaten aller 13 Sentinel-2-Bänder werden aus der AWS-Cloud geladen und durchlaufen eine vierstufige Segmentierungs-Pipeline:\\n\\n• Black-Border-Filter entfernt defekte Randpixel.\\n• Wolkenmaske: Ein U-Net (CloudSEN12+) erkennt dünne Wolken und Schatten.\\n• Landmaske: Eine statische Küstenmaske blendet Fels und Tundra aus.\\n• Eis/Wasser-Maske: Spektralindices trennen\\n  – festes Eis  NDSI > 0,52\\n  – dünnes / nasses Eis 0,31–0,52\\n  – offenes Wasser NDWI > 0,25.\\n\\nAlle Masken werden zu einem Farb-Overlay kombiniert (Gelb = festes Eis, Cyan = dünnes Eis, Blau = Wasser). Pro Kachel werden Kennzahlen in eine CSV geschrieben.",
-      "learnMoreLinkUrl": "https://www.github.com/lukaskreibig/"
+      "learnMoreLinkUrl": "https://github.com/lukaskreibig"
+    },
+    "pixelInspector": {
+      "title": "Vom Bild zum Beleg",
+      "raw": "Zunächst ist es nur ein Bild aus Licht: Schnee, Schatten, offenes Wasser und reichlich Unsicherheit, was davon was ist.",
+      "maskTitle": "Die Maske liest das Bild",
+      "mask": "Die Einfärbung ordnet jedes Stück Bild einer Klasse zu: Eis, dünnes Eis, offenes Wasser. Sie nimmt niemandem das Urteil ab, sie macht es nachvollziehbar.",
+      "classTitle": "Pixel für Pixel",
+      "classification": "Ein einzelnes Pixel sagt wenig. Doch Tausende davon ergeben zusammen eine Schätzung: wie viel der Fläche an diesem Tag von Eis bedeckt war.",
+      "outputTitle": "Daraus wird eine Zeitreihe",
+      "output": "Erst wenn sich dieselbe Auswertung über Hunderte Aufnahmen wiederholt, lassen sich Winter überhaupt miteinander vergleichen."
+    },
+    "memoryMeasurement": {
+      "title": "Erinnerung trifft Messung",
+      "buildTitle": "Ein Winter, Tag für Tag",
+      "build": "Im Februar bildet sich das Eis, es trägt durch den Frühling, im Juni bricht es auf: ein Winter, Tag für Tag. Jeder Strich steht für einen einzelnen Tag, für eine Satellitenaufnahme.",
+      "dayTitle": "Aus einer Szene wird ein Tageswert",
+      "day": "Dieser einzelne Tag ist das Bindeglied zwischen Satellitenbild und Tabelle: Die Pipeline schätzt, welcher Anteil der Wasserfläche von Eis bedeckt ist.",
+      "seasonTitle": "Ein Tag allein sagt wenig",
+      "season": "Erst die Reihe macht sichtbar, wie sich der Winter aufbaut, hält und wieder aufbricht.",
+      "intro": "Jetzt liegen alle gemessenen Saisons übereinander. Jede Zeile ist ein Winter in Uummannaq, jeder kleine Strich ein Tag.",
+      "earlyTitle": "Die ersten gemessenen Winter",
+      "early": "Die frühen Jahre sind der Maßstab. Nicht als heile Vergangenheit, sondern als der erste Zeitraum, den wir überhaupt messen konnten.",
+      "lateTitle": "Die jüngeren Winter",
+      "late": "Für die jüngeren Jahre fasst eine Zahl den Unterschied zusammen: eine Orientierung, keine vollständige Erklärung.",
+      "latestTitle": "Die jüngste Saison",
+      "latest": "Ein einzelnes Jahr ist nie die ganze Geschichte. Wichtig wird es erst durch das Muster um es herum.",
+      "caveatTitle": "Was die Zahlen offenlassen",
+      "caveat": "Wolken, fehlende Szenen und lokale Nutzung bleiben Teil der Unsicherheit. Wetter, Fischerei, Hafenzugang, gezieltes Eisbrechen und Erfahrungswissen bestimmen mit, was Eis im Alltag bedeutet."
     },
     "visualProof": {
-      "title": "Ein Jahrzehnt arktisches Meereis",
-      "description": "Hier die Ergebnisse: Jede Grafik zeigt eine Saison Meereis von Februar bis Juni.",
-      "numbersTitle": "Die Zahlen sprechen Klartext",
-      "numbersDescription": "Wenn wir alle Jahre betrachten, erkennen wir bereits einen Trend:",
-      "trend": "Wärmere Winter, weniger Eis.",
-      "conclusion": "Die Aussage ‚Früher verschwand das Eis erst im Juni oder Juli, heute schon im April oder Mai‘ trifft exakt zu."
+      "title": "Saison für Saison",
+      "description": "Jede kleine Grafik zeigt eine Eissaison in Uummannaq, von Februar bis Juni. Entscheidend ist nicht ein dramatisches Jahr, sondern der Rhythmus über mehrere Jahre.",
+      "numbersTitle": "Was die Daten zeigen",
+      "numbersDescription": "Über die Messjahre liegen die jüngeren Saisons zur selben Jahreszeit niedriger.",
+      "trend": "Weniger Eis in der gemessenen Saison.",
+      "conclusion": "Messung und Erinnerung deuten in dieselbe Richtung: Das Eis bricht früher auf. Lokale Ursachen und jährliche Schwankungen bleiben dabei im Blick."
     },
     "newAbnormal": {
-      "title": "Wenn Normalität verschwindet",
-      "description": "Doch wie vergleichen wir das am Besten? Verdichten wir die Daten zu zwei Zeiträumen: Vor und nach 2021. Wir vergleichen 2017–2020 mit 2021–2025.",
-      "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017–2020: Das, was vor vier Jahren noch normal war. Der blaue Bereich zeigt saisonale Schwankungen.",
-      "livingOutsideTitle": "Leben außerhalb der Norm",
-      "livingOutside": "Die rote Linie zeigt den Mittelwert 2021–2025. Der Vergleich zeigt: ",
-      "percentage": "11,9 % weniger Eisfläche im Vergleich zum Mittelwert 2017–2020",
-      "consequence": "bedeutet, dass die Gemeinschaft nun dauerhaft außerhalb der früheren Schwankungen lebt.",
-      "result": "Die Folge: Motorschlitten statt Hundeschlitten, sterbende Traditionen."
+      "title": "Wenn sich verschiebt, was normal war",
+      "description": "Um die Verschiebung lesbar zu machen, vergleichen wir die ersten vier gemessenen Saisons mit den späteren Jahren.",
+      "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017–2020. Der blaue Bereich macht sichtbar, wie stark diese Jahre schwankten.",
+      "livingOutsideTitle": "Eine veränderte Saison",
+      "livingOutside": "Die rote Linie zeigt den Mittelwert 2021–2025. In diesem Vergleich liegen die jüngeren Jahre über weite Teile der Saison niedriger.",
+      "percentage": "11,9 % weniger Eisfläche",
+      "consequence": "als im Mittel der Jahre 2017–2020.",
+      "result": "Das erklärt nicht jede Entscheidung vor Ort. Aber es zeigt: Die Eissaison selbst hat sich verschoben."
     },
     "trajectory": {
-      "title": "Doch wohin führt das?",
-      "rate": "Sehen wir uns die jährliche Auswertung an und ziehen wir eine Trendlinie dann sehen wir: Ein Jährlicher Verlust von 3% Meereis."
+      "title": "Eine Richtung, kein Schicksal",
+      "rate": "Die jährliche Auswertung zeigt eine fallende Linie. Sie beschreibt eine Richtung, aber kein festes Datum für die Zukunft."
+    },
+    "breakup": {
+      "progressTitle": "Früheres, unsichereres Aufbrechen",
+      "recall": {
+        "title": "Erinnern wir uns",
+        "description": "Am Anfang stand eine Erinnerung, die ein ganzes Leben umspannt: Als Kind hielt das Eis bis in den Juni oder Juli. Neun Jahre Satellitendaten sind viel zu kurz, um eine solche Kindheitserinnerung zu belegen. Aber sie können dieselbe Frage in Zahlen stellen. Jeder Punkt markiert den Tag, an dem das Eis eines Uummannaq-Winters aufbrach."
+      },
+      "shift": {
+        "title": "Im Mittel früher",
+        "statUnit": "Tage",
+        "statLabel": "mittleres Aufbrechen 2021–25 gegenüber 2017–20",
+        "description": "Über die Messjahre rückte das Aufbrechen von Ende Mai auf Mitte Mai vor, rund elf Tage früher. Neun Jahre sind kurz; man sollte das als Richtung lesen, nicht als festes Datum."
+      },
+      "unpredictable": {
+        "title": "Und schwerer vorherzusagen",
+        "description": "Noch größer als die Verschiebung ist die Schwankung: Mal bricht das Eis Ende April auf, mal erst im Juni. Genau das betonen die Bewohner: Die Saison ist unruhiger geworden, schwerer einzuschätzen. Satellit und Bewohner sehen denselben Wandel von zwei Seiten: Der eine misst die Fläche, die anderen spüren das Risiko."
+      }
     },
     "future": {
-      "trend": "Hält dieser Trend an, erlebt Uummannaq in 15 Jahren eisfreie Bedingungen.",
-      "memory": "Die Arktis, die die ihre Großeltern kannten, wird dann nur noch Erinnerung sein.",
-      "traditions": "Traditionen wie Hundeschlitten werden Geschichte sein."
+      "progressTitle": "Weniger verlässliche Eistage",
+      "trend": "Je kürzer das Eis trägt, desto heikler wird das Zusammenspiel aus Eisstraßen, Booten, Hafenarbeit und der Frage, wann man sich noch hinauswagt.",
+      "memory": "Für die Kinder in Uummannaq ist das Eis beides: ein Stück überlieferter Erinnerung und ein ganz praktisches Problem, das sich gerade verändert.",
+      "traditions": "Hundegespanne, Motorschlitten, Boote und das Erfahrungswissen der Menschen: Sie alle müssen sich auf einen unruhigeren Winter einstellen."
     },
   "toArctic": {
     "title": "Von Uummannaq zur gesamten Arktis",
-    "description": "Die Daten zeigen klar: Der Verlust des Meereises in Uummannaq ist bereits unausweichlich. Doch wie sieht es in der gesamten Arktis aus? Werfen wir einen Blick auf umfassendere Daten, um die Gesamtsituation besser zu verstehen.",
-    "learnMoreLink": "Wo kommen die Arktisdaten? Klicke hier die Methodik.",
+    "description": "Uummannaq zeigt den Wandel im Kleinen. Die arktisweite Messreihe liefert den Maßstab: Wintermaximum, Sommerminimum, altes Eis, rasche Erwärmung.",
+    "learnMoreLink": "Methodik anzeigen",
     "learnMoreTitle": "Methodik & Datenquellen – Arktisches Meereis",
-    "learnMoreContent": "Dieses Dashboard nutzt wissenschaftlich geprüfte Datensätze und aktualisiert sie täglich über eine automatisierte Python-Pipeline.\\n\\nDatenquellen\\nNASA GISS – Temperaturanomalien: https://data.giss.nasa.gov/gistemp/\\nNOAA – tägliche Meereisausdehnung: https://www.ncei.noaa.gov/access/monitoring/seaice/\\nOur World in Data – weltweite CO₂-Emissionen: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nVerarbeitungsschritte\\n1. Ein GitHub-Actions-Workflow startet jede Nacht ein Update.\\n2. Neueste CSV-/JSON-Dateien werden geladen, geprüft und mit Pandas vereinheitlicht.\\n3. Z-Scores setzen Temperatur, Eisausdehnung und CO₂ auf eine gemeinsame Skala.\\n4. Die bereinigten Daten werden als data.json gespeichert und via FastAPI an das Next.js-Frontend ausgeliefert."
+    "learnMoreContent": "Dieses Dashboard nutzt wissenschaftlich geprüfte Datensätze und aktualisiert sie täglich über eine automatisierte Python-Pipeline.\\n\\nDatenquellen\\nNASA GISS – Temperaturanomalien: https://data.giss.nasa.gov/gistemp/\\nNOAA – tägliche Meereisausdehnung: https://nsidc.org/sea-ice-today\\nOur World in Data – weltweite CO₂-Emissionen: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nVerarbeitungsschritte\\n1. Ein GitHub-Actions-Workflow startet jede Nacht ein Update.\\n2. Neueste CSV-/JSON-Dateien werden geladen, geprüft und mit Pandas vereinheitlicht.\\n3. Z-Scores setzen Temperatur, Eisausdehnung und CO₂ auf eine gemeinsame Skala.\\n4. Die bereinigten Daten werden als data.json gespeichert und via FastAPI an das Next.js-Frontend ausgeliefert."
     
   },
+  "arcticGlobe": {
+    "title": "Was der Sommer übrig lässt",
+    "description": "Am Ende jedes Sommers zieht sich das Meereis auf sein Minimum zurück. Von oben betrachtet, Jahrzehnt für Jahrzehnt, wird der Verlust unübersehbar: Das Septemberminimum schrumpft um rund 13 Prozent pro Jahrzehnt.",
+    "septemberIce": "Meereis im September",
+    "statLabel": "Septemberminimum, pro Jahrzehnt",
+    "attribution": "Meereis: NSIDC Sea Ice Index",
+    "aria": "Animierte Karte: das arktische Meereis im September, dargestellt auf einem 3-D-Globus. Von 1980 bis 2024 zieht sich die Eiskappe sichtbar zurück; das Septemberminimum schrumpft um rund 13 Prozent pro Jahrzehnt. Quelle: NSIDC Sea Ice Index."
+  },
   "seasonal": {
-    "title": "Eine Kurve schlechter Nachrichten",
-    "description": "Jede Linie zeichnet ein Jahr arktischen Meereises nach, vom Minimum im Herbst zum Maximum im Frühling und zurück. Blaue Linien stehen für die früheren Jahre, rote für die heutigen Jahre.",
+      "title": "Die arktische Saisonkurve",
+      "description": "Jede Linie zeigt ein Jahr arktischer Meereisausdehnung: vom Herbstminimum zum Frühjahrsmaximum und zurück. Blau steht für ältere Jahre, Rot für jüngere.",
     "early": {
       "title": "1979–2000: Die (noch) kalte Hälfte",
-      "description": "Konzentrieren wir uns zunächst auf die erste Hälfte der Aufzeichnungen von 1979 bis 2000. Die blauen Linien liegen deutlich höher."
+        "description": "Die erste Hälfte der Messreihe liegt sichtbar höher. Das Eis hatte im Jahresverlauf mehr Spielraum nach oben."
     },
     "late": {
-      "title": "2000–2025: Die heiße Hälfte",
-      "description": "Jetzt steht das jüngste Vierteljahrhundert im Mittelpunkt. Die roten Linien drängen sich immer weiter nach unten."
+        "title": "Ab 2000: Die jüngere Hälfte",
+        "description": "In den jüngeren Jahren liegen die Linien über weite Teile des Jahres niedriger."
     },
     "current": {
-      "title": "Das Jahr 2025",
-      "description": "Zuletzt isolieren wir das aktuelle Jahr. Wir sehen in diesem Jahr eine Arktis, die weit unter dem historischen Durchschnitt liegt. Zwischen Februar und März 2025 haben wir einen neuen Rekordtiefstand für Meereis in der Arktis erreicht."
+        "title": "Das neueste verfügbare Jahr {{year}}",
+        "description": "Zum Schluss steht {{year}} allein im Diagramm und lässt sich mit dem Rest der Messreihe vergleichen."
     },
     "breaking": {
-      "title": "Im freien Fall",
-      "description": "Diese Daten zeigen uns, dass dies keine natürliche Schwankungen sind, sondern wir sehen hier ein Ökosystem im freien Fall."
+        "title": "Unter dem früheren Bereich",
+        "description": "Jüngere Jahre liegen oft unter der älteren Spanne, besonders rund um Wintermaximum und Spätsommerminimum."
     }
   },
   "decades": {
     "title": "Sechs Jahrzehnte, eine Richtung",
-    "description": "Jedes farbige Band steht für ein Jahrzehnt arktischer Eis-Anomalien. Wir beginnen mit den 1980ern – dem letzten Jahrzehnt, in dem späte Sommerwerte noch nahe bei null Millionen km² lagen.",
+    "description": "Jedes farbige Band steht für ein Jahrzehnt arktischer Eis-Anomalien. Wir beginnen mit den 1980ern, dem letzten Jahrzehnt, in dem die Abweichungen im Spätsommer noch um die Null pendelten.",
     "1980s": {
-      "title": "Die 1980er: Das alte Normal",
-      "description": "Dieses hellblaue Band ist unser Ausgangspunkt. Die Abweichungen kreisen noch um den langfristigen Durchschnitt – ein Zustand, den viele als selbstverständlich kannten."
+      "title": "Die 1980er: Der alte Normalzustand",
+      "description": "Dieses hellblaue Band ist unser Ausgangspunkt. Die Abweichungen kreisen noch um den langfristigen Durchschnitt, ein Zustand, den viele als selbstverständlich kannten."
     },
     "1990s": {
       "title": "Die 1990er: Erste Risse",
-      "description": "Die Eisschmelze beginnt sich zu beschleunigen. Wir sind noch im positiven Anomaliebereich, aber die Werte sinken. Der Abwärtstrends beschleunigt sich."
+        "description": "Die Werte sinken. Die Veränderung wirkt noch graduell, bekommt aber Richtung."
     },
     "2000s": {
-      "title": "Die 2000er: Die Negative Wende",
-      "description": "Zum ersten Mal liegen alle Werte unter der alten Referenzlinie. Aus einer langsamen Verschiebung wird ein dauerhaftes Minus – der Abwärtstrend ist nicht mehr zu übersehen."
+        "title": "Die 2000er: Die Wende",
+        "description": "Die Kurve liegt nun deutlich unter der alten Referenz. Aus einer Verschiebung wird ein dauerhaftes Minus."
     },
     "2010s": {
       "title": "Die 2010er: Beschleunigung",
-      "description": "Der Abwärtstrend verschärft sich. Was früher noch unvorstellbar war, wird zur neuen Normalität. Die Werte liegen nun bei -0,75 Millionen km². Das Eis schmilzt schneller als je zuvor."
+        "description": "Der Rückgang verschärft sich. Werte deutlich unter der alten Referenz werden häufiger."
     },
     "2020s": {
-      "title": "Die 2020er: Freier Fall",
-      "description": "Das aktuelle Jahrzehnt liegt ganz unten. Im alten Jahrtausend hatten wir im Herbst noch positive Anomalien, nun sehen wir in diesem Zeitraum Negativrekorde.",
-      "acceleration": "Das Meereis befindet sich im freien Fall. Es gibt keine Anzeichen einer Stabilisierung. Ganz im Gegenteil. Das Meereis ist auf einem historischen Tiefstand."
+        "title": "Die 2020er: Ein tieferes Niveau",
+        "description": "Das aktuelle Jahrzehnt liegt am unteren Rand der Messreihe. Besonders im Spätsommer ist der Abstand zur alten Referenz groß.",
+      "acceleration": "Die Daten zeigen keine kurzfristige Erholung auf das frühere Niveau."
     }
   },
   "bridge": {
     "decades": "Jedes Jahrzehnt sank tiefer als das davor. Doch wie verhalten sich einzelne Jahre innerhalb dieser Zeit?"
   },
   "annual": {
-    "title": "Der Kipppunkt",
+    "title": "Unter dem Durchschnitt",
     "description": "Jeder Balken zeigt, wie weit das jeweilige Jahr über (blau) oder unter (rot) dem langfristigen Durchschnitt endete. Null markiert den Durchschnitt aller Jahre.",
-    "analysis": "Die 1980er und 1990er pendelten noch um die Norm. In den 2000er erreichen wir einen Kippunkt. Die 2010er und 2020er sind nur noch negativ.",
-    "conclusion": "Auch die einzelnen Jahre zeigen den gleichen Trend: Das Eis schmilzt schneller als je zuvor."
+    "analysis": "Die 1980er und 1990er pendelten noch um den Durchschnitt. Seit den 2000ern werden negative Jahre zur Regel statt zur Ausnahme.",
+    "conclusion": "Auch die einzelnen Jahre zeigen dieselbe Richtung: Die Referenzlinie hat sich nach unten verschoben."
   },
   "drivers": {
-    "intro": "Was treibt die Eisschmelze an? Wir haben sinkende Eisflächen und Rekordanomalien gesehen. Nun legen wir die Ursachen auf dieselbe Skala."
+    "intro": "Was treibt die Eisschmelze an? Wir haben sinkende Eisflächen und starke Anomalien gesehen. Nun legen wir CO₂, globale Temperatur und Arktistemperatur auf dieselbe Skala.",
+    "progressTitle": "Treiber der Erwärmung"
   },
   "connections": {
-    "title": "Die unnatürliche Erwärmung der Erde",
-    "description": "Drei Linien, eine Geschichte: CO₂-Konzentration in der Atmosphäre (grün) und globale Temperatur (blau) steigen seit Jahrzehnten an. Die Temperatur in der Arktis (rot) steigt sichtbar schneller als der globale Durchschnitt.",
-    "causation": " Mehr CO₂ bedeutet mehr Wärme, und die Arktis spürt dies zuerst und am stärksten.",
-    "conclusion": "Die Arktis ist das Frühwarnsystem unseres Planeten. Was dort passiert, betrifft uns alle."
+    "title": "Das Erwärmungssignal",
+    "description": "Drei Linien, eine Geschichte: Der weltweite CO₂-Ausstoß (grün) und die globale Temperatur (blau) steigen seit Jahrzehnten. Die Temperatur in der Arktis (rot) steigt sichtbar schneller als der globale Durchschnitt.",
+    "causation": "Der physikalische Zusammenhang ist gut belegt: Mehr Treibhausgase halten mehr Wärme zurück. In der Arktis wird diese Erwärmung besonders stark sichtbar.",
+    "conclusion": "Die Arktis ist ein Frühwarnsystem, weil regionale Veränderungen dort mit Wetter, Ozeanen und Klima anderswo verbunden sind."
   },
   "zscore": {
     "title": "Alles auf einer Skala",
     "description": "Wie vergleicht man CO₂-Werte mit Temperatur und Eisausdehnung?",
-    "method": "Man berechnet wie viele Standardabweichungen jeder Messwert vom historischen Durchschnitt entfernt liegt und setzt sie auf eine gemeinsame Skala. So werden Muster klar sichtbar.",
+    "method": "Dafür berechnet man, wie viele Standardabweichungen jeder Messwert vom eigenen historischen Durchschnitt entfernt liegt. So werden verschiedene Einheiten vergleichbar.",
     "mirror": {
       "title": "Das Spiegelbild",
-      "description": "Drehen wir die Meereisverluste um, erscheint etwas Erstaunliches: Der Anstieg von CO₂ und Temperatur spiegelt perfekt den Eisverlust wider.",
-      "conclusion": "Drei verschiedene Messgrößen, eine gemeinsame Geschichte. So sieht Klimawandel in Daten aus."
+      "description": "Dreht man die Meereisreihe um, wird der Vergleich leichter lesbar: steigende Wärme und sinkendes Eis bewegen sich gegeneinander.",
+      "conclusion": "Drei verschiedene Messgrößen werden dadurch nicht gleich. Sie werden auf derselben Skala lesbar."
     }
   },
   "2024": {
-    "title": "2024: Der dramatische Höhepunkt",
-    "description": "Während globale Temperaturen 2024 Rekorde brachen, stiegen die Temperaturen in der Arktis umso stärker.",
-    "warning": "Dieser enorme rote Balken ist nicht bloß eine Zahl sondern eine Warnung. Klimafolgen sind nicht gleichmäßig verteilt, sondern treffen die Arktis zuerst und besonders hart.",
-    "conclusion": "Doch das Schmelzen des Meereises hat Folgen für den gesamten Planeten und wird auch den Klimawandel weiter beschleunigen. Was in der Arktis geschieht, bleibt nicht in der Arktis."
+      "title": "{{year}}: Der jüngste Vergleich",
+      "progressTitle": "Jüngster Vergleich",
+      "description": "Im neuesten verfügbaren Jahr {{year}} liegt die arktische Temperaturanomalie deutlich über dem globalen Mittel.",
+      "warning": "Der rote Balken ist mehr als ein Messwert. Er zeigt, dass Erwärmung regional sehr unterschiedlich ausfällt.",
+      "conclusion": "Der Vergleich zeigt, wie stark globale Mittelwerte regionale Veränderungen verdecken können."
   }},
   "legal": {
     "info": "Rechtliche Informationen",
@@ -249,8 +334,8 @@
     "closeChat": "Chat schließen",
     "placeholder": "Frage zu grönländischen Legenden …",
     "send": "Senden",
-    "description": "Dieser KI-Chatbot wurde mit den ‚Eskimo Folk-Tales' trainiert – einer einzigartigen Sammlung grönländischer Legenden und Mythen, die der dänisch-grönländische Polarforscher Knud Rasmussen (1879-1933) während seiner legendären Thule-Expeditionen gesammelt hat.",
-    "aboutKnud": "Knud Rasmussen gilt als ‚Vater der Eskimologie' und unternahm zwischen 1912-1924 mehrere bahnbrechende Expeditionen durch die Arktis. Er sprach fließend Grönländisch und sammelte über 20.000 Seiten mündlicher Überlieferungen der Inuit – Geschichten über Geister, Schamanen, Jagd und das Leben in der Arktis.",
+    "description": "Dieser KI-Chatbot wurde mit den ‚Eskimo Folk-Tales' trainiert, einer einzigartigen Sammlung grönländischer Legenden und Mythen, die der dänisch-grönländische Polarforscher Knud Rasmussen (1879–1933) während seiner legendären Thule-Expeditionen gesammelt hat.",
+    "aboutKnud": "Knud Rasmussen gilt als ‚Vater der Eskimologie' und unternahm zwischen 1912-1924 mehrere bahnbrechende Expeditionen durch die Arktis. Er sprach fließend Grönländisch und sammelte über 20.000 Seiten mündlicher Überlieferungen der Inuit: Geschichten über Geister, Schamanen, Jagd und das Leben in der Arktis.",
     "folkTales": "Die ‚Eskimo Folk-Tales' enthalten Hunderte von Geschichten: vom großen Raben Tulugaq, der das Licht in die Welt brachte, bis hin zu Sedna, der Meeresgöttin. Diese Erzählungen gewähren einzigartige Einblicke in die spirituelle Welt der Inuit.",
     "aiNote": "Willkommen, Reisender. Frage mich nach spezifischen Legenden, Charakteren oder der Bedeutung arktischer Mythen!"
   },
@@ -258,13 +343,21 @@
     "sourcesMethodology": "Quellen & Methodik",
     "backToStory": "← Zurück zur Geschichte",
     "startConversation": "Gespräch beginnen",
+    "role": "Datenjournalismus, Code und visuelles Design.",
+    "rights": "© 2026 – Alle Rechte vorbehalten",
     "explorerSubtitle": "Entdecker • Geschichtenerzähler • Wegweiser",
     "contact": "Kontakt",
     "phone": "Tel.",
     "email": "E-Mail",
     "voicesButton": "Life on Thin Ice Studie",
     "measurementButton": "Computer Vision Pipeline",
-    "arcticButton": "Arktische Datenquellen"
+    "arcticButton": "Arktische Datenquellen",
+    "closing": {
+      "lead": "Ein Satellit sieht das Eis. Was es bedeutet, weiß er nicht.",
+      "body": "Die Menschen in Uummannaq leben mit dem, was sein Rückzug ihnen nimmt: Wege über den gefrorenen Fjord, verlässliche Zeiten, das Vertrauen, sich aufs Eis wagen zu können. Neun Jahre Satellitendaten und ein ganzes Menschenleben voller Erinnerung: Beide erzählen vom selben Wandel, auf je eigene Art.",
+      "question": "Wie es weitergeht, steht nicht fest. Was wir aus den Daten und aus den Erinnerungen machen, liegt an uns.",
+      "scrollCue": "Weiter unten: Quellen und ein Gespräch"
+    }
   },
   "beta": {
     "title": "Beta-Vorschau",
@@ -274,61 +367,212 @@
     "enter": "Start"
   },
   "charts": {
+      "ariaSummaries": {
+        "allYearsSeason": "Kleine Einzeldiagramme des täglichen Eisanteils je Uummannaq-Saison ab 2017; jüngere Saisons liegen im selben Zeitfenster (Februar bis Juni) niedriger.",
+        "memoryMeasurement": "Kalender-Heatmap der gemessenen Eistage je Uummannaq-Winter, Februar bis Juni; jüngere Winter zeigen weniger Eistage.",
+        "breakupTiming": "Streudiagramm des Tages, an dem das Eis jedes Uummannaq-Winters aufbrach, 2017 bis 2025; der Aufbruch erfolgt im Mittel rund elf Tage früher und deutlich unregelmäßiger.",
+        "earlyLateSeason": "Mittlerer Eisanteil 2017 bis 2020 (blau) über 2021 bis 2025 (rot) im Saisonverlauf; der jüngere Zeitraum liegt rund 11,9 Prozent niedriger.",
+        "seasonal": "Liniendiagramm der arktischen Meereisausdehnung je Jahr seit 1979; jüngere Jahre (rot) liegen unter älteren (blau), besonders am Wintermaximum und Spätsommerminimum.",
+        "dailyAnomaly": "Arktische Meereis-Anomalie nach Jahrzehnt; jedes Jahrzehnt liegt tiefer, von nahe dem Durchschnitt in den 1980ern bis deutlich darunter in den 2020ern.",
+        "annualAnomaly": "Jährliche Balken der arktischen Meereis-Anomalie; ab den 2000ern liegen die meisten Jahre unter dem langfristigen Durchschnitt.",
+        "multiLine": "Weltweiter CO₂-Ausstoß, globale Temperatur und Arktistemperatur steigen seit den 1980ern, die Arktistemperatur am schnellsten.",
+        "zScore": "CO₂, Temperatur und Meereis auf einer Skala standardisiert; steigendes CO₂ und steigende Temperatur verlaufen gegenläufig zum sinkenden Eis.",
+        "bar2024": "Balkendiagramm zum Vergleich der arktischen und globalen Temperaturanomalie im jüngsten Jahr; die arktische Anomalie ist weit größer."
+      },
       "allYearsSeason": {
-        "title": "Täglicher Eisanteil, jede Saison"
+        "title": "Der tägliche Eisanteil in jeder Saison",
+        "source": "Uummannaq-Daten bis zur jüngsten ausgewerteten Saison",
+        "emptyTitle": "Keine täglichen Uummannaq-Daten geladen",
+        "emptyBody": "Die Geschichte kann weiterlaufen, aber diese Grafik braucht die Antwort von /uummannaq."
+      },
+      "memoryMeasurement": {
+        "title": "Gemessene Eistage von Februar bis Juni",
+        "subtitle": "Jede Zeile ist eine Saison in Uummannaq. Dunkle Felder zeigen offenes Wasser, blaue Felder Eis.",
+        "axisLabel": "Februar bis Juni, Tag für Tag",
+        "source": "Uummannaq-Daten bis {{year}}",
+        "sourceFallback": "Sentinel-2-Messreihe Uummannaq",
+        "contextSource": "Life on Thin Ice",
+        "metricLabel": "Jüngerer Zeitraum",
+        "metricDetail": "Mittlere Veränderung im Vergleichszeitraum",
+        "emptyTitle": "Keine lokale Tagesreihe",
+        "emptyBody": "Für diesen Vergleich braucht die Grafik tägliche Eisanteile im Fjord.",
+        "caveatTitle": "Lokales Signal, lokaler Kontext",
+        "caveatBody": "Die Grafik misst Eisbedeckung. Sie misst nicht alle Gründe, warum Eis im Alltag nutzbar ist oder nicht.",
+        "legend": {
+          "iceScale": "Eisanteil",
+          "low": "0 %",
+          "mid": "50 %",
+          "high": "100 %",
+          "estimated": "aus Nachbartagen geschätzt",
+          "missing": "keine auswertbare Szene / Lücke"
+        },
+        "status": {
+          "measured": "Pipeline-Tageswert",
+          "estimated": "Aus den Nachbartagen geschätzt",
+          "missing": "Keine auswertbare Szene"
+        },
+        "tooltip": {
+          "iceFraction": "Eisanteil",
+          "noValue": "kein Wert"
+        }
+      },
+      "pixelInspector": {
+        "source": "Beispielszene aus Sentinel-2",
+        "originalSource": "Sentinel-2",
+        "methodSource": "Pipeline und Methode",
+        "kicker": "Messpipeline",
+        "title": "Wie aus einer Szene ein Wert wird",
+        "body": "Später zeigt die Grafik einen Wert pro Tag. Hier entsteht er: Pixel werden klassifiziert, daraus wird ein Eisanteil für die Szene.",
+        "rawAlt": "Rohes Sentinel-2-Winterbild bei Uummannaq",
+        "maskAlt": "Computer-Vision-Maske für Meereis",
+        "rawOnly": "Nur das Rohbild",
+        "calloutRaw": "Noch ist es ein Bild. Heller Schnee, Eis, Wolken und Schatten können ähnlich aussehen.",
+        "calloutMask": "Das farbige Overlay zeigt, wie das Modell dieselbe Aufnahme liest.",
+        "calloutOutput": "Aus vielen solchen Tageswerten entsteht die Messreihe, die gleich in der Tabelle sichtbar wird.",
+        "metricLabel": "Ergebnis",
+        "metricValue": "Eisanteil",
+        "metricDetail": "Dieselbe Berechnung wird für jede brauchbare Szene wiederholt.",
+        "samples": {
+          "ice": {
+            "title": "festes Eis",
+            "body": "Helle, zusammenhängende Flächen zählen als Eis, wenn das spektrale Signal passt."
+          },
+          "thinIce": {
+            "title": "dünnes oder nasses Eis",
+            "body": "Gemischte Flächen liegen zwischen Eis und Wasser und sind unsicherer."
+          },
+          "water": {
+            "title": "offenes Wasser",
+            "body": "Dunkle Flächen werden als Wasser gelesen, nachdem Land und Wolken entfernt wurden."
+          }
+        }
       },
       "dailyAnomaly": {
-        "title": "Arktische Meereis-Anomalie (in Millionen km²) über die Jahrzehnte",
-        "yAxisLabel": "Anomalie (10⁶ km²)"
+        "title": "Arktische Meereis-Anomalie nach Jahrzehnten",
+        "yAxisLabel": "Anomalie (10⁶ km²)",
+        "source": "NOAA, tägliche arktische Meereisausdehnung",
+        "zeroLine": "langfristiger Durchschnitt",
+        "emptyTitle": "Keine Dekaden-Anomalien",
+        "emptyBody": "Diese Grafik braucht die Dekadenreihe aus /data."
       },
       "earlyLateSeason": {
-        "earlyTitle": "2017-20 Meereis (Mittelwert)",
-        "lateTitle": "2021-25 Meereis (Mittelwert)",
+        "earlyTitle": "Meereis 2017–20 (Mittelwert)",
+        "lateTitle": "Meereis 2021–25 (Mittelwert)",
         "lessIce": "weniger Eisbedeckung",
         "iqrSuffix": " IQR",
-        "meanSuffix": " Mittelwert"
+        "meanSuffix": " Mittelwert",
+        "source": "Vergleichszeitraum Uummannaq",
+        "bandHint": "Die Bänder zeigen die mittlere Streuung des jeweiligen Zeitraums.",
+        "emptyTitle": "Keine Daten für den Früh-/Spätvergleich",
+        "emptyBody": "Der Vergleich braucht saisonale Zusammenfassungen aus /uummannaq."
       },
       "seasonal": {
-        "title": "Arktische Meereisausdehnung (Millionen km²)",
+        "title": "Arktische Meereisausdehnung",
         "xAxisLabel": "Monat",
-        "yAxisLabel": "Meereisausdehnung",
-        "recordLow": "Rekordtief"
+        "yAxisLabel": "Ausdehnung (Mio. km²)",
+        "recordLow": "Rekordtief",
+        "source": "NOAA/NSIDC-Reihe bis {{year}}",
+        "emptyTitle": "Keine arktische Meereisreihe",
+        "emptyBody": "Diese Grafik braucht tägliche arktische Meereisdaten aus /data.",
+        "callouts": {
+          "all": {
+            "title": "So liest man die Grafik",
+            "body": "Jede Linie ist ein Jahr. Das Linienbündel zeigt den saisonalen Rhythmus."
+          },
+          "both": {
+            "title": "So liest man die Grafik",
+            "body": "Ältere und jüngere Jahre bleiben sichtbar, damit sich die Verschiebung vergleichen lässt."
+          },
+          "first": {
+            "title": "Frühere Jahre",
+            "body": "Die erste Hälfte der Reihe liegt über weite Teile des Jahres höher."
+          },
+          "early": {
+            "title": "Frühere Jahre",
+            "body": "Die erste Hälfte der Reihe liegt über weite Teile des Jahres höher."
+          },
+          "second": {
+            "title": "Jüngere Jahre",
+            "body": "Die jüngeren Jahre liegen tiefer, besonders nahe den saisonalen Extrempunkten."
+          },
+          "late": {
+            "title": "Jüngere Jahre",
+            "body": "Die jüngeren Jahre liegen tiefer, besonders nahe den saisonalen Extrempunkten."
+          },
+          "current": {
+            "title": "Jüngstes Jahr",
+            "body": "Ein einzelnes Jahr wird aussagekräftig, wenn man es gegen die ganze Messreihe liest."
+          }
+        }
       },
       "annualAnomaly": {
-        "title": "Jährliche arktische Meereis-Anomalie (in Millionen km²) im Vergleich zum langfristigen Durchschnitt",
+        "title": "Jährliche arktische Meereis-Anomalie",
         "noData": "Keine Anomaliedaten gefunden.",
-        "anomaly": "Anomalie"
+        "emptyBody": "Diese Grafik braucht jährliche Anomalien aus /data.",
+        "anomaly": "Anomalie",
+        "source": "NOAA, arktische Meereisausdehnung",
+        "zeroLine": "Durchschnitt"
       },
       "multiLine": {
-        "title": "Vergleich von atmosphärischem CO₂ mit globaler und arktischer Temperatur",
+        "title": "CO₂, globale Temperatur, Arktistemperatur",
         "tempAxisLabel": "Temp.-Anomalie (°C)",
         "co2AxisLabel": "CO₂ (Gt)",
         "yearPrefix": "Jahr: ",
         "arctic": "Arktis",
         "global": "Global",
-        "co2": "CO₂"
+        "co2": "CO₂",
+        "source": "NASA GISS / OWID",
+        "emptyTitle": "Keine Treiberdaten",
+        "emptyBody": "Diese Grafik braucht jährliche Temperatur- und CO₂-Daten aus /data."
       },
       "zScore": {
-        "title": "Vergleich von atmosphärischem CO₂-Ausstoß mit arktischer Meereisausdehnung und arktischer Temperatur",
-        "arcticTemp": "Arktische Temp. (z)",
+        "title": "CO₂, Temperatur und Meereis auf einer Skala",
+        "arcticTemp": "Arktistemperatur (z)",
         "seaIce": "Meereis (z)",
-        "seaIceInv": "Meereis (inv., z)",
-        "co2": "CO₂ (z)"
+        "seaIceInv": "Meereisverlust (z)",
+        "co2": "CO₂ (z)",
+        "source": "Standardisierte Jahresreihen",
+        "emptyTitle": "Keine standardisierten Daten",
+        "emptyBody": "Diese Grafik braucht jährliche Z-Score-Felder aus /data.",
+        "calloutRawTitle": "Eine gemeinsame Skala",
+        "calloutRawBody": "Z-Werte zeigen, wie weit jede Reihe von ihrem eigenen Durchschnitt entfernt ist.",
+        "calloutInvertedTitle": "Meereisverlust gespiegelt",
+        "calloutInvertedBody": "Gedreht lässt sich der Zusammenhang leichter lesen: mehr Wärme, weniger Eis."
       },
       "bar2024": {
-        "title": "Vergleich der arktischen Temperaturanomalie und der mittleren globalen Temperaturanomalie im Jahr 2024",
-        "noData": "Keine 2024-Daten für Arktis/Global gefunden.",
+        "title": "Arktische und globale Temperaturanomalie {{year}}",
+        "noData": "Keine auswertbaren Daten für Arktis und globales Mittel gefunden.",
         "arctic": "Arktis",
         "global": "Global",
         "meanAnomaly": "Mittlere Anomalie"
       },
       "meanIceFraction": {
-        "title": "Durchschnittlicher Meereis-Anteil Trend:",
-        "perYear": "% pro Jahr",
-        "yAxisLabel": "eisbedeckte Fläche in",
+        "title": "Jährlicher mittlerer Eisanteil",
+        "perYear": "% über die Messreihe",
+        "yAxisLabel": "eisbedeckte Fläche",
         "yearPrefix": "Jahr ",
         "yearMean": "Jahresmittel",
-        "trend": "Trend"
+        "trend": "Trend",
+        "source": "Uummannaq-Jahresmittel",
+        "emptyTitle": "Keine jährlichen Fjorddaten",
+        "emptyBody": "Der Trend braucht jährliche Mittelwerte aus /uummannaq.",
+        "calloutTitle": "Als Richtung lesen",
+        "calloutBody": "Der Trend beschreibt die gemessene Reihe. Er ist keine feste Prognose."
+      },
+      "breakupTiming": {
+        "title": "Wann das Eis aufbrach, Jahr für Jahr",
+        "source": "Sentinel-2-Auswertung Uummannaq",
+        "breakupLabel": "Aufbruch",
+        "earlyLabel": "Mittel 2017–20",
+        "lateLabel": "Mittel 2021–25",
+        "daysEarlier": "Tage früher",
+        "memoryNote": "laut Erinnerung, eine Generation zuvor",
+        "shiftMetricLabel": "Jüngerer Zeitraum",
+        "shiftMetricDetail": "Mittlerer Aufbruch gegenüber 2017–2020",
+        "spreadMetricLabel": "Jüngere Spanne",
+        "spreadMetricDetail": "Frühester bis spätester Aufbruch, 2021–2025",
+        "emptyTitle": "Keine Aufbruch-Daten",
+        "emptyBody": "Diese Ansicht braucht jährliche Aufbruchtage aus /uummannaq."
       }
     },
   "common": {
@@ -339,6 +583,8 @@
     "dayOfYear": "Tag des Jahres",
     "day": "Tag",
     "openSource": "Originalquelle öffnen",
+    "jumpTo": "Zu „{{title}}“ springen",
+    "scrollCue": "Weiterscrollen",
   "close": "Schließen"
 }
 }

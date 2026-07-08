@@ -119,6 +119,8 @@ NEXT_PUBLIC_MAPTILER_KEY=your-key
 ```ini
 # backend/.env
 DATABASE_URL=postgresql://user:pass@localhost:5432/climate
+# Optional when connecting from your laptop to Railway Postgres:
+# DATABASE_PUBLIC_URL=postgresql://...@yamabiko.proxy.rlwy.net:24663/railway?sslmode=require
 OPENAI_API_KEY=sk-...
 ```
 
@@ -137,6 +139,13 @@ yarn dev
 ```
 
 The story is now available at [http://localhost:3000/de](http://localhost:3000/de) or `/en`.
+
+Debugging local data source:
+
+- `GET /api/data` and `GET /api/uummannaq` now forward backend headers so you can inspect whether data came from PostgreSQL or the JSON fallback:
+  - `x-climate-data-source`: `database` or `json-fallback`
+  - `x-climate-db-status`: `ok`, `error`, or `not-configured`
+- Railway internal DB hostnames (`*.railway.internal`) only work inside Railway services. Use `DATABASE_PUBLIC_URL` from the Postgres plugin for local DB access.
 
 ### 4. Optional: execute the pipelines locally
 

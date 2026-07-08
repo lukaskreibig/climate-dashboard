@@ -16,6 +16,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 import { SnowApi } from "@/components/ArcticBackgroundSystem";
+import { prefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ===== tweakables =========================================== */
 const CHART_PARALLAX = 0.12;
@@ -28,8 +29,10 @@ const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /* ---------- TYPES ------------------------------------------- */
+type CaptionContent = React.ReactNode | ((data: any) => React.ReactNode);
+
 export interface CaptionCfg {
-  html: React.ReactNode;
+  html: CaptionContent;
   captionSide?: "left" | "right";
   boxClass?: string;
   at?: number;
@@ -42,6 +45,10 @@ export interface CaptionCfg {
 
 export interface SceneCfg {
   key: string;
+  progressTitle?: string;
+  /** small editorial chapter label rendered above the first caption's title,
+   *  e.g. "Die Messung" — orients the reader inside the story's acts */
+  kicker?: string;
   chart: (d: any, api: MutableRefObject<any>) => React.ReactElement;
   axesSel: string;
   helperSel?: string;
@@ -60,6 +67,10 @@ export interface SceneCfg {
   slideUp?: boolean;
   fadeIn?: boolean;
   fadeOut?: boolean;
+  /** match-cut: scale to fade IN from (e.g. 1.12 = resolve from a zoom) */
+  matchCutIn?: number;
+  /** match-cut: scale to fade OUT to (e.g. 1.18 = zoom into the image) */
+  matchCutOut?: number;
   bgClass?: string;
   bgColor?: string;
   progressPoint?: boolean;
@@ -68,6 +79,9 @@ export interface SceneCfg {
   snow?: boolean;
   /** pre-mount chart this many pixels before the scene enters view */
   prefetchMarginPx?: number;
+  /** show a pulsing "keep scrolling" hint while the scene is pinned —
+   *  for scenes whose visual holds still between caption beats */
+  scrollCue?: string;
 }
 
 export const NO_MATCH = "*:not(*)";
@@ -81,20 +95,25 @@ const waitFor = (root: HTMLElement, sel: string) =>
     loop();
   });
 
-const useIsCompact = () => {
-  const [compact, setCompact] = useState(false);
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false);
 
   useIsomorphicLayoutEffect(() => {
     if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const handler = (event: MediaQueryListEvent) => setCompact(event.matches);
-    setCompact(mq.matches);
+    const mq = window.matchMedia(query);
+    const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
+    setMatches(mq.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, []);
+  }, [query]);
 
-  return compact;
+  return matches;
 };
+
+const useIsCompact = () => useMediaQuery("(max-width: 1023px)");
+/** height-constrained (landscape phones, split windows) — captions may need
+ *  a scroll guard so they don't clip off the top/bottom. */
+const useIsShort = () => useMediaQuery("(max-height: 620px)");
 
 /* ============================================================ */
 interface Props {
@@ -108,10 +127,15 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const sec = useRef<HTMLElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
+  const fitWrap = useRef<HTMLDivElement>(null);
   const api = useRef<any>(null);
+  /* stack-layout: uniform down-scale so a chart never overflows into the
+     caption on short/narrow viewports. 1 = no scaling (desktop side-by-side). */
+  const [fit, setFit] = useState<{ scale: number; height: number }>({ scale: 1, height: 0 });
   const [mounted, setMounted] = useState(false);
   const hasMounted = useRef(false);
   const isCompact = useIsCompact();
+  const isShort = useIsShort();
   const [needsStack, setNeedsStack] = useState(false);
   const [chartMaxWidth, setChartMaxWidth] = useState(() => MAX_CHART_WIDTH);
   const [layoutBounds, setLayoutBounds] = useState(() => ({
@@ -119,8 +143,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     maxCaptionWidth: 0,
     availableWidth: MAX_CHART_WIDTH,
   }));
-  const baseStack = isCompact || needsStack;
-  const stackLayout = cfg.chartSide === "fullscreen" ? false : baseStack;
+  const stackLayout = cfg.chartSide === "fullscreen" ? false : isCompact;
 
   const fadeIn = !!cfg.fadeIn;
   const fadeOut = !!cfg.fadeOut;
@@ -169,7 +192,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       const gutterRaw = style.getPropertyValue("--progress-gutter");
       const gutter = gutterRaw ? parseFloat(gutterRaw) || 0 : 0;
       const safetyGap = Math.max(160, wrapWidth * 0.08);
-      const availableForChart = wrapWidth - (maxCaptionWidth + gutter + safetyGap);
+      const sideReserve = Math.max(120, wrapWidth * 0.08);
+      const availableForChart = wrapWidth - (
+        maxCaptionWidth + gutter + safetyGap + sideReserve
+      );
       const shouldStack = availableForChart < MIN_CHART_WIDTH * 0.8;
 
       if (shouldStack) {
@@ -229,18 +255,73 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     };
   }, [cfg.captions.length]);
 
+  /* ─────────── stack-layout fit-to-viewport scaling ─────────────
+     In stacked (narrow/short) layouts the pinned chart sits above the
+     caption. Charts have varying natural heights (fixed-height Recharts, or
+     small-multiples grids that reflow taller as columns drop). Measure the
+     chart's natural height and the space left above the caption, then apply a
+     uniform down-scale so it always fits with clean separation. Desktop
+     side-by-side layouts skip this entirely (scale stays 1). */
+  useLayoutEffect(() => {
+    if (!stackLayout) {
+      setFit((prev) => (prev.scale === 1 && prev.height === 0 ? prev : { scale: 1, height: 0 }));
+      return;
+    }
+    if (!fitWrap.current || !sec.current) return;
+
+    const compute = () => {
+      const fw = fitWrap.current;
+      const section = sec.current;
+      if (!fw || !section) return;
+
+      const vh = window.innerHeight;
+      const naturalH = fw.scrollHeight;
+      if (naturalH <= 0) return;
+
+      const captionNodes = Array.from(
+        section.querySelectorAll<HTMLElement>("[data-cap-idx] .caption-box"),
+      );
+      // actual rendered caption box (incl. padding); it is itself capped at 38vh.
+      const captionH = captionNodes.reduce((m, el) => Math.max(m, el.offsetHeight), 0);
+      // caption bottom padding is clamp(5.5rem, 12vh, 7rem) — at short viewports the
+      // 5.5rem (88px) floor dominates, so 0.12·vh underestimates it badly.
+      const pb = Math.min(112, Math.max(88, vh * 0.12));
+      const topPad = Math.min(Math.max(vh * 0.04, 16), 40);
+      const availH = Math.max(vh * 0.22, vh - captionH - pb - topPad - 14);
+
+      const scale = Math.min(1, availH / naturalH);
+      const height = scale < 1 ? Math.round(naturalH * scale) : 0;
+      setFit((prev) =>
+        Math.abs(prev.scale - scale) > 0.01 || Math.abs(prev.height - height) > 1
+          ? { scale, height }
+          : prev,
+      );
+    };
+
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(fitWrap.current);
+    sec.current
+      .querySelectorAll<HTMLElement>("[data-cap-idx] .caption-box")
+      .forEach((el) => ro.observe(el));
+    window.addEventListener("resize", compute);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, [stackLayout, mounted, cfg.captions.length]);
+
   /* ─────────────────── prefetch / pre-mount ───────────────────── */
   useEffect(() => {
-    if (!cfg.prefetchMarginPx) return;
     if (hasMounted.current) return;
     if (!sec.current) return;
+    const prefetchMarginPx = cfg.prefetchMarginPx ?? 1600;
 
     if (typeof IntersectionObserver === "undefined") {
       ensureMounted();
       return;
     }
 
-    const margin = cfg.prefetchMarginPx;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -251,7 +332,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         });
       },
       {
-        rootMargin: `${margin}px 0px ${margin}px 0px`,
+        rootMargin: `${prefetchMarginPx}px 0px ${prefetchMarginPx}px 0px`,
         threshold: 0,
       }
     );
@@ -287,16 +368,25 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     if (!sec.current || !wrap.current || !box.current) return;
 
     const ctx = gsap.context((context) => {
+      const reduce = prefersReducedMotion();
       /* ---------- hide other chart layers ------------------- */
       const hideOthers = () =>
         document.querySelectorAll<HTMLDivElement>(".chart-layer").forEach(
           (el) => {
-            if (!wrap.current || el !== wrap.current) el.style.visibility = "hidden";
+            if (!wrap.current || el !== wrap.current) {
+              el.style.visibility = "hidden";
+              el.style.opacity = "0";
+              el.style.pointerEvents = "none";
+            }
           }
         );
 
       if (!wrap.current) return;
-      gsap.set(wrap.current, { opacity: 1, xPercent: 0, visibility: "hidden" });
+      gsap.set(wrap.current, {
+        autoAlpha: 0,
+        pointerEvents: "none",
+        xPercent: 0,
+      });
 
       ScrollTrigger.create({
         trigger: sec.current,
@@ -308,6 +398,8 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
+          wrapEl.style.pointerEvents = "auto";
+          gsap.to(wrapEl, { opacity: 1, duration: 0.3, ease: "power1.out", overwrite: "auto" });
           api.current?.showStage?.(0);
         },
         onEnterBack: () => {
@@ -316,13 +408,23 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           hideOthers();
           ensureMounted();
           wrapEl.style.visibility = "visible";
+          wrapEl.style.pointerEvents = "auto";
+          gsap.to(wrapEl, { opacity: 1, duration: 0.3, ease: "power1.out", overwrite: "auto" });
           api.current?.showStage?.(0);
         },
         onLeave: () => {
-          if (wrap.current) wrap.current.style.visibility = "hidden";
+          if (wrap.current) {
+            wrap.current.style.visibility = "hidden";
+            wrap.current.style.opacity = "0";
+            wrap.current.style.pointerEvents = "none";
+          }
         },
         onLeaveBack: () => {
-          if (wrap.current) wrap.current.style.visibility = "hidden";
+          if (wrap.current) {
+            wrap.current.style.visibility = "hidden";
+            wrap.current.style.opacity = "0";
+            wrap.current.style.pointerEvents = "none";
+          }
         },
       });
 
@@ -342,11 +444,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         `bottom+=${extraScreens * window.innerHeight} top`;
 
       if (fadeIn) {
+        const fromScale = reduce ? 1 : cfg.matchCutIn ?? 1;
         gsap.fromTo(
           box.current,
-          { opacity: 0 },
+          { opacity: 0, scale: fromScale },
           {
             opacity: 1,
+            scale: 1,
             ease: "none",
             scrollTrigger: {
               trigger: firstCap,
@@ -357,7 +461,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           }
         );
         gsap.set(box.current, { yPercent: 0 });
-      } else if (slideIn) {
+      } else if (slideIn && !reduce) {
         gsap.fromTo(
           box.current,
           { yPercent: 150 },
@@ -376,7 +480,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         gsap.set(box.current, { yPercent: 0 });
       }
 
-      if (cfg.parallax !== false && CHART_PARALLAX && box.current) {
+      if (!reduce && !stackLayout && cfg.parallax !== false && CHART_PARALLAX && box.current) {
         gsap.fromTo(
           box.current,
           { y: () => window.innerHeight * CHART_PARALLAX },
@@ -394,11 +498,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       }
 
       if (fadeOut) {
+        const toScale = reduce ? 1 : cfg.matchCutOut ?? 1;
         gsap.fromTo(
           box.current,
-          { opacity: 1 },
+          { opacity: 1, scale: 1 },
           {
             opacity: 0,
+            scale: toScale,
             ease: "none",
             scrollTrigger: {
               trigger: lastCap,
@@ -408,12 +514,13 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
             },
           }
         );
-      } else if (slideUp) {
+      } else if (slideUp && !reduce) {
         gsap.fromTo(
           box.current,
-          { yPercent: 0 },
+          { yPercent: 0, opacity: 1 },
           {
-            yPercent: -120,
+            yPercent: -60,
+            opacity: 0,
             ease: "none",
             scrollTrigger: {
               trigger: lastCap,
@@ -425,7 +532,22 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         );
       }
 
-      /* ---------- axes / helper fades ----------------------- */
+      /* ---------- scroll cue: fade once the last caption arrives ---- */
+      if (cfg.scrollCue) {
+        const cue = wrap.current?.querySelector<HTMLElement>("[data-scroll-cue]");
+        const lastCapEl = sectionEl.querySelector<HTMLElement>(
+          `[data-cap-idx="${cfg.captions.length - 1}"]`
+        );
+        if (cue && lastCapEl) {
+          ScrollTrigger.create({
+            trigger: lastCapEl,
+            start: "top 80%",
+            onEnter: () => gsap.to(cue, { opacity: 0, duration: 0.4 }),
+            onLeaveBack: () => gsap.to(cue, { opacity: 1, duration: 0.4 }),
+          });
+        }
+      }
+
       /* ---------- axes / helper fades ----------------------- */
 (async () => {
   const wrapEl = wrap.current;
@@ -492,14 +614,31 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   if (helperEls.length) bind(helperEls, helpIn,  helpOut);
 
   /* evtl. benutzerdefinierte Aktionen der Szene -------------- */
+  const callActionWhenReady = (action: { call: (api?: any) => void }) => {
+    ensureMounted();
+    const startedAt = performance.now();
+
+    const run = () => {
+      if (api.current) {
+        action.call(api.current);
+        return;
+      }
+      if (performance.now() - startedAt < 5000) {
+        requestAnimationFrame(run);
+      }
+    };
+
+    run();
+  };
+
   cfg.actions?.forEach(a => {
     const trg = capEl(clamp(a.captionIdx));
     if (!trg) return;
     ScrollTrigger.create({
       trigger : trg,
       start   : "top 90%",
-      onEnter      : () => a.call(api.current),
-      onEnterBack  : () => a.call(api.current),
+      onEnter      : () => callActionWhenReady(a),
+      onEnterBack  : () => callActionWhenReady(a),
     });
   });
     })();
@@ -599,7 +738,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         ) => {
           if (!box.current) return 0;
           let target = pxShift(direction, captionEl);
-          const immediate = opts?.immediate ?? false;
+          const immediate = (opts?.immediate ?? false) || reduce;
 
           if (wrap.current) {
             const prevShift = lastShift;
@@ -615,7 +754,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
             const captionRect = captionEl?.getBoundingClientRect();
             let safeLeft = wrapRect.left + Math.max(96, CAPTION_MARGIN * 3);
             let safeRight =
-              wrapRect.right - Math.max(gutter + CAPTION_MARGIN * 3.5, 180);
+              wrapRect.right - Math.max(gutter + CAPTION_MARGIN * 3.5 + 24, 180);
             const captionBuffer = bufferBase;
 
             if (direction === "left" && captionRect) {
@@ -691,7 +830,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         cfg.captions.forEach((c, i) => {
           if (!c.captionSide || explicit) return;
           const desired = c.captionSide === "left" ? "right" : "left";
-          if (desired === current) return;
           const trg = sec
             .current?.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`);
           if (!trg) return;
@@ -720,21 +858,29 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         const el = sec
           .current?.querySelector<HTMLElement>(`[data-cap-idx="${i}"] .caption-box`);
         if (!el) return;
+        if (reduce) {
+          gsap.set(el, { opacity: 1, x: 0, y: 0 });
+          return;
+        }
         const fromX =
-          c.captionSide === "left"
-            ? "-4rem"
+          stackLayout
+            ? "0rem"
+            : c.captionSide === "left"
+            ? "-1.25rem"
             : c.captionSide === "right"
-            ? "4rem"
+            ? "1.25rem"
             : "0rem";
         const fracIn = (c.at ?? i * 0.05) - 1;
         const fracOut = (c.out ?? 1.01) - 1;
         gsap.fromTo(
           el,
-          { opacity: 0, x: fromX, y: "4rem" },
+          // focus-pull entrance: captions resolve from a soft blur as they rise
+          { opacity: 0, x: fromX, y: "4rem", filter: "blur(6px)" },
           {
             opacity: 1,
             x: 0,
             y: 0,
+            filter: "blur(0px)",
             ease: "power2.out",
             scrollTrigger: {
               trigger: sec.current,
@@ -772,7 +918,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         };
 
   const capFlex = (s?: "left" | "right") => {
-    if (stackLayout) return "items-start justify-center px-4";
+    if (stackLayout) return "items-end justify-center px-4 pb-[clamp(5.5rem,12vh,7rem)]";
     return s === "left"
       ? "items-end justify-start pl-[clamp(2.5rem,7vw,8rem)] pr-[clamp(1.5rem,5vw,4rem)]"
       : s === "right"
@@ -790,8 +936,16 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       };
     }
 
+    // guard: on height-constrained viewports a tall centered caption can clip
+    // off the top — cap it and let it scroll. Only when short, because
+    // overflow on a flex child forces min-width:0 and would clip wide words.
+    const shortGuard: React.CSSProperties = isShort
+      ? { maxHeight: "86vh", overflowY: "auto" }
+      : {};
+
     if (!side) {
       return {
+        ...shortGuard,
         maxWidth: cfg.wide ? "min(48rem, 85vw)" : "min(36rem, 78vw)",
         margin: "0 auto",
       };
@@ -799,44 +953,81 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
     if (side === "right") {
       return {
+        ...shortGuard,
         maxWidth: "clamp(260px, 32vw, 420px)",
         marginLeft: "clamp(3.5rem, 7vw, 9rem)",
       };
     }
 
     return {
+      ...shortGuard,
       maxWidth: "clamp(260px, 32vw, 420px)",
       marginRight: "clamp(3.5rem, 7vw, 10.5rem)",
     };
   };
+
+  const resolveCaptionContent = (content: CaptionContent) =>
+    typeof content === "function" ? content(globalData) : content;
+
+  const titleContent = resolveCaptionContent(cfg.captions[0]?.html);
+  const progressTitle =
+    cfg.progressTitle ??
+    (titleContent as any)?.props?.children?.[0]?.props?.children ??
+    cfg.key;
   /* ---------- render --------------------------------------- */
   return (
     <section
       ref={sec}
-      className={`relative ${cfg.bgClass ?? ""}`}
+      className={`relative overflow-x-hidden ${cfg.bgClass ?? ""}`}
       style={cfg.bgColor ? { background: cfg.bgColor } : undefined}
       data-scene={cfg.key}
       data-progress={cfg.progressPoint ? "true" : undefined}
       data-title={
-        (cfg.captions[0]?.html as any)?.props?.children?.[0]?.props?.children ??
-        cfg.key
+        progressTitle
       }
     >
       {/* sticky chart layer */}
       <div
         ref={wrap}
-        className={`chart-layer fixed inset-0 flex z-10 ${
-          stackLayout ? "items-start justify-center pt-[min(12vh,5rem)]" : "items-center justify-center"
+        className={`chart-layer fixed inset-0 flex z-10 invisible opacity-0 pointer-events-none ${
+          stackLayout ? "items-start justify-center pt-[clamp(1rem,4vh,2.5rem)]" : "items-center justify-center"
         }`}
       >
-        <div ref={box} className={chartW} style={chartStyle}>
-          {mounted ? cfg.chart(globalData, api) : <div className="w-full h-full" />}
+        <div
+          ref={box}
+          className={chartW}
+          style={{
+            ...chartStyle,
+            ...(stackLayout && fit.height > 0 ? { height: `${fit.height}px`, overflow: "hidden" } : {}),
+          }}
+        >
+          <div
+            ref={fitWrap}
+            /* height:100% keeps the sizing chain intact for fullscreen scenes
+               (maps/globe use h-full and would collapse to 0 otherwise) */
+            style={
+              stackLayout && fit.scale < 1
+                ? { transform: `scale(${fit.scale})`, transformOrigin: "top center", width: "100%" }
+                : { width: "100%", height: "100%" }
+            }
+          >
+            {mounted ? cfg.chart(globalData, api) : <div className="w-full h-full" />}
+          </div>
         </div>
+
+        {cfg.scrollCue && (
+          <div data-scroll-cue className="scroll-cue" aria-hidden="true">
+            <span className="scroll-cue-label">{cfg.scrollCue}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* captions */}
       {cfg.captions.map((c, i) => {
-        const content = c.html;
+        const content = resolveCaptionContent(c.html);
         const empty = (() => {
           if (content === null || content === undefined) return true;
           if (!React.isValidElement(content)) return false;
@@ -844,13 +1035,16 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           return React.Children.count(props.children ?? null) === 0;
         })();
 
+        /* editorial glass: frosted card with hairline ring + soft layered
+           shadow — reads as one coherent, contemporary voice over photos,
+           maps and charts alike. */
         const defaultBoxClass = cfg.plainCaptions
           ? `caption-box ${
               cfg.wide ? "max-w-3xl lg:max-w-4xl" : "max-w-md"
             } px-4 ${capText(c.captionSide)} text-slate-900 drop-shadow-lg`
           : `caption-box ${
               cfg.wide ? "max-w-3xl lg:max-w-4xl" : "max-w-md"
-            } p-6 bg-white/90 rounded-lg shadow-lg ${capText(
+            } p-6 sm:p-7 bg-white/80 backdrop-blur-xl supports-[not(backdrop-filter:blur(0))]:bg-white/95 rounded-2xl ring-1 ring-white/60 shadow-[0_8px_40px_rgba(2,6,23,0.18),0_1px_2px_rgba(2,6,23,0.08)] ${capText(
               c.captionSide
             )} text-slate-900`;
 
@@ -859,10 +1053,11 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           c.boxClass,
           capText(c.captionSide),
           "w-full max-w-xl sm:max-w-2xl",
-          "p-5 sm:p-6 lg:p-7",
-          "bg-white/95 backdrop-blur-lg",
-          "rounded-2xl shadow-2xl ring-1 ring-white/50",
-          "text-slate-900"
+          "max-h-[38vh] overflow-y-auto p-4 sm:p-5",
+          "bg-white/85 backdrop-blur-xl supports-[not(backdrop-filter:blur(0))]:bg-white",
+          "rounded-2xl shadow-[0_8px_40px_rgba(2,6,23,0.22)] ring-1 ring-white/60",
+          "text-slate-900",
+          "[&_h3]:text-xl [&_p]:text-base [&_p]:leading-relaxed"
         ]
           .filter(Boolean)
           .join(" ");
@@ -890,7 +1085,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
               className={`pointer-events-auto ${finalClass}`}
               style={captionStyle(c.captionSide)}
             >
-              {c.html}
+              {!empty && i === 0 && cfg.kicker && (
+                <p className="caption-kicker">{cfg.kicker}</p>
+              )}
+              {content}
             </div>
           </div>
         );
