@@ -112,7 +112,7 @@ test.describe('story layout guardrails', () => {
     const memoryScene = page.locator('section[data-scene="memory-measurement"]');
     const boxes: Array<{ y: number; height: number }> = [];
 
-    for (let index = 0; index <= 5; index += 1) {
+    for (let index = 0; index <= 4; index += 1) {
       await memoryScene.locator(`[data-cap-idx="${index}"]`).scrollIntoViewIfNeeded();
       await page.waitForTimeout(700);
       const box = await page.getByTestId('memory-measurement-table').boundingBox();

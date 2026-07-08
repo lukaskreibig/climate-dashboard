@@ -44,7 +44,7 @@ export default function AnnualAnomalyBarChartRecharts({ data }: Props) {
         {t('charts.annualAnomaly.title')}
       </div>
       <div className="absolute right-2 top-0 z-10">
-        <ChartSourceBadge href="https://www.ncei.noaa.gov/access/monitoring/seaice/">
+        <ChartSourceBadge href="https://nsidc.org/sea-ice-today">
           {t("charts.annualAnomaly.source")}
         </ChartSourceBadge>
       </div>

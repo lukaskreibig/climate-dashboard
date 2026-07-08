@@ -65,15 +65,17 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
   }
 
   return (
-    <div className="relative h-[400px] w-full" role="img" aria-label={t("charts.ariaSummaries.dailyAnomaly")}>
-      <div className="text-center font-semibold text-slate-800 mb-1 select-none text-sm sm:text-base">
-        {t('charts.dailyAnomaly.title')}
-      </div>
-      <div className="absolute right-2 top-0 z-10">
-        <ChartSourceBadge href="https://www.ncei.noaa.gov/access/monitoring/seaice/">
+    <div className="relative flex h-[420px] w-full flex-col" role="img" aria-label={t("charts.ariaSummaries.dailyAnomaly")}>
+      {/* flow header: title and source badge wrap instead of overlapping */}
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-1">
+        <div className="min-w-0 flex-1 basis-52 font-semibold text-slate-800 select-none text-sm sm:text-base">
+          {t('charts.dailyAnomaly.title')}
+        </div>
+        <ChartSourceBadge href="https://nsidc.org/sea-ice-today" className="shrink-0">
           {t("charts.dailyAnomaly.source")}
         </ChartSourceBadge>
       </div>
+      <div className="min-h-0 flex-1">
       <ResponsiveContainer>
         <LineChart data={chartData} margin={{top:20,right:20,bottom:20,left:40}}>
           <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>
@@ -114,6 +116,7 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
           ))}
         </LineChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

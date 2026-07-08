@@ -277,7 +277,7 @@ export default function MemoryMeasurementTimeline({
           {t("charts.memoryMeasurement.axisLabel")}
         </div>
         <div className="flex flex-wrap gap-2">
-          <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
+          <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
             {sourceLabel ?? t("charts.memoryMeasurement.sourceFallback")}
           </ChartSourceBadge>
           <ChartSourceBadge href="https://doi.org/10.1016/j.polar.2017.05.002">

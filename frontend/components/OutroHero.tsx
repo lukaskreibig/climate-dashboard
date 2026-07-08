@@ -54,8 +54,6 @@ export default function IntroHero() {
         if (typeof document !== "undefined") {
           gsap.set(document.body, { overflow: "hidden" });
         }
-        // pause Lenis so the fixed outro's own scroll (to sources/chatbot) works
-        (window as Window & { __lenis?: { stop: () => void } }).__lenis?.stop?.();
         const outro = document.getElementById("outro");
         if (!outro) return;
 
@@ -67,11 +65,20 @@ export default function IntroHero() {
 
         outro.dataset.visible = "true";
         outro.classList.remove("pointer-events-none", "invisible", "opacity-0");
+        // open at the reflective close AND swallow leftover scroll momentum —
+        // otherwise the reader's trackpad inertia shoves the fresh container
+        // straight down to the credits
+        outro.scrollTop = 0;
+        outro.style.overflow = "hidden";
+        window.setTimeout(() => {
+          outro.style.overflow = "";
+          outro.scrollTop = 0;
+        }, 900);
         gsap.killTweensOf(outro);
         gsap.fromTo(
           outro,
           { opacity: 0 },
-          { opacity: 1, duration: 0.5, ease: "power2.out" }
+          { opacity: 1, duration: 0.9, ease: "power1.out" } // exhale: settle gently after the zoom
         );
       };
 
@@ -113,14 +120,14 @@ export default function IntroHero() {
           scale: 300,
           y: 3800,
           x: 4000,
-          duration: 2.6,
+          duration: 1.7,
           ease: "power2.inOut",
           transformOrigin: "center center",
         })
         .to(photo.current,
-        { scale: 15, duration: 2.6, ease: "power2.inOut" },
+        { scale: 15, duration: 1.7, ease: "power2.inOut" },
         "<")
-        .add(revealOutro, "-=0.8");
+        .add(revealOutro, "-=0.9");
       }
     }, wrap);
 
@@ -134,7 +141,7 @@ export default function IntroHero() {
       <motion.img
         ref={photo}
         src="/images/heartofaseal-28.jpg"
-        alt="Arctic panorama"
+        alt={t("alt.arcticPanorama")}
         className="absolute inset-0 w-full h-full object-cover"
         initial={{ opacity: 0 }}
       />

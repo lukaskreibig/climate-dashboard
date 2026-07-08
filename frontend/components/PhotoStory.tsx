@@ -395,6 +395,9 @@ const FullscreenSplit = () => {
   const quoteY   = -progress*innerHeight*effQuoteParallax;
   const baseScale=1+Math.abs(effBgParallax);
   const zoomScale=effBgZoom===0?baseScale:baseScale+effBgZoom*progress;
+  /* subtle perspective tilt: the photo leans a few degrees as it passes,
+     giving the split scenes real depth without distorting the image */
+  const tilt = reducedMotion ? 0 : (0.5 - progress) * 7;
 
   /* ── Render ───────────────────────────────────────────── */
   return (
@@ -406,11 +409,11 @@ const FullscreenSplit = () => {
 
       {/* Bild links */}
       {imageSide==="left"&&(
-        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
           <motion.img
             src={photos[0].src} alt={photos[0].alt}
             className="max-h-[90vh] w-auto object-contain"
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30 }}
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30, rotateY: tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
           />
         </div>
@@ -427,11 +430,11 @@ const FullscreenSplit = () => {
 
       {/* Bild rechts */}
       {imageSide==="right"&&(
-        <div className="flex-1 flex justify-center items-center" style={imgPadStyle}>
+        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
           <motion.img
             src={photos[0].src} alt={photos[0].alt}
             className="max-h-[90vh] w-auto object-contain"
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign }}
+            style={{ y:bgY, scale:zoomScale, x:bgXAlign, rotateY: -tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
           />
         </div>

@@ -22,11 +22,33 @@ if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer
 
 
-load_dotenv()
+# load backend/.env regardless of the process working directory (so the key is
+# found whether you launch from repo root or from backend/). On Railway there is
+# no .env — real env vars are used and take priority.
+load_dotenv(Path(__file__).resolve().parent / ".env")
 from settings import get_settings  # noqa: E402  (after load_dotenv)
 
 settings = get_settings()
-client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+
+# Chat LLM: prefer OpenRouter (OpenAI-compatible API), fall back to direct
+# OpenAI. Claude Haiku 4.5 gives fast first tokens with strong storytelling
+# and native-quality German — right fit for a persona chatbot.
+if settings.openrouter_api_key:
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=settings.openrouter_api_key,
+        default_headers={
+            "HTTP-Referer": "https://github.com/lukaskreibig",
+            "X-Title": "Schmelzpunkt - Knud Rasmussen",
+        },
+    )
+    CHAT_MODEL = "anthropic/claude-haiku-4.5"
+elif settings.openai_api_key:
+    client = OpenAI(api_key=settings.openai_api_key)
+    CHAT_MODEL = "gpt-4o-mini"
+else:
+    client = None
+    CHAT_MODEL = ""
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "data.json"
@@ -723,7 +745,7 @@ async def chat_stream(req: ChatRequest):
     if client is None:
         raise HTTPException(
             status_code=503,
-            detail="OpenAI client is not configured on this deployment.",
+            detail="No chat LLM configured. Set OPENROUTER_API_KEY (or OPENAI_API_KEY).",
         )
 
     embedder = get_embedder()
@@ -737,31 +759,38 @@ async def chat_stream(req: ChatRequest):
     if not context:
         raise HTTPException(status_code=404, detail="No relevant context found")
 
-    prompt = f"""
-            You are Knud Rasmussen, the renowned Danish-Greenlandic explorer who traveled extensively across Greenland, carefully gathering stories from the Inuit people. You share these traditional Eskimo folktales as vividly and respectfully as when you first heard them.
+    system_prompt = """You are Knud Rasmussen (1879-1933), the Danish-Greenlandic polar explorer who travelled Greenland by dog sled and collected the oral tradition of the Inuit, published as the "Eskimo Folk-Tales".
 
-            Here is context from your collected Eskimo Folk-Tales:
-            {context}
+Setting: the listener has just scrolled through "Schmelzpunkt" / "The Big Melt", a data story about the vanishing winter sea ice around Uummannaq. These are the same fjords you once crossed on the frozen sea. You are the bridge between the elders' knowledge of the ice and what the listener has just seen in the satellite data.
 
-            A listener has approached you with the following question or request:
-            "{user_query}"
+How you speak:
+- ALWAYS answer in the language of the question (German question, German answer; English question, English answer).
+- Warm, vivid, concrete; never kitschy. 2-4 short paragraphs, at most ~180 words, unless the listener asks for a full tale.
+- When it fits naturally, connect then and now: what reliable ice meant on your journeys, and how the listener has just seen it becoming shorter and less predictable. Do not invent modern statistics; the story itself has shown them.
+- End with a small opening: a question back, or the offer of another tale.
 
-            Answer by narrating an appropriate Inuit folktale or sharing relevant insights from your journeys, always maintaining your authentic voice as Knud Rasmussen. Speak thoughtfully and warmly, reflecting your genuine respect and fascination for Inuit culture don't invent anything, but only draw from the context provided.
+Honesty:
+- Retell tales and details ONLY from the excerpts provided in the user message. If nothing there fits, say plainly that your memory does not recall such a tale, and offer what you do have.
+- If asked whether you are real: say you are a computer program giving voice to Knud Rasmussen, drawing on his published collection."""
 
-            If the provided context does not contain relevant information or if you're unsure, respond gently and thoughtfully with something like: "Ah, my friend, my memory does not recall such a tale clearly."
-            Also tell the the listener that you are not a real person, but a computer program that simulates the voice of Knud Rasmussen if they ask.
-            """
-    
+    user_prompt = f"""Excerpts from your collected Eskimo Folk-Tales:
+{context}
+
+The listener asks:
+"{user_query}"
+"""
+
     try:
         stream = client.chat.completions.create(
-            model="gpt-4o",
+            model=CHAT_MODEL,
             messages=[
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
             ],
-            stream=True, 
+            stream=True,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calling OpenAI API: {e}")
+        raise HTTPException(status_code=500, detail=f"Error calling chat API: {e}")
 
     def event_generator():
         try:

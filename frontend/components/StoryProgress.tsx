@@ -255,7 +255,7 @@ export default function StoryProgress() {
             key={p.key}
             id={`dot-${i}`}
             onClick={() => handleDotClick(i)}
-            aria-label={`Jump to ${p.title}`}
+            aria-label={t("common.jumpTo", { title: p.title })}
             className="
                         group absolute -translate-y-1/2
                         w-3 h-3 rounded-full transition-transform
@@ -270,8 +270,13 @@ export default function StoryProgress() {
             <span
               className="
                 absolute right-4 top-1/2 -translate-y-1/2
-                text-[11px] bg-slate-800 text-white px-1.5 py-0.5 rounded
-                opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none
+                text-[11px] font-medium tracking-wide
+                bg-slate-900/85 backdrop-blur-md text-white
+                px-2 py-1 rounded-md shadow-lg ring-1 ring-white/10
+                opacity-0 translate-x-1
+                group-hover:opacity-100 group-hover:translate-x-0
+                transition-all duration-200 ease-out
+                whitespace-nowrap pointer-events-none
               "
             >
               {p.title}

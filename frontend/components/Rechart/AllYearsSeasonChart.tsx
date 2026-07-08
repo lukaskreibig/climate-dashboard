@@ -172,7 +172,7 @@ export default function AllYearsSeasonChart({data, apiRef}:Props){
         {t('charts.allYearsSeason.title')}
       </div>
       <div className="absolute right-4 top-8">
-        <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
+        <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
           {t("charts.allYearsSeason.source")}
         </ChartSourceBadge>
       </div>

@@ -185,7 +185,7 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
       </div>
 
       <div className="absolute right-5 top-[-30px] z-[5]">
-        <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
+        <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
           {t("charts.earlyLateSeason.source")}
         </ChartSourceBadge>
       </div>

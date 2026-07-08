@@ -7,9 +7,11 @@ import type { ComponentType } from "react";
 import { SceneCfg, NO_MATCH } from "./ChartScene";
 import PhotoStory from "../PhotoStory";
 import MapFlyScene, { Waypoint } from "../MapFlyScene";
+import ArcticIceGlobeScene from "@/components/ArcticIceGlobeScene";
 import SatelliteScene from "@/components/SatelliteScene";
 import { useTranslation } from "react-i18next";
 import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
+import StatChip from "../StatChip";
 import { registerMapPreload } from "@/lib/mapPreloadRegistry";
 import type { DashboardDataOrNull } from "@/types/dashboard";
 
@@ -46,7 +48,19 @@ const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
   { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },
   { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },
   { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
+  // final dive toward the town — close enough to "land", far enough that the
+  // satellite tiles stay sharp (z12+ gets pixelated up here); the ground-level
+  // photo then resolves out of this zoom (match-cut into changeclimate)
+  { lng: -52.127, lat: 70.676, zoom: 11.4, pitch: 55, bearing: 30 },
 ];
+
+/* the opening descent reversed: a grand ascent/pull-back from Uummannaq to the
+   whole Arctic that bookends the story (local → system) */
+const ARCTIC_PULLBACK_WAYPOINTS: Waypoint[] = [...GEOGRAPHIC_WAYPOINTS]
+  .reverse()
+  // land on a LARGER globe than the descent started from — the ice cap and
+  // its retreat need to fill the frame, not float as a marble
+  .map((wp, i, arr) => (i === arr.length - 1 ? { ...wp, zoom: 2.1 } : wp));
 
 const SATELLITE_WAYPOINTS: Waypoint[] = [
   { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 0 },
@@ -139,12 +153,14 @@ export const useScenesWithTranslation = () => {
 
    {
       key: "geographic-journey",
+      kicker: t('scenes.kickers.place'),
       chartSide: "fullscreen",
       progressPoint: true,
       parallax: false,
       slideIn: false,
       fadeIn: true,
       fadeOut: true,
+      matchCutOut: 1.2, // POV handoff: the camera dives onto the town, the photo resolves out of the zoom
       snow: false,
       bgColor: "#020617",
       prefetchMarginPx: 12000,
@@ -153,6 +169,7 @@ export const useScenesWithTranslation = () => {
             ref={api}
             waypoints={GEOGRAPHIC_WAYPOINTS}
             preloadKey="geographic-journey"
+            scrollCamera
           />
 
       ),
@@ -221,14 +238,16 @@ export const useScenesWithTranslation = () => {
 
     {
   key: "changeclimate",
-  progressPoint: true, 
+  kicker: t('scenes.kickers.place'),
+  progressPoint: true,
   chartSide: "fullscreen",
   fadeIn: true,
+  matchCutIn: 1.22, // resolve from the map's town dive into the ground-level photo
   parallax: false,
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_town.jpg", alt: "Uummannaq View" }]}
+      photos={[{ src: "/images/heartofaseal_town.jpg", alt: t("alt.uummannaqView") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -258,13 +277,14 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "Winter Months",
+  kicker: t('scenes.kickers.ground'),
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/motorsledge.jpg", alt: "Uummannaq View" }]}
+      photos={[{ src: "/images/motorsledge.jpg", alt: t("alt.uummannaqView") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -292,13 +312,14 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "Fishing Town",
+  kicker: t('scenes.kickers.ground'),
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_fishing.jpg", alt: "Uummannaq View" }]}
+      photos={[{ src: "/images/heartofaseal_fishing.jpg", alt: t("alt.uummannaqView") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -326,6 +347,7 @@ export const useScenesWithTranslation = () => {
 },
  {
   key: "ummannaqview",
+  kicker: t('scenes.kickers.voices'),
   progressPoint: true, 
   chartSide: "fullscreen",
   fadeIn: true,
@@ -335,7 +357,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_voices.jpg", alt: "Uummannaq View" }]}
+      photos={[{ src: "/images/heartofaseal_voices.jpg", alt: t("alt.uummannaqView") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -386,7 +408,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_website11.jpg", alt: "Pushing a sled" }]}
+      photos={[{ src: "/images/heartofaseal_website11.jpg", alt: t("alt.pushingSled") }]}
       variant="fullscreen"
       mainCaption={t('scenes.quotes.iceDisappears')}
       author={t('scenes.quotes.participant')}
@@ -394,7 +416,7 @@ export const useScenesWithTranslation = () => {
       fullscreenImageFit="cover"    
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 27,      // vertically centred-ish
         fadeInAt: .03,
@@ -415,7 +437,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_wind.jpg", alt: "Heavy Snowstorm" }]}
+      photos={[{ src: "/images/heartofaseal_wind.jpg", alt: t("alt.snowstorm") }]}
       variant="fullscreen-split"
       mainCaption={t('scenes.quotes.unstableClimate')}
       author={t('scenes.quotes.participant')}
@@ -426,7 +448,7 @@ export const useScenesWithTranslation = () => {
       textColor="white"
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -448,7 +470,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/motorsledge.jpg", alt: "Motorsledge" }]}
+      photos={[{ src: "/images/motorsledge.jpg", alt: t("alt.motorsledge") }]}
       variant="fullscreen"
       mainCaption={t('scenes.quotes.motorsledge')}
       author={t('scenes.quotes.participant')}
@@ -456,7 +478,7 @@ export const useScenesWithTranslation = () => {
       fullscreenImageFit="cover"    
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 27,      // vertically centred-ish
         fadeInAt: .03,
@@ -469,10 +491,12 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "introcharts",
-  progressPoint: true, 
+  kicker: t('scenes.kickers.measurement'),
+  progressPoint: true,
   chartSide: "fullscreen",
   wide: true,
   fadeIn: true,
+  matchCutIn: 1.07, // "but — is it just a feeling?" a slight skeptical push-in to measure
   fadeOut: true,
   snow: false,
   parallax: false,
@@ -565,11 +589,15 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "pixel-inspector",
+  kicker: t('scenes.kickers.measurement'),
+  scrollCue: t('common.scrollCue'),
+  prefetchMarginPx: 3200,
   progressTitle: t("scenes.pixelInspector.title"),
   chartSide: "fullscreen",
   progressPoint: true,
   fadeIn: true,
   fadeOut: true,
+  matchCutOut: 1.18, // zoom INTO the mask pixels as we leave → match-cut to the data grid
   parallax: false,
   snow: false,
   bgColor: "#020617",
@@ -596,12 +624,15 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "memory-measurement",
+  kicker: t('scenes.kickers.measurement'),
+  prefetchMarginPx: 3600,
   progressTitle: t("scenes.memoryMeasurement.title"),
   progressPoint: true,
   plainCaptions: true,
   chartSide: "right",
   fadeIn: true,
   fadeOut: true,
+  matchCutIn: 1.12, // the grid resolves out of the zoom → "the pixels became the data"
   parallax: false,
   bgColor: "#e8eef3",
   chart: (d: DataBundle, api) => (
@@ -699,6 +730,8 @@ export const useScenesWithTranslation = () => {
 /* ═══ SCENE 6: THE VISUAL PROOF ═══ */
   {
     key: "visual-proof",
+    kicker: t('scenes.kickers.pattern'),
+    axesInIdx: 0,
     chart: (d: DataBundle, api) => (
       <AllYearsSeasonChart data={(d?.daily ?? []) as any} apiRef={api} />
     ),
@@ -744,6 +777,7 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 8: THE NEW ABNORMAL ═══ */
   {
     key: "new-abnormal",
+    kicker: t('scenes.kickers.pattern'),
     chart: (d: DataBundle, api) => (
       <EarlyLateSeasonChart
         data={(d?.season ?? []) as any}
@@ -810,6 +844,7 @@ export const useScenesWithTranslation = () => {
     /* ═══ SCENE 9: THE TRAJECTORY ═══ */
   {
     key: "breakup-timing",
+    kicker: t('scenes.kickers.pattern'),
     progressPoint: true,
     progressTitle: t('scenes.breakup.progressTitle'),
     chart: (d: DataBundle, api) => (
@@ -840,6 +875,12 @@ export const useScenesWithTranslation = () => {
         html: (
           <>
             <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.shift.title')}</h3>
+            <StatChip
+              value={11}
+              prefix="−"
+              suffix={` ${t('scenes.breakup.shift.statUnit')}`}
+              label={t('scenes.breakup.shift.statLabel')}
+            />
             <p className="text-lg">
               {t('scenes.breakup.shift.description')}
             </p>
@@ -867,6 +908,7 @@ export const useScenesWithTranslation = () => {
   },
   {
   key: "future-trend",
+  kicker: t('scenes.kickers.consequences'),
   progressTitle: t('scenes.future.progressTitle'),
   progressPoint: true, 
   chartSide: "fullscreen",
@@ -876,7 +918,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_iceberg.jpg", alt: "Heavy Snowstorm" }]}
+      photos={[{ src: "/images/heartofaseal_iceberg.jpg", alt: t("alt.snowstorm") }]}
       variant="fullscreen-split"
       fullscreenImageFit="contain" 
       imageSide="left" 
@@ -886,7 +928,7 @@ export const useScenesWithTranslation = () => {
       textColor="white"
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -914,7 +956,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/kids_drumdance.jpg", alt: "Kids" }]}
+      photos={[{ src: "/images/kids_drumdance.jpg", alt: t("alt.kids") }]}
       variant="fullscreen-split"
       fullscreenImageFit="contain" 
       imageSide="right" 
@@ -924,7 +966,7 @@ export const useScenesWithTranslation = () => {
       textColor="white"
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -952,7 +994,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/dogs.jpg", alt: "Dogs in a Snowstorm" }]}
+      photos={[{ src: "/images/dogs.jpg", alt: t("alt.dogsSnowstorm") }]}
       variant="fullscreen-split"
       fullscreenImageFit="contain" 
       imageSide="left" 
@@ -961,7 +1003,7 @@ export const useScenesWithTranslation = () => {
       quote={false}
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -982,35 +1024,30 @@ export const useScenesWithTranslation = () => {
 },
  {
   key: "Arctic Sea Ice",
+  kicker: t('scenes.kickers.arctic'),
   chartSide: "fullscreen",
-  progressPoint: true, 
+  progressPoint: true,
   fadeIn: true,
-  fadeOut: true,
+  fadeOut: false,   // keep the globe fully opaque through the whole ice retreat
+  slideUp: false,   // …and don't slide it away; the next scene cuts in
   parallax: false,
   wide: true,
   snow: false,
+  bgColor: "#020617",
+  scrollScreens: 6,
   chart: (_d, api) => (
-    <PhotoStory
+    <ArcticIceGlobeScene
       ref={api}
-      photos={[{ src: "/images/seaice_greenland.jpg", alt: "Greenland Sea Ice" }]}
-      variant="fullscreen"
-      // mainCaption="When I was a child, the ice was gone in June and July…"
-      // author="Uummannaq Resident"
-      fullscreenImageFit="cover"
-      textColor="white"
-      backgroundColor="#192018"    
-      fullscreenQuoteOpts={{
-        bgParallax: 0.50,          // background fixed
-        bgZoom: 0.30,
-        quoteParallax: 0.3,    // gentle drift on the quote
-        quoteOffsetVH: 27,      // vertically centred-ish
-        fadeInAt: .03,
-        fadeOutAt: .90,
-      }}
+      waypoints={ARCTIC_PULLBACK_WAYPOINTS}
     />
   ),
   axesSel: NO_MATCH,
-  captions: [     {
+  // reduced-motion fallback: settle on the whole-Arctic destination
+  actions: [
+    { captionIdx: 0, call: api => api?.go?.(ARCTIC_PULLBACK_WAYPOINTS.length - 1) },
+  ],
+  captions: [
+    {
      html: (
             <CaptionWithLearnMore
               learnMore={{
@@ -1024,11 +1061,26 @@ export const useScenesWithTranslation = () => {
   {t('scenes.toArctic.description')}</p>
             </CaptionWithLearnMore>)
     },
-    
+    {
+      html: (
+        <>
+          <h2 className="text-3xl font-bold mb-3">{t('scenes.arcticGlobe.title')}</h2>
+          <StatChip
+            value={13}
+            prefix="−"
+            suffix=" %"
+            label={t('scenes.arcticGlobe.statLabel')}
+            className="items-center"
+          />
+          <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.description')}</p>
+        </>
+      ),
+    },
 ],
 },
 {
   key: "seasonal", // remains the same
+  kicker: t('scenes.kickers.arctic'),
   chart: (d: DataBundle, api) => (
     // pass apiRef so the chart exposes highlight() to ScrollTrigger
     <SeasonalChart data={(d?.dailySeaIce ?? []) as any} apiRef={api} />
@@ -1116,6 +1168,7 @@ export const useScenesWithTranslation = () => {
     /* 5 — Multi-decade view (enhanced drama) ------------------- */
   {
     key       : "multi-decade",
+    kicker    : t('scenes.kickers.arctic'),
     progressPoint: true,
     plainCaptions: true,
     chart : (d:DataBundle, api) =>
@@ -1200,7 +1253,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_fisherboat.jpg", alt: "Fisherboat in Harbor" }]}
+      photos={[{ src: "/images/heartofaseal_fisherboat.jpg", alt: t("alt.fisherboat") }]}
       variant="fullscreen-split"
       imageSide="right" 
       backgroundColor=""
@@ -1208,7 +1261,7 @@ export const useScenesWithTranslation = () => {
       quote={false}
       fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -1231,6 +1284,7 @@ export const useScenesWithTranslation = () => {
     /* 3 — Annual anomalies (better context) -------------------- */
   {
     key       : "annual",
+    kicker    : t('scenes.kickers.arctic'),
         plainCaptions: true,
 
     chart     : (d:DataBundle)=> <AnnualChart data={(d?.annualAnomaly ?? []) as any}/>,
@@ -1257,6 +1311,7 @@ export const useScenesWithTranslation = () => {
   /* ─────  BRIDGE · "Anomalies → Drivers"  ───── */
 {
   key: "climate-drivers",
+  kicker: t('scenes.kickers.drivers'),
   progressTitle: t('scenes.drivers.progressTitle'),
   progressPoint: true, 
   chartSide: "fullscreen",
@@ -1268,7 +1323,7 @@ export const useScenesWithTranslation = () => {
     <PhotoStory
       ref={api}
       photos={[
-        { src: "/images/community-bonds.jpg", alt: "Polar bear on fragile ice" }
+        { src: "/images/community-bonds.jpg", alt: t("alt.polarBear") }
       ]}
       variant="fullscreen-split"
       imageSide="right"
@@ -1279,7 +1334,7 @@ export const useScenesWithTranslation = () => {
       mainCaption={t('scenes.drivers.intro')}
             fullscreenQuoteOpts={{
         bgParallax: 0.00,          // background fixed
-        bgZoom: 0.02,
+        bgZoom: 0.04,
         quoteParallax: 0.3,    // gentle drift on the quote
         quoteOffsetVH: 10,      // vertically centred-ish
         fadeInAt: .01,
@@ -1304,6 +1359,7 @@ export const useScenesWithTranslation = () => {
     /* 6 — Multi-line connections (clearer narrative) ----------- */
   {
     key      : "connections",
+    kicker   : t('scenes.kickers.drivers'),
     chart    : (d:DataBundle)=> <MultiChart data={(d?.annual ?? []) as any}/>,
     axesSel  : AXES,
     axesInIdx : 0,
@@ -1327,6 +1383,7 @@ export const useScenesWithTranslation = () => {
   },
    {
     key       : "zscore",
+    kicker    : t('scenes.kickers.drivers'),
     chart     : (d:DataBundle,api)=> <ZScoreChart data={(d?.annual ?? []) as any} apiRef={api}/>,
     axesSel   : AXES,
     axesInIdx : 0,
@@ -1365,6 +1422,7 @@ export const useScenesWithTranslation = () => {
   },
   {
     key      : "2024-focus",
+    kicker   : t('scenes.kickers.drivers'),
     progressTitle: t('scenes.2024.progressTitle'),
     progressPoint: true,
     chart    : (d:DataBundle)=> <Bar24Chart data={(d?.annual ?? []) as any}/>,

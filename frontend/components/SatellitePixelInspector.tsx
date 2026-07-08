@@ -98,7 +98,7 @@ const SatellitePixelInspector = forwardRef<SatellitePixelInspectorApi, Props>(
       >
         <div className="absolute left-7 top-[calc(50%-min(38vh,360px)-1.2rem)] z-20 hidden lg:block">
           <ChartSourceBadge
-            href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2"
+            href="https://sentinels.copernicus.eu/copernicus/sentinel-2"
             className="border-white/15 bg-slate-900/80 text-slate-200 hover:border-white/40 hover:text-white"
           >
             {t("charts.pixelInspector.source")}
@@ -155,13 +155,13 @@ const SatellitePixelInspector = forwardRef<SatellitePixelInspectorApi, Props>(
 
           <div className="flex flex-wrap gap-2">
             <ChartSourceBadge
-              href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2"
+              href="https://sentinels.copernicus.eu/copernicus/sentinel-2"
               className="border-white/15 bg-slate-900/80 text-slate-200 hover:border-white/40 hover:text-white"
             >
               {t("charts.pixelInspector.originalSource")}
             </ChartSourceBadge>
             <ChartSourceBadge
-              href="https://www.github.com/lukaskreibig/"
+              href="https://github.com/lukaskreibig"
               className="border-white/15 bg-slate-900/80 text-slate-200 hover:border-white/40 hover:text-white"
             >
               {t("charts.pixelInspector.methodSource")}

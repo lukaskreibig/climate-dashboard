@@ -140,19 +140,23 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
 
   return (
     <div style={{ position: "relative", width: "100%" }} data-testid="breakup-timing-chart" role="img" aria-label={t("charts.ariaSummaries.breakupTiming")}>
-      <div style={{ position: "absolute", left: 20, top: 8, fontSize: 26, fontWeight: 600, color: "#0f172a", maxWidth: "clamp(220px, calc(100% - 360px), 640px)", lineHeight: 1.15 }}>
-        {t("charts.breakupTiming.title")}
-      </div>
-      <div className="absolute right-4 top-3 z-10 flex flex-wrap justify-end gap-2">
-        <ChartSourceBadge href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-2">
-          {t("charts.breakupTiming.source")}
-        </ChartSourceBadge>
-        <ChartSourceBadge href="https://doi.org/10.1016/j.polar.2017.05.002">
-          {t("charts.memoryMeasurement.contextSource")}
-        </ChartSourceBadge>
+      {/* flow header: title and source badges share a wrapping row, so they
+          can never overlap regardless of chart width */}
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-x-6 gap-y-2 px-4 pt-2">
+        <div className="min-w-0 flex-1 basis-60" style={{ fontSize: 26, fontWeight: 600, color: "#0f172a", lineHeight: 1.15 }}>
+          {t("charts.breakupTiming.title")}
+        </div>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
+            {t("charts.breakupTiming.source")}
+          </ChartSourceBadge>
+          <ChartSourceBadge href="https://doi.org/10.1016/j.polar.2017.05.002">
+            {t("charts.memoryMeasurement.contextSource")}
+          </ChartSourceBadge>
+        </div>
       </div>
 
-      <div style={{ paddingTop: 88 }}>
+      <div style={{ paddingTop: 8 }}>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={points} margin={{ top: 16, right: 28, bottom: 24, left: 12 }}>
             <CartesianGrid className="chart-grid" strokeDasharray="2 4" stroke="#cbd5e1" vertical={false} />

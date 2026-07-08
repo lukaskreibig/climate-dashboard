@@ -5,9 +5,10 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from 'react-i18next';
+import { usePrefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ───────────  font  ─────────── */
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"] });
@@ -17,6 +18,20 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 /* ===================================================================== */
 export default function IntroHero() {
   const { t } = useTranslation();
+
+  /* gentle mouse parallax on the hero photo (desktop delight; springs keep
+     it weighted, reduced-motion users get a static image) */
+  const reducedMotion = usePrefersReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const springX = useSpring(mx, { stiffness: 60, damping: 18 });
+  const springY = useSpring(my, { stiffness: 60, damping: 18 });
+  const onHeroMouse = (e: React.MouseEvent) => {
+    if (reducedMotion) return;
+    mx.set((e.clientX / window.innerWidth - 0.5) * 18);
+    my.set((e.clientY / window.innerHeight - 0.5) * 12);
+  };
+
   /* ─── DOM refs ─────────────────────────────────────────────────────── */
   const wrap     = useRef<HTMLDivElement>(null);
   const photo    = useRef<HTMLImageElement>(null);
@@ -127,15 +142,18 @@ export default function IntroHero() {
 
   /* ─── JSX ────────────────────────────────────────────────── */
   return (
-    <section ref={wrap} className="relative h-screen overflow-hidden text-snow-50">
-      {/* background photo */}
-      <motion.img
-        ref={photo}
-        src="/images/heartofaseal-28.jpg"
-        alt="Arctic panorama"
-        className="absolute inset-0 w-full h-full object-cover"
-        initial={{ opacity: 1 }}
-      />
+    <section ref={wrap} onMouseMove={onHeroMouse} className="relative h-screen overflow-hidden text-snow-50">
+      {/* background photo (outer div carries the mouse parallax so GSAP can
+          keep animating the image itself) */}
+      <motion.div className="absolute inset-0" style={{ x: springX, y: springY, scale: 1.04 }}>
+        <motion.img
+          ref={photo}
+          src="/images/heartofaseal-28.jpg"
+          alt={t("alt.arcticPanorama")}
+          className="absolute inset-0 w-full h-full object-cover"
+          initial={{ opacity: 1 }}
+        />
+      </motion.div>
 
       {/* dark overlay that appears during intro */}
       <div ref={overlay} className="absolute inset-0 bg-slate-500 opacity-0" />
@@ -152,14 +170,14 @@ export default function IntroHero() {
         <motion.h1
           ref={title}
           style={{ filter: "url(#idleShimmer)" }}
-          className={`${bebasNeue.className} text-[clamp(6rem,10vw,12rem)] text-slate-400`}
+          className={`${bebasNeue.className} text-[clamp(2.75rem,14vw,12rem)] text-slate-400`}
         >
           {t('arctic.heroTitle')}
         </motion.h1>
 
         <motion.h2
           ref={subtitle}
-          className="text-xl font-medium text-slate-400 -translate-y-14"
+          className="text-base sm:text-xl font-medium text-slate-400 -translate-y-14 max-w-[92vw] px-4 text-center"
         >
           {t('arctic.heroSubtitle')}
         </motion.h2>
