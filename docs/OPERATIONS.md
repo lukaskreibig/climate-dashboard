@@ -84,9 +84,9 @@ Backups: enable Railway automatic snapshots (daily). For manual exports use `pg_
 
 | Job | Command | Platform | Schedule | Notes |
 |-----|---------|----------|----------|-------|
-| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 06:00 UTC | Writes climate tables and `data/data.json`. `REMOVED` deployment status is normal after a successful one-shot cron container exits. |
-| Fjord aggregates | `python update_fjord_data.py` | Railway cron (same job chain as global ingest) | Daily 06:00 UTC (after global ingest) | Depends on latest Sentinel‑2 CSV. |
-| Sentinel‑2 segmentation | `python fast_cloudsen12.py` | Manual GPU runner / GitHub self-hosted runner | Ad-hoc (monthly) | Produces `summary_test.csv`. |
+| Global ingest | `python update_pipeline.py` | Railway cron (Python environment) | Daily 03:00 UTC | Writes climate tables and `data/data.json`. |
+| Fjord aggregates | `python update_fjord_data.py` | Railway cron | Daily 03:10 UTC | Depends on latest Sentinel‑2 CSV. |
+| Sentinel‑2 segmentation (external repo) | Refer to [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space) | Manual GPU runner / GitHub self-hosted runner | Ad-hoc (monthly) | Produces `summary_test_cleaned.csv` consumed by this dashboard. |
 | Data QA notebooks | Jupyter (`backend/jupyter_notebook/`) | Manual | After pipeline changes | Validate smoothing/anomaly outputs. |
 | Frontend build | `yarn build` | Vercel | On push to `main` | ISR handles runtime data freshness. |
 
@@ -111,7 +111,7 @@ Notify stakeholders via Slack/Email with root cause and remediation steps. Keep 
 
 - Vercel team: grant deploy permissions to maintainers; restrict environment variable editing to admins.
 - Railway: enable two-factor auth and restrict database credentials to deploy tokens.
-- S3 / bucket storing Sentinel‑2 outputs: use IAM roles scoped to upload-only keys.
+- S3 / bucket storing Sentinel‑2 outputs (managed by the external repo): use IAM roles scoped to upload-only keys.
 
 ---
 

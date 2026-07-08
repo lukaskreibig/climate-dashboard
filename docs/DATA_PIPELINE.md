@@ -1,10 +1,11 @@
 # Data Pipeline Playbook
 
-This document explains how climate datasets flow into the project, which jobs keep them up to date, and how to reproduce the results locally. The stack consists of three cooperating pipelines:
+This document explains how climate datasets flow into the project, which jobs keep them up to date, and how to reproduce the results locally. Two subsystems collaborate:
 
-1. **Global climate ingest** (`data-pipeline/update_pipeline.py`)
-2. **Uummannaq fjord aggregates** (`data-pipeline/update_fjord_data.py`)
-3. **Sentinel‑2 sea-ice segmentation** (`satellite/fast_cloudsen12.py`, provided below)
+1. **This repository (`data-pipeline/`)** — handles NASA/NOAA/OWID ingest (`update_pipeline.py`) and post-processes Sentinel outputs into fjord aggregates (`update_fjord_data.py`).
+2. **Companion repository ([uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space))** — performs the heavy Sentinel‑2 segmentation, producing CSV/PNG artefacts consumed by step #2 above.
+
+This doc focuses on the pieces that live here while pointing to the companion repo for the satellite-specific workflow.
 
 All pipelines ultimately publish to PostgreSQL (Railway) and export JSON fallbacks so the frontend can function without the database.
 
@@ -96,41 +97,16 @@ python update_fjord_data.py
 
 ---
 
-## 3. Sentinel‑2 sea-ice segmentation
+## 3. Sentinel‑2 sea-ice segmentation (external repository)
 
-While the aggregated fjord tables are stored in the repository, the raw segmentation job is executed separately (GPU required). The provided script (`satellite/fast_cloudsen12.py`) uses the **CloudSEN12 UNetMobV2** model to classify each pixel as solid ice, light ice, water, cloud, land, or nodata.
-
-Key features:
+The GPU-bound satellite workflow is versioned separately to keep this dashboard lean. All scripts, notebooks, and model artefacts live in **[uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space)**. Highlights:
 
 - Queries the [Element 84 Earth Search](https://earth-search.aws.element84.com/) STAC API for Sentinel‑2 Level‑1C tiles.
-- Applies baseline-corrected TOA reflectance, smooths the cube, and runs the UNet model.
-- Generates overlay images, six-panel quick-look PNGs, and a CSV summary per tile.
-- Appends per-tile statistics to `summary_test.csv`, which is later cleaned and consumed by `update_fjord_data.py`.
+- Runs the CloudSEN12-powered UNetMobV2 model to classify solid ice, light ice, water, cloud, land, and nodata pixels.
+- Produces colour overlays, QA panels, and CSV summaries (`summary_test_cleaned.csv`) that are consumed by `update_fjord_data.py` in this repo.
+- Documents GPU setup, Docker images, and evaluation notebooks.
 
-Dependencies (GPU-friendly):
-
-```
-torch, segmentation_models_pytorch, pystac-client, odc-stac, dask, numpy, scipy, matplotlib
-```
-
-Execution (simplified):
-
-```bash
-python fast_cloudsen12.py \
-  --log INFO \
-  --checkpoint UNetMobV2_V2.pt \
-  --output-dir out/
-```
-
-Outputs:
-
-| Artefact | Location | Usage |
-|----------|----------|-------|
-| `out/imgtestNEW/*overlay512.png` | Visual quick checks | QA / manual validation |
-| `out/imgtestNEW/*panel.png` | Six-panel summary | QA / manual validation |
-| `summary_test.csv` | Aggregated tile stats | Input for `update_fjord_data.py` |
-
-> **Quality assurance:** Always inspect panel outputs before publishing to ensure clouds, landmask, and nodata thresholds behaved as expected.
+Refer to that repository for the full pipeline instructions, including model checkpoints and QA procedures.
 
 ---
 
@@ -140,7 +116,7 @@ Outputs:
 |-----|---------|---------|-------|
 | `update_pipeline.py` | Railway cron (daily 03:00 UTC) + GitHub Actions | ~4 minutes | Retries twice on network errors; writes JSON fallback. |
 | `update_fjord_data.py` | Railway cron (daily 03:10 UTC) | ~1 minute | Depends on latest `summary_test_cleaned.csv`. |
-| Sentinel‑2 segmentation | Manual / ad-hoc GPU runner | 10–30 minutes per batch | Run when new imagery arrives; update CSV before fjord job. |
+| Sentinel‑2 segmentation (external repo) | Manual / ad-hoc GPU runner | 10–30 minutes per batch | Run from [uummannaq-ice-from-space](https://github.com/lukaskreibig/uummannaq-ice-from-space); update CSV before fjord job. |
 
 Monitoring:
 
