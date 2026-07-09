@@ -78,3 +78,19 @@ __pycache__/
 
 /data
 /uummannaq-ice
+
+# ----------------------------
+# Editor / local tooling (Claude Code, etc.)
+# ----------------------------
+.claude/
+
+# ----------------------------
+# Build caches & test artifacts (regenerated, not needed in repo/prod)
+# ----------------------------
+*.tsbuildinfo
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/.yarn/install-state.gz
+
+# one-time sea-ice asset generation temp dir (scripts/fetch-seaice.mjs)
+/frontend/.seaice-tmp/
