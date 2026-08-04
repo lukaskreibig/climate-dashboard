@@ -87,13 +87,24 @@ def _fjord_year_groups(years) -> tuple[list[int], list[int]]:
 # the seasons published so far and are recomputed from the data where it matters.
 FJORD_EARLY_YEARS = list(range(FJORD_FIRST_YEAR, FJORD_LATE_START_YEAR))
 FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
-# Area of the analysed rectangle, WGS84 geodesic, from the AOI the classifier
-# actually requests (uummannaq_ice/config.py DEFAULT_AOI: -52.336121/70.628226
-# to -51.945564/70.788206, roughly 14.3 by 17.8 km). It was 3450, which is 13.4x
-# too large; since line 529 multiplies the ice-fraction anomaly by it, the served
-# spring anomalies came out larger than the whole analysed area, which is
-# physically impossible.
-FJORD_KM2 = 257
+# The fjord WATER surface the ice fraction is a fraction OF, and the one number
+# every area statement in the story has to come from.
+#
+# Three different figures were in circulation, which is one too many for a
+# quantity that multiplies the published anomaly: 257 here, 253 implied by the
+# classifier's land mask, and 243 implied by the land share recorded in the
+# published archive. The archive's 0.0900 is not geometry at all, it is the
+# artefact of the painted mask that covered the same FRACTION of every scene
+# whatever its grid.
+#
+# This is the measured one. src/uummannaq_ice/assets/landmask.tif, EPSG:32622 at
+# 10 m, 1474 by 1812 cells: a grid of 267.09 km2 of which 0.05143 is land, so
+# 253.35 km2 of water. Corrected onto the WGS84 ellipsoid the grid is 267.29 km2,
+# a UTM distortion of -0.08 percent, giving 253.5 km2 of water.
+#
+# It was 3450 once, 13.4x too large, and because the spring anomaly is multiplied
+# by it the served anomalies exceeded the entire area they were measured on.
+FJORD_KM2 = 253.5
 
 app = FastAPI(
     title="Climate Report API",
