@@ -14,6 +14,7 @@ import MapboxPreloader, {
   preloadMapImages,
   preloadTiles,
 } from "@/components/MapboxPreloader";
+import { attachSatelliteOverlays } from "@/lib/mapboxWarmup";
 import ChartScene from "@/components/scenes/ChartScene";
 import SceneErrorBoundary from "@/components/SceneErrorBoundary";
 import StoryProgress from "@/components/StoryProgress";
@@ -35,6 +36,41 @@ const preloadModules = async (modules: PreloadableComponent[]) => {
   );
 };
 
+/**
+ * Run `job` the first time the reader shows any intent to move down the page.
+ *
+ * For work that a reader deeper in the story will need but a reader on the
+ * first screen never will. Every listener is passive and one shot, and the set
+ * is deliberately wide: Lenis drives the scroll here, so a wheel or a touch can
+ * arrive before the window scroll event does, and a keyboard reader may never
+ * produce either.
+ */
+const startOnFirstIntent = (job: () => void): (() => void) => {
+  if (typeof window === "undefined") {
+    job();
+    return () => {};
+  }
+
+  const events = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
+  let fired = false;
+
+  const stop = () => {
+    events.forEach((name) => window.removeEventListener(name, fire));
+  };
+
+  function fire() {
+    if (fired) return;
+    fired = true;
+    stop();
+    job();
+  }
+
+  events.forEach((name) =>
+    window.addEventListener(name, fire, { passive: true, once: true })
+  );
+  return stop;
+};
+
 export default function Page() {
   const { i18n } = useTranslation();
   const scenes = useScenesWithTranslation();
@@ -45,6 +81,7 @@ export default function Page() {
 
   useEffect(() => {
     let cancelled = false;
+    let stopWaitingForIntent: () => void = () => {};
 
     const updateProgress = (value: number) => {
       if (cancelled) return;
@@ -59,13 +96,18 @@ export default function Page() {
         const modulePromise = preloadModules(dynamicModules).then(() => {
           updateProgress(18);
         });
-        // Started, deliberately not awaited. These are the raw scene and the
-        // classified mask of the computer vision beat, 2.4 MB together, and
-        // that beat is a long way down the page. Holding the first screen for
-        // them cost fifteen seconds on a 4 Mbit/s connection. Warming the cache
-        // now means they are there by the time the reader arrives.
-        void preloadMapImages().then(() => {
-          updateProgress(28);
+        // The raw scene and the classified mask of the computer vision beat,
+        // 2.4 MB together, for a beat a long way down the page. Awaiting them
+        // cost fifteen seconds on a 4 Mbit/s connection, so they were moved out
+        // of the gate; measured afterwards, a phone still spent that 2.4 MB
+        // before the reader had moved at all. They now start on the first
+        // scroll, which is many seconds before the beat that needs them and
+        // never at all for a reader who only looks at the first screen.
+        stopWaitingForIntent = startOnFirstIntent(() => {
+          attachSatelliteOverlays();
+          void preloadMapImages().then(() => {
+            updateProgress(28);
+          });
         });
         const tilesPromise = preloadTiles({
           language: i18n.language,
@@ -123,6 +165,7 @@ export default function Page() {
 
     return () => {
       cancelled = true;
+      stopWaitingForIntent();
     };
   }, []);
 

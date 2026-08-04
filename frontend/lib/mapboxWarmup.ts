@@ -60,6 +60,9 @@ interface WarmMapState {
   styled: Promise<void>;
   /** resolves once every waypoint has been visited and its tiles are cached */
   primed: Promise<void>;
+  /** kept so the imagery can be attached later than the map is built */
+  overlay?: MapSatelliteOverlayPreload;
+  overlayAttached: boolean;
   ready: boolean;
   failed: boolean;
   claimedBy: HTMLElement | null;
@@ -341,6 +344,8 @@ const warmRegisteredMap = async (
     map,
     styled: Promise.resolve(),
     primed: Promise.resolve(),
+    overlay: config.satelliteOverlay,
+    overlayAttached: false,
     ready: false,
     failed: false,
     claimedBy: null,
@@ -367,8 +372,13 @@ const warmRegisteredMap = async (
     try {
       await waitForStyle(map);
       ensureMapTilerLayers(map, { terrain: config.terrain ?? true });
-      ensureSatelliteOverlay(map, config.satelliteOverlay);
       applyMapLanguage(map, currentLanguage);
+      // The satellite overlay is NOT attached here. Mapbox fetches an image
+      // source the moment it is added, and these two are 2.4 MB for a scene far
+      // down the story, so a phone paid for them before the reader had moved.
+      // attachSatelliteOverlays() does it on the reader's first movement, and
+      // claimWarmedMap does it unconditionally, so a scene can never get the
+      // map without them.
       performance.mark?.(`map-warm-styled:${config.id}`);
     } catch (error) {
       onFailure(error);
@@ -430,11 +440,10 @@ const runWarmup = async () => {
     mapConfigs.map((config) => warmRegisteredMap(config, root, onStep))
   );
 
-  // Same reasoning as in the page: the overlay imagery is 2.4 MB for a scene
-  // far down the story, so it warms the cache alongside the reader rather than
-  // ahead of them. Awaiting it here would put it back into the loading gate
-  // through preloadTiles.
-  void preloadMapImages();
+  // The overlay imagery is deliberately NOT started here. It is 2.4 MB for a
+  // scene far down the story, and app/[lng]/page.tsx holds it until the reader
+  // first moves. Kicking it off here as well would undo that, and awaiting it
+  // would put it back inside the loading gate by way of preloadTiles.
   doneSteps += 1;
   emitProgress(100);
 };
@@ -476,6 +485,31 @@ export function awaitMapWarmup(options: AwaitWarmupOptions = {}): Promise<boolea
   });
 }
 
+/**
+ * Attach the satellite imagery to every warm map that carries some.
+ *
+ * Split out from the warmup so the 2.4 MB it costs is spent when the reader
+ * shows they are going somewhere, rather than while they read the first screen.
+ * Idempotent: ensureSatelliteOverlay checks for each source and layer first.
+ */
+export function attachSatelliteOverlays(): void {
+  warmMaps.forEach((state) => {
+    if (state.overlayAttached || !state.overlay) return;
+    const attach = () => {
+      try {
+        ensureSatelliteOverlay(state.map, state.overlay);
+        state.overlayAttached = true;
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(`satellite overlay not attached for ${state.id}`, error);
+        }
+      }
+    };
+    if (state.map.isStyleLoaded()) attach();
+    else state.map.once("style.load", attach);
+  });
+}
+
 export function claimWarmedMap(
   id: string | undefined,
   container: HTMLElement
@@ -485,6 +519,10 @@ export function claimWarmedMap(
   const state = warmMaps.get(id);
   if (!state || state.failed) return null;
   if (state.claimedBy && state.claimedBy !== container) return null;
+
+  // Whatever the reader did or did not do, a scene taking this map must have
+  // its imagery.
+  attachSatelliteOverlays();
 
   container.innerHTML = "";
   applyClaimedHostStyle(state.host);
