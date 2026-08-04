@@ -20,31 +20,44 @@ interface Props {
 type ValidRow = Required<Pick<AnnualRowScatter, "Year" | "Glob" | "SeaIceMean">>;
 
 export default function ScatterChartRecharts({ data }: Props) {
-  const valid = data.filter((d): d is ValidRow => d.Glob != null && d.SeaIceMean != null);
-  if (!valid.length) {
+  // Everything derived sits above the empty-data guard on purpose. The useMemo
+  // used to come after it, so on a slow API the first render returned early,
+  // the second called one hook more, and React throws. Three sibling charts had
+  // the same shape and were fixed; this one was missed.
+  //
+  // The dependency is `data` rather than the mapped array: the mapping produced
+  // a new array on every render, so the memo recomputed every time anyway.
+  const { scatterData, slope, intercept, xMin, xMax } = useMemo(() => {
+    const valid = data.filter(
+      (d): d is ValidRow => d.Glob != null && d.SeaIceMean != null
+    );
+    const points = valid.map((d) => ({ x: d.Glob, y: d.SeaIceMean, Year: d.Year }));
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    const n = points.length;
+    points.forEach((pt) => {
+      sumX += pt.x; sumY += pt.y; sumXY += pt.x * pt.y; sumXX += pt.x * pt.x;
+    });
+    // A single point, or several sharing one x, leaves the slope 0/0. Recharts
+    // would draw a line of NaNs, which renders as nothing and looks like a
+    // styling bug rather than a data one.
+    const denominator = n * sumXX - sumX * sumX;
+    const slope_ = denominator === 0 ? 0 : (n * sumXY - sumX * sumY) / denominator;
+    const intercept_ = n === 0 ? 0 : (sumY - slope_ * sumX) / n;
+    const xVals = points.map((d) => d.x);
+
+    return {
+      scatterData: points,
+      slope: slope_,
+      intercept: intercept_,
+      xMin: n ? Math.min(...xVals) : 0,
+      xMax: n ? Math.max(...xVals) : 0,
+    };
+  }, [data]);
+
+  if (!scatterData.length) {
     return <p>No scatter data found.</p>;
   }
-  // Build scatter points => { x, y, Year }
-  const scatterData = valid.map(d => ({
-    x: d.Glob,
-    y: d.SeaIceMean,
-    Year: d.Year
-  }));
-  
-  // Compute linear regression slope + intercept
-  const { slope, intercept, xMin, xMax } = useMemo(()=> {
-    let sumX=0, sumY=0, sumXY=0, sumXX=0;
-    const n = scatterData.length;
-    scatterData.forEach(pt=>{
-      sumX += pt.x; sumY += pt.y; sumXY += pt.x*pt.y; sumXX += pt.x*pt.x;
-    });
-    const slope_ = (n*sumXY - sumX*sumY)/(n*sumXX - sumX*sumX);
-    const intercept_ = (sumY - slope_* sumX)/n;
-    const xVals = scatterData.map(d=>d.x);
-    const min_ = Math.min(...xVals);
-    const max_ = Math.max(...xVals);
-    return { slope: slope_, intercept: intercept_, xMin: min_, xMax: max_ };
-  }, [scatterData]);
 
   // Build line points => 2 points
   const lineData = [
