@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Any, List
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from schemas import FjordDataBundle
+from schemas import FjordDataBundle, Freshness
 import pandas as pd
 import numpy as np
 from typing import Optional
@@ -66,9 +66,34 @@ FJORD_SUN_END = 180
 FJORD_SPRING_A = 60
 FJORD_SPRING_B = 151
 FJORD_THRESHOLD = 0.15
-FJORD_EARLY_YEARS = [2017, 2018, 2019, 2020]
+# The early/late split that defines the headline loss figure. The boundary is a
+# single year, not two enumerated lists: the late group used to stop at 2025, so
+# a 2026 season would have been highlighted as "late" by the frontend (which
+# groups on year >= FJORD_LATE_START_YEAR) while the backend silently left it out
+# of the percentage. Deriving both groups from one boundary keeps them in step.
+FJORD_LATE_START_YEAR = 2021
+FJORD_FIRST_YEAR = 2017
+
+
+def _fjord_year_groups(years) -> tuple[list[int], list[int]]:
+    """Split observed years into the early and late groups, open ended."""
+    observed = sorted({int(y) for y in years})
+    early = [y for y in observed if FJORD_FIRST_YEAR <= y < FJORD_LATE_START_YEAR]
+    late = [y for y in observed if y >= FJORD_LATE_START_YEAR]
+    return early, late
+
+
+# Kept as module-level names because they are read in several places; they cover
+# the seasons published so far and are recomputed from the data where it matters.
+FJORD_EARLY_YEARS = list(range(FJORD_FIRST_YEAR, FJORD_LATE_START_YEAR))
 FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
-FJORD_KM2 = 3450
+# Area of the analysed rectangle, WGS84 geodesic, from the AOI the classifier
+# actually requests (uummannaq_ice/config.py DEFAULT_AOI: -52.336121/70.628226
+# to -51.945564/70.788206, roughly 14.3 by 17.8 km). It was 3450, which is 13.4x
+# too large; since line 529 multiplies the ice-fraction anomaly by it, the served
+# spring anomalies came out larger than the whole analysed area, which is
+# physically impossible.
+FJORD_KM2 = 257
 
 app = FastAPI(
     title="Climate Report API",
@@ -189,6 +214,102 @@ def _latest_sea_ice_season(
     return sorted(season, key=lambda row: row["DayOfYear"])
 
 
+# ── Freshness ────────────────────────────────────────────────────────────────
+# The story used to publish whatever the database happened to hold, with no way
+# for a reader (or for us) to tell a value measured yesterday from one measured
+# last year. Every payload now carries, per upstream dataset, the newest
+# observation, its age in days, and a status derived from explicit thresholds.
+# The thresholds travel with the payload so the rule is auditable, not implied.
+#
+# Thresholds reflect each source's real publication cadence:
+#   seaIce      NSIDC posts daily with about a one-day lag.
+#   temperature GISTEMP closes a year in mid-January of the following year.
+#   co2         OWID refreshes its annual series in the autumn of the next year.
+#   fjord       Sentinel-2 season runs mid-February to late June, so a gap over
+#               the dark winter is expected; a gap past one year means a whole
+#               melt season was never observed.
+_FRESHNESS_UNKNOWN = "unknown"
+
+
+def _parse_iso_date(value: Optional[str]) -> Optional[date]:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(str(value)[:10])
+    except ValueError:
+        return None
+
+
+def _freshness_status(
+    age_days: Optional[int],
+    lagging_after: int,
+    stale_after: int,
+) -> str:
+    if age_days is None:
+        return _FRESHNESS_UNKNOWN
+    if age_days > stale_after:
+        return "stale"
+    if age_days > lagging_after:
+        return "lagging"
+    return "current"
+
+
+def _source_freshness(
+    *,
+    key: str,
+    label: str,
+    cadence: str,
+    latest_date: Optional[str],
+    latest_year: Optional[int],
+    reference_date: Optional[date],
+    lagging_after: int,
+    stale_after: int,
+    today: date,
+) -> dict[str, Any]:
+    age_days = (today - reference_date).days if reference_date else None
+    return {
+        "key": key,
+        "label": label,
+        "cadence": cadence,
+        "latestDate": latest_date,
+        "latestYear": latest_year,
+        "referenceDate": reference_date.isoformat() if reference_date else None,
+        "ageDays": age_days,
+        "status": _freshness_status(age_days, lagging_after, stale_after),
+        "laggingAfterDays": lagging_after,
+        "staleAfterDays": stale_after,
+    }
+
+
+_STATUS_RANK = {"current": 0, "lagging": 1, "stale": 2, _FRESHNESS_UNKNOWN: 3}
+
+
+def _freshness_block(sources: List[dict[str, Any]], *, checked_at: str) -> dict[str, Any]:
+    known = [s for s in sources if s.get("status")]
+    overall = _FRESHNESS_UNKNOWN
+    if known:
+        overall = max(known, key=lambda s: _STATUS_RANK.get(s["status"], 3))["status"]
+    return {
+        "checkedAt": checked_at,
+        "status": overall,
+        "sources": sources,
+    }
+
+
+def _latest_year_with_value(rows: List[Any], column: str) -> Optional[int]:
+    years = [
+        _as_int(row.get("Year", row.get("year")))
+        for row in rows
+        if isinstance(row, dict) and row.get(column) is not None
+    ]
+    years = [y for y in years if y is not None]
+    return max(years) if years else None
+
+
+def _year_end(year: Optional[int]) -> Optional[date]:
+    return date(year, 12, 31) if year else None
+
+
 def _attach_data_meta(
     data: dict[str, Any],
     *,
@@ -210,16 +331,185 @@ def _attach_data_meta(
     latest_season = _latest_sea_ice_season(data, latest_sea_ice_year)
     data["latestSeaIceSeason"] = latest_season
     data["partial2025"] = latest_season
+
+    latest_sea_ice_date = _row_date(latest_daily) if latest_daily else None
+    latest_temperature_year = (
+        _latest_year_with_value(data.get("annual", []), "Glob")
+        or (max(latest_temperature_years) if latest_temperature_years else None)
+    )
+    latest_co2_year = _latest_year_with_value(data.get("annual", []), "GlobalCO2Mean")
+
+    today = datetime.now(timezone.utc).date()
+    freshness_sources = [
+        _source_freshness(
+            key="seaIce",
+            label="NSIDC Sea Ice Index, daily Arctic extent",
+            cadence="daily",
+            latest_date=latest_sea_ice_date,
+            latest_year=latest_sea_ice_year,
+            reference_date=_parse_iso_date(latest_sea_ice_date),
+            lagging_after=7,
+            stale_after=30,
+            today=today,
+        ),
+        _source_freshness(
+            key="temperature",
+            label="NASA GISTEMP, annual temperature anomaly",
+            cadence="annual",
+            latest_date=None,
+            latest_year=latest_temperature_year,
+            reference_date=_year_end(latest_temperature_year),
+            lagging_after=400,
+            stale_after=730,
+            today=today,
+        ),
+        _source_freshness(
+            key="co2",
+            label="Our World in Data, annual CO2 emissions",
+            cadence="annual",
+            latest_date=None,
+            latest_year=latest_co2_year,
+            reference_date=_year_end(latest_co2_year),
+            lagging_after=500,
+            stale_after=865,
+            today=today,
+        ),
+    ]
+
     data["meta"] = {
-        "latestSeaIceDate": _row_date(latest_daily) if latest_daily else None,
+        "latestSeaIceDate": latest_sea_ice_date,
         "latestSeaIceYear": latest_sea_ice_year,
         "latestAnnualYear": max(latest_annual_years) if latest_annual_years else None,
-        "latestTemperatureYear": max(latest_temperature_years) if latest_temperature_years else None,
+        "latestTemperatureYear": latest_temperature_year,
+        "latestCo2Year": latest_co2_year,
         "source": "NSIDC Sea Ice Index, NASA GISTEMP, Our World in Data CO2",
         "baselineYears": f"{settings.seaice_anom_baseline_start}-{settings.seaice_anom_baseline_end}",
         "generatedAt": generated_at or _utc_now_iso(),
+        "freshness": Freshness(
+            **_freshness_block(freshness_sources, checked_at=_utc_now_iso())
+        ).model_dump(),
     }
     return data
+
+
+# Das annual-Frame trägt den kompletten OWID-Länderdatensatz (268 Spalten), von dem
+# die Story neun liest. dailySeaIce führt Month/Day/DateStr, die sich alle aus
+# Year + DayOfYear ergeben. Beides erst nach _attach_data_meta anwenden, das liest
+# DateStr noch.
+_ANNUAL_KEEP = {
+    "Year", "Glob", "64N-90N", "GlobalCO2Mean", "SeaIceMean",
+    "Arctic_z", "GlobCO2Mean_z", "SeaIce_z", "SeaIce_z_inv",
+}
+_DAILY_DROP = {"Month", "Day", "DateStr"}
+
+
+def _slim_data_payload(data: dict[str, Any]) -> dict[str, Any]:
+    annual = data.get("annual")
+    if isinstance(annual, list):
+        data["annual"] = [
+            {k: v for k, v in row.items() if k in _ANNUAL_KEEP} if isinstance(row, dict) else row
+            for row in annual
+        ]
+    daily = data.get("dailySeaIce")
+    if isinstance(daily, list):
+        data["dailySeaIce"] = [
+            {k: v for k, v in row.items() if k not in _DAILY_DROP} if isinstance(row, dict) else row
+            for row in daily
+        ]
+    return data
+
+
+# How many resamples back the per-season sampling error. 2000 is well past the
+# point where the estimate stops moving and still costs milliseconds.
+SEASON_BOOTSTRAP_DRAWS = 2000
+
+
+def _season_sampling_error(season_rows: "pd.DataFrame", year: int) -> dict[str, Any]:
+    """How much a season mean would move if different days had been observed.
+
+    A season mean is an average over the days a satellite happened to see, and
+    the seasons are not equally observed: 2017 has 26 measured days inside the
+    analysed window against 58 to 76 for the others. Presenting all of them as
+    equally firm point values overstates what the record can carry.
+
+    The error is measured rather than assumed. Resampling the measured days of a
+    season with replacement gives the spread of means the same season would have
+    produced under a different overpass schedule. That needs no assumption about
+    the distribution, and unlike sd/sqrt(n) it does not silently rely on the days
+    being independent, which consecutive days of ice cover are not.
+
+    Measured on the published archive this comes out around 0.055 for a
+    26-day season, so roughly 0.11 at 95 percent, which is about half the
+    difference between the early and late period means. Seasonal means are not
+    point values, and the charts should not draw them as such.
+
+    Only days with an actual observation count. Gap-filled days carry no
+    independent information and would shrink the interval by pretending to.
+    """
+    measured_column = "frac_raw" if "frac_raw" in season_rows.columns else "frac"
+    values = pd.to_numeric(
+        season_rows.loc[season_rows["year"] == year, measured_column], errors="coerce"
+    ).dropna()
+    observed = int(len(values))
+    if observed < 3:
+        return {"observedDays": observed, "standardError": None, "ci95": None}
+
+    sample = values.to_numpy()
+    generator = np.random.default_rng(seed=year)
+    draws = generator.choice(sample, size=(SEASON_BOOTSTRAP_DRAWS, observed))
+    means = draws.mean(axis=1)
+    return {
+        "observedDays": observed,
+        "standardError": round(float(means.std(ddof=1)), 4),
+        "ci95": [
+            round(float(np.percentile(means, 2.5)), 4),
+            round(float(np.percentile(means, 97.5)), 4),
+        ],
+    }
+
+
+# A single day must not be able to declare the fjord frozen or open. The dates
+# used to be min and max of the days at or above the threshold, so one
+# misclassified day decided a season: a cloudy July day read as ice pushed
+# breakup weeks late, and a cloudy February day did the same to freeze-up. In
+# the published archive that risk is real, the days reporting almost no ice in
+# February have a median cloud cover of 0.72 while the rest have 0.00.
+#
+# Requiring the state to persist costs nothing when the season is clean and
+# discards exactly the single-day artefacts.
+FJORD_PERSISTENCE_DAYS = 7
+
+
+def _first_run_start(flags: list[bool], need: int) -> Optional[int]:
+    """Index where the first run of `need` consecutive True values begins."""
+    run = 0
+    for i, flag in enumerate(flags):
+        run = run + 1 if flag else 0
+        if run >= need:
+            return i - need + 1
+    return None
+
+
+def _freeze_and_breakup(
+    group: "pd.DataFrame",
+    threshold: float = FJORD_THRESHOLD,
+    need: int = FJORD_PERSISTENCE_DAYS,
+) -> tuple[Optional[int], Optional[int]]:
+    """First sustained frozen day and the first sustained open day after it."""
+    ordered = group.sort_values("doy")
+    doys = [int(d) for d in ordered["doy"].tolist()]
+    values = ordered["frac"].tolist()
+
+    frozen = [bool(v is not None and not pd.isna(v) and v >= threshold) for v in values]
+    start = _first_run_start(frozen, need)
+    if start is None:
+        return None, None
+
+    open_after = [
+        bool(v is not None and not pd.isna(v) and v < threshold) for v in values[start:]
+    ]
+    end = _first_run_start(open_after, need)
+    return doys[start], (doys[start + end] if end is not None else None)
 
 
 def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
@@ -230,12 +520,32 @@ def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
         for row in daily
         if isinstance(row, dict) and _row_year(row) is not None
     ]
+    latest_date = _row_date(latest_daily) if latest_daily else None
+    latest_year = _row_year(latest_daily) if latest_daily else (max(years) if years else None)
+
+    today = datetime.now(timezone.utc).date()
+    fjord_source = _source_freshness(
+        key="fjord",
+        label="Sentinel-2 ice fraction, Uummannaq Bay",
+        cadence="seasonal",
+        latest_date=latest_date,
+        latest_year=latest_year,
+        reference_date=_parse_iso_date(latest_date),
+        # The observing season ends in late June, so a silent winter is normal.
+        # 240 days after the last scene the next season is already under way;
+        # past 365 days a complete melt season went unobserved.
+        lagging_after=240,
+        stale_after=365,
+        today=today,
+    )
+
     payload["meta"] = {
-        "latestDate": _row_date(latest_daily) if latest_daily else None,
-        "latestYear": _row_year(latest_daily) if latest_daily else (max(years) if years else None),
+        "latestDate": latest_date,
+        "latestYear": latest_year,
         "source": "Sentinel-2 Uummannaq computer-vision pipeline",
         "baselineYears": "2017-2020 vs 2021-2025",
         "generatedAt": _utc_now_iso(),
+        "freshness": _freshness_block([fjord_source], checked_at=_utc_now_iso()),
     }
     return payload
 
@@ -286,19 +596,37 @@ def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
     if missing:
         raise ValueError(f"Missing fjord CSV columns: {', '.join(sorted(missing))}")
 
-    rows = rows[["date", "year", "doy", "frac_smooth"]].rename(columns={"frac_smooth": "frac"}).copy()
+    # `frac` stays the smoothed series the charts plot, but the untouched
+    # per-scene column travels with it as `fracRaw`, so the UI can tell an
+    # actually observed day from an interpolated one instead of labelling
+    # every filled day "Pipeline daily value".
+    keep = ["date", "year", "doy", "frac_smooth"]
+    has_raw = "frac" in rows.columns
+    if has_raw:
+        keep.append("frac")
+    rows = rows[keep].copy()
+    if has_raw:
+        rows = rows.rename(columns={"frac": "frac_raw", "frac_smooth": "frac"})
+    else:
+        rows = rows.rename(columns={"frac_smooth": "frac"})
+        rows["frac_raw"] = pd.NA
     rows["date"] = pd.to_datetime(rows["date"], errors="coerce")
     rows["year"] = pd.to_numeric(rows["year"], errors="coerce")
     rows["doy"] = pd.to_numeric(rows["doy"], errors="coerce")
     rows["frac"] = pd.to_numeric(rows["frac"], errors="coerce")
+    rows["frac_raw"] = pd.to_numeric(rows["frac_raw"], errors="coerce")
     rows = rows.dropna(subset=["date", "year", "doy"]).sort_values(["date"]).copy()
     rows["year"] = rows["year"].astype(int)
     rows["doy"] = rows["doy"].astype(int)
 
+    # Derived from the years actually present, so a new season joins the late
+    # group automatically instead of being dropped by a frozen list.
+    early_years, late_years = _fjord_year_groups(rows["year"])
+
     season = []
     for doy in range(FJORD_SUN_START, FJORD_SUN_END + 1):
-        early = rows[(rows["year"].isin(FJORD_EARLY_YEARS)) & (rows["doy"] == doy)]["frac"]
-        late = rows[(rows["year"].isin(FJORD_LATE_YEARS)) & (rows["doy"] == doy)]["frac"]
+        early = rows[(rows["year"].isin(early_years)) & (rows["doy"] == doy)]["frac"]
+        late = rows[(rows["year"].isin(late_years)) & (rows["doy"] == doy)]["frac"]
         season.append({
             "day": _label_for_doy(doy),
             "eMean": _mean_or_none(early),
@@ -314,7 +642,7 @@ def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
         .groupby("year")["frac"]
         .mean()
     )
-    baseline_years = [year for year in FJORD_EARLY_YEARS if year in spring_means.index]
+    baseline_years = [year for year in early_years if year in spring_means.index]
     baseline = spring_means.loc[baseline_years].mean() if baseline_years else np.nan
     spring = []
     for year, value in spring_means.sort_index().items():
@@ -323,23 +651,26 @@ def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
             anomaly = round((float(value) - float(baseline)) * FJORD_KM2, 1)
         spring.append({"year": int(year), "anomaly": anomaly})
 
-    frac_means = (
-        rows[(rows["doy"] >= FJORD_SUN_START) & (rows["doy"] <= FJORD_SUN_END)]
-        .groupby("year")["frac"]
-        .mean()
-    )
+    season_rows = rows[
+        (rows["doy"] >= FJORD_SUN_START) & (rows["doy"] <= FJORD_SUN_END)
+    ]
+    frac_means = season_rows.groupby("year")["frac"].mean()
     frac = [
-        {"year": int(year), "mean": round(float(value), 4) if not pd.isna(value) else None}
+        {
+            "year": int(year),
+            "mean": round(float(value), 4) if not pd.isna(value) else None,
+            **_season_sampling_error(season_rows, int(year)),
+        }
         for year, value in frac_means.sort_index().items()
     ]
 
     freeze = []
     for year, grp in rows.groupby("year"):
-        frozen = grp.loc[grp["frac"] >= FJORD_THRESHOLD, "doy"].dropna()
+        freeze_doy, breakup_doy = _freeze_and_breakup(grp)
         freeze.append({
             "year": int(year),
-            "freeze": int(frozen.min()) if len(frozen) else None,
-            "breakup": int(frozen.max()) if len(frozen) else None,
+            "freeze": freeze_doy,
+            "breakup": breakup_doy,
         })
 
     daily = []
@@ -349,15 +680,30 @@ def _build_fjord_payload_from_csv() -> Optional[dict[str, Any]]:
             "year": int(row.year),
             "doy": int(row.doy),
             "frac": _json_float(row.frac),
+            # None where no usable scene existed and the value was filled
+            "fracRaw": _json_float(getattr(row, "frac_raw", None)),
         })
 
-    diffs = []
+    # Seasonal loss = ratio of the two period MEANS, not the mean of per-day
+    # ratios. The old estimator divided by the early-period mean day by day; in
+    # late June that mean falls to ~0.008, so single days produced terms as
+    # extreme as -2.6 and dragged the headline figure down by roughly 3x.
+    early_sum = 0.0
+    late_sum = 0.0
+    paired_days = 0
     for row in season:
         early_mean = row["eMean"]
         late_mean = row["lMean"]
-        if early_mean is not None and late_mean is not None and early_mean != 0:
-            diffs.append(1 - (late_mean / early_mean))
-    season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
+        if early_mean is not None and late_mean is not None:
+            early_sum += early_mean
+            late_sum += late_mean
+            paired_days += 1
+    season_loss_pct = (
+        round((1 - (late_sum / early_sum)) * 100, 1)
+        if paired_days and early_sum > 0
+        else None
+    )
+    season_loss_days = paired_days
 
     return _attach_fjord_meta({
         "spring": spring,
@@ -512,7 +858,7 @@ async def get_data(response: Response):
                 db_status="ok",
                 db_host=db_host,
             )
-            return _attach_data_meta(data)
+            return _slim_data_payload(_attach_data_meta(data))
         except Exception as e:
             db_status = "error"
             LOGGER.warning(
@@ -530,7 +876,7 @@ async def get_data(response: Response):
             data = json.load(f)
         # NEW: auch im File-Fallback berechnen
         data["decadalAnomaly"] = compute_decadal_daily_anomaly(data.get("dailySeaIce", []))
-        data = _attach_data_meta(data)
+        data = _slim_data_payload(_attach_data_meta(data))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading data file: {e}")
     _set_source_headers(
@@ -583,13 +929,19 @@ async def get_fjord_data(response: Response):
                         "l75":  late["p75"]   if late  else None,
                     })
 
-                # mean %-loss Feb–Jun (nur, wenn beide Mittel vorhanden)
-                diffs = []
+                # seasonal loss Feb–Jun: ratio of the two period MEANS
+                # (see the CSV branch above for why per-day ratios are unusable)
+                e_sum = l_sum = 0.0
+                paired = 0
                 for row in merged:
                     e, l = row["eMean"], row["lMean"]
-                    if e is not None and l is not None and e != 0:
-                        diffs.append(1 - (l / e))
-                season_loss_pct = round(sum(diffs) / len(diffs) * 100, 1) if diffs else None
+                    if e is not None and l is not None:
+                        e_sum += e
+                        l_sum += l
+                        paired += 1
+                season_loss_pct = (
+                    round((1 - (l_sum / e_sum)) * 100, 1) if paired and e_sum > 0 else None
+                )
 
                 payload = {
                     "spring": [dict(r) for r in spring_rows],
@@ -768,6 +1120,7 @@ How you speak:
 - Warm, vivid, concrete; never kitschy. 2-4 short paragraphs, at most ~180 words, unless the listener asks for a full tale.
 - When it fits naturally, connect then and now: what reliable ice meant on your journeys, and how the listener has just seen it becoming shorter and less predictable. Do not invent modern statistics; the story itself has shown them.
 - End with a small opening: a question back, or the offer of another tale.
+- Typography: never use dashes as punctuation. No em dash, no en dash, no hyphen standing in for a pause. Use a comma, a colon, or a new sentence instead. Hyphens inside compound words are fine.
 
 Honesty:
 - Retell tales and details ONLY from the excerpts provided in the user message. If nothing there fits, say plainly that your memory does not recall such a tale, and offer what you do have.
