@@ -99,7 +99,9 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
   const ticks = MONTH_TICKS.filter((d) => d >= domain[0] && d <= domain[1]);
 
   const years = points.map((p) => p.year);
-  const fmtDay = (doy: number) => doyToMonthDay(doy, locale).replace(/\./g, "");
+  // strip only the abbreviation dot ("30. Apr." → "30. Apr"); a blanket strip
+  // also removed the ordinal dot German dates require ("30 Apr")
+  const fmtDay = (doy: number) => doyToMonthDay(doy, locale).replace(/\.$/, "");
 
   const shiftLabel =
     summary.shiftDays === null
@@ -147,7 +149,7 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
           {t("charts.breakupTiming.title")}
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
+          <ChartSourceBadge href="https://github.com/lukaskreibig">
             {t("charts.breakupTiming.source")}
           </ChartSourceBadge>
           <ChartSourceBadge href="https://doi.org/10.1016/j.polar.2017.05.002">

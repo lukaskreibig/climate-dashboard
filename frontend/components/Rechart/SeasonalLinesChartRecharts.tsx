@@ -60,18 +60,15 @@ export default function SeasonalLinesChartRecharts({
   const { t } = useTranslation();
   const months = t('common.months.short', { returnObjects: true }) as string[];
   
-  if (!Array.isArray(data) || !data.length) {
-    return (
-      <ChartEmptyState title={t("charts.seasonal.emptyTitle")}>
-        {t("charts.seasonal.emptyBody")}
-      </ChartEmptyState>
-    );
-  }
+  // NOTE: the empty-state return lives BELOW the last hook (see there). Hooks
+  // must run in the same order on every render, so an early return here would
+  // change the hook count once data arrives and blank the whole page.
+  const hasData = Array.isArray(data) && data.length > 0;
 
   /* ── group & down-sample by year ───────────────────────── */
   const byYear = useMemo(() => {
     const m = new Map<number, Row[]>();
-    data.forEach((r) => (m.get(r.Year)?.push(r) ?? m.set(r.Year, [r])));
+    data?.forEach((r) => (m.get(r.Year)?.push(r) ?? m.set(r.Year, [r])));
     m.forEach((arr) => arr.sort((a, b) => a.DayOfYear - b.DayOfYear));
     const keep = (rows: Row[]) =>
       rows.filter((_, i) => i % POINT_EVERY_N_DAYS === 0);
@@ -80,14 +77,14 @@ export default function SeasonalLinesChartRecharts({
       .sort((a, b) => a.year - b.year);
   }, [data]);
 
-  /* ── stats ─────────────────────────────────────────────── */
-  const flat = data.filter((d) => d.Extent != null) as Required<Row>[];
-  const [minE, maxE] = d3.extent(flat, (d) => d.Extent)!;
-  const max = flat.reduce((a, b) => (b.Extent > a.Extent ? b : a));
-  const min = flat.reduce((a, b) => (b.Extent < a.Extent ? b : a));
+  /* ── stats (all null-safe: they must survive the empty first render) ── */
+  const flat = (data ?? []).filter((d) => d.Extent != null) as Required<Row>[];
+  const [minE, maxE] = flat.length ? d3.extent(flat, (d) => d.Extent)! : [0, 1];
+  const max = flat.length ? flat.reduce((a, b) => (b.Extent > a.Extent ? b : a)) : null;
+  const min = flat.length ? flat.reduce((a, b) => (b.Extent < a.Extent ? b : a)) : null;
 
-  const minYear = byYear[0].year;
-  const maxYear = byYear.at(-1)!.year;
+  const minYear = byYear[0]?.year ?? 0;
+  const maxYear = byYear.at(-1)?.year ?? 0;
   const currentYear = maxYear;
 
   /* colour scale */
@@ -111,6 +108,15 @@ export default function SeasonalLinesChartRecharts({
   useImperativeHandle(apiRef, () => ({
     highlight: (mode: HighlightMode) => setHighlight(mode),
   }));
+
+  /* every hook has now run — safe to bail out for the empty payload */
+  if (!hasData || !flat.length) {
+    return (
+      <ChartEmptyState title={t("charts.seasonal.emptyTitle")}>
+        {t("charts.seasonal.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
 
   /* helpers */
   const isVisible = (y: number) => {

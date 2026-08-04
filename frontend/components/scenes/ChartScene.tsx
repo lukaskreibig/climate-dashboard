@@ -969,6 +969,25 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const resolveCaptionContent = (content: CaptionContent) =>
     typeof content === "function" ? content(globalData) : content;
 
+  const isCaptionEmpty = (content: React.ReactNode) => {
+    if (content === null || content === undefined) return true;
+    if (!React.isValidElement(content)) return false;
+    const props = content.props as { children?: React.ReactNode };
+    return React.Children.count(props.children ?? null) === 0;
+  };
+
+  /* Scenes whose first caption is a deliberate blank (photo beats) would
+     otherwise swallow their chapter kicker entirely — anchor it to the first
+     caption that actually renders text. */
+  const firstNonEmptyIdx = cfg.captions.findIndex(
+    (c) => !isCaptionEmpty(resolveCaptionContent(c.html))
+  );
+  const firstNonEmptyCaption = Math.max(0, firstNonEmptyIdx);
+  /* photo scenes carry their words inside PhotoStory, so every ChartScene
+     caption is blank and the kicker has nothing to attach to — show it as a
+     standalone chapter label over the image instead of losing the act. */
+  const kickerNeedsOwnCard = !!cfg.kicker && firstNonEmptyIdx === -1;
+
   const titleContent = resolveCaptionContent(cfg.captions[0]?.html);
   const progressTitle =
     cfg.progressTitle ??
@@ -1015,6 +1034,10 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
           </div>
         </div>
 
+        {kickerNeedsOwnCard && (
+          <p className="caption-kicker caption-kicker--standalone">{cfg.kicker}</p>
+        )}
+
         {cfg.scrollCue && (
           <div data-scroll-cue className="scroll-cue" aria-hidden="true">
             <span className="scroll-cue-label">{cfg.scrollCue}</span>
@@ -1028,12 +1051,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       {/* captions */}
       {cfg.captions.map((c, i) => {
         const content = resolveCaptionContent(c.html);
-        const empty = (() => {
-          if (content === null || content === undefined) return true;
-          if (!React.isValidElement(content)) return false;
-          const props = content.props as { children?: React.ReactNode };
-          return React.Children.count(props.children ?? null) === 0;
-        })();
+        const empty = isCaptionEmpty(content);
 
         /* editorial glass: frosted card with hairline ring + soft layered
            shadow — reads as one coherent, contemporary voice over photos,
@@ -1085,7 +1103,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
               className={`pointer-events-auto ${finalClass}`}
               style={captionStyle(c.captionSide)}
             >
-              {!empty && i === 0 && cfg.kicker && (
+              {!empty && i === firstNonEmptyCaption && cfg.kicker && (
                 <p className="caption-kicker">{cfg.kicker}</p>
               )}
               {content}

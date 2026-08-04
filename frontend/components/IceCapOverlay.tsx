@@ -21,6 +21,7 @@ import {
   useRef,
 } from "react";
 import mapboxgl from "mapbox-gl";
+import { gsap } from "gsap";
 
 /* ——— decade snapshots (oldest → newest) ——— */
 export const ICE_DECADES = [1980, 1990, 2000, 2010, 2020, 2024] as const;
@@ -34,10 +35,10 @@ const ICE_COLOR = "#e8f3ff"; // icy white-blue
 /* progress choreography (0–1 scene scroll). The camera ascent finishes ~0.45
    (MapFlyScene cameraEnd); the cap fades in as the globe frames, retreats over
    the back half, then holds so the 2024 loss reads before the scene fades out. */
-const GATE_START = 0.42;    // cap begins to fade in as the globe frames
-const GATE_END = 0.54;      // fully present
-const RETREAT_START = 0.56; // decade cross-fade owns the back half of the scroll
-const RETREAT_END = 0.9;    // reach the latest decade, then hold before exit
+const GATE_START = 0.26;    // cap begins to fade in as the globe frames
+const GATE_END = 0.35;      // fully present, before the first decade caption
+const RETREAT_START = 0.36; // decade cross-fade runs underneath captions 2-4
+const RETREAT_END = 0.8;    // reach 2024 as the last caption lands, then hold
 const GHOST = 0.24;         // 1980 lingers faintly so the loss stays visible
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
@@ -75,6 +76,9 @@ export interface IceCapApi {
   setProgress: (p: number) => void;
   /** static end-state for reduced motion: latest cap + faint 1980 ghost */
   showLatest: () => void;
+  /** jump the retreat to one decade (index into ICE_DECADES) and tween there.
+   *  Caption-driven, so the year on screen can never disagree with the text. */
+  showDecade: (index: number) => void;
 }
 
 interface Props {
@@ -89,6 +93,11 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
      the last requested state and re-apply it once the layers exist, so the cap
      shows on the first pass without needing another scroll. */
   const lastRequest = useRef<number | "latest" | null>(null);
+  /** decade the captions have pinned, or null while scroll still drives it */
+  const pinnedDecade = useRef<number | null>(null);
+  const tween = useRef<gsap.core.Tween | null>(null);
+  /** live opacity per decade, tweened so caption jumps still look continuous */
+  const current = useRef<number[]>(ICE_DECADES.map(() => 0));
 
   const setOpacities = (opacities: number[]) => {
     const map = mapRef.current?.getMap();
@@ -97,6 +106,31 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
       if (map.getLayer(srcId(y))) {
         map.setPaintProperty(srcId(y), "fill-opacity", opacities[i]);
       }
+    });
+  };
+
+  /** target opacities for one decade: that decade solid, 1980 as a faint ghost */
+  const targetsForDecade = (index: number, gate: number): number[] =>
+    ICE_DECADES.map((_, i) => {
+      if (i === index) return gate;
+      if (i === 0) return gate * GHOST;
+      return 0;
+    });
+
+  /** tween from wherever we are to the requested decade */
+  const applyDecade = (index: number, gate: number) => {
+    const targets = targetsForDecade(index, gate);
+    tween.current?.kill();
+    const proxy = { ...current.current };
+    tween.current = gsap.to(proxy, {
+      ...targets.reduce((acc, v, i) => ({ ...acc, [i]: v }), {}),
+      duration: 0.8,
+      ease: "power2.out",
+      onUpdate: () => {
+        const next = ICE_DECADES.map((_, i) => (proxy as Record<number, number>)[i] ?? 0);
+        current.current = next;
+        setOpacities(next);
+      },
     });
   };
 
@@ -185,8 +219,23 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
 
   useImperativeHandle(ref, () => ({
     setProgress(p: number) {
+      // once a caption has taken control of the decade, scroll progress only
+      // still owns the fade-in gate, never the retreat itself
+      if (pinnedDecade.current !== null) {
+        const gate = clamp01((p - GATE_START) / (GATE_END - GATE_START));
+        applyDecade(pinnedDecade.current, gate);
+        return;
+      }
       lastRequest.current = p;
-      setOpacities(opacitiesForProgress(p));
+      const next = opacitiesForProgress(p);
+      current.current = next;
+      setOpacities(next);
+    },
+    showDecade(index: number) {
+      const clamped = Math.max(0, Math.min(ICE_DECADES.length - 1, index));
+      pinnedDecade.current = clamped;
+      lastRequest.current = null;
+      applyDecade(clamped, 1);
     },
     showLatest() {
       // latest decade full + faint 1980 ghost, everything else hidden

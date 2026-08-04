@@ -28,9 +28,6 @@ const ZScoreChart   = dynamic(()=>import("@/components/Rechart/ZScoreChartRechar
 const Bar24Chart    = dynamic(()=>import("@/components/Rechart/BarChart2024Recharts"),{ ssr:false });
 const ScatterChart  = dynamic(()=>import("@/components/Rechart/ScatterChartRecharts"),{ ssr:false });
 
-/* NEW: Why Arctic explainer component */
-const WhyArcticExplainer = dynamic(()=>import("@/components/WhyArcticExplainer"),{ ssr:false });
-
 // const SatelliteScene = dynamic(()=>import("@/components/SatelliteScene"),{ssr:false});
 
 
@@ -49,9 +46,10 @@ const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
   { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },
   { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
   // final dive toward the town — close enough to "land", far enough that the
-  // satellite tiles stay sharp (z12+ gets pixelated up here); the ground-level
-  // photo then resolves out of this zoom (match-cut into changeclimate)
-  { lng: -52.127, lat: 70.676, zoom: 11.4, pitch: 55, bearing: 30 },
+  // satellite tiles stay sharp (z12+ gets pixelated up here). The bearing
+  // sweeps 30°→115° on the way down: the camera swings around the
+  // heart-shaped mountain in real 3D relief before the photo match-cut.
+  { lng: -52.127, lat: 70.676, zoom: 11.4, pitch: 58, bearing: 115 },
 ];
 
 /* the opening descent reversed: a grand ascent/pull-back from Uummannaq to the
@@ -67,7 +65,9 @@ const SATELLITE_WAYPOINTS: Waypoint[] = [
   { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
   { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
   { lng: -52.22, lat: 70.7, zoom: 10.5, pitch: 70, bearing: 4.7 },
-  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  // mask beat: tilted so the CV overlay visibly DRAPES over the real fjord
+  // relief — the classified image is geography, not an illustration
+  { lng: -52.22, lat: 70.7, zoom: 9.8, pitch: 52, bearing: 20 },
 ];
 
 const SATELLITE_IMAGES = ["/images/satellite.jpg", "/images/overlay.jpg"];
@@ -119,7 +119,6 @@ export const dynamicModules: PreloadableComponent[] = [
   AllYearsSeasonChart,
   MemoryMeasurementTimeline,
   SatellitePixelInspector,
-  WhyArcticExplainer,
   MapFlyScene,
   SatelliteScene,
   PhotoStory,           // forwardRef-komponente, aber preloadbar
@@ -610,10 +609,35 @@ export const useScenesWithTranslation = () => {
   ),
   axesSel: NO_MATCH,
   captions: [
-    { html: <></> },
-    { html: <></> },
-    { html: <></> },
-    { html: <></> },
+    {
+      html: (
+        <p className="text-lg">{t('scenes.pixelInspector.raw')}</p>
+      ),
+    },
+    {
+      html: (
+        <>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.pixelInspector.maskTitle')}</h3>
+          <p className="text-lg">{t('scenes.pixelInspector.mask')}</p>
+        </>
+      ),
+    },
+    {
+      html: (
+        <>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.pixelInspector.classTitle')}</h3>
+          <p className="text-lg">{t('scenes.pixelInspector.classification')}</p>
+        </>
+      ),
+    },
+    {
+      html: (
+        <>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.pixelInspector.outputTitle')}</h3>
+          <p className="text-lg">{t('scenes.pixelInspector.output')}</p>
+        </>
+      ),
+    },
   ],
   actions: [
     { captionIdx: 0, call: api => api?.showStage?.(0) },
@@ -638,6 +662,7 @@ export const useScenesWithTranslation = () => {
   chart: (d: DataBundle, api) => (
     <MemoryMeasurementTimeline
       data={(d?.daily ?? []) as any}
+      seasonMeans={(d?.frac ?? []) as any}
       lossPct={d?.seasonLossPct ?? null}
       latestYear={d?.fjordMeta?.latestYear ?? undefined}
       sourceLabel={t("charts.memoryMeasurement.source", {
@@ -733,7 +758,11 @@ export const useScenesWithTranslation = () => {
     kicker: t('scenes.kickers.pattern'),
     axesInIdx: 0,
     chart: (d: DataBundle, api) => (
-      <AllYearsSeasonChart data={(d?.daily ?? []) as any} apiRef={api} />
+      <AllYearsSeasonChart
+        data={(d?.daily ?? []) as any}
+        seasonMeans={(d?.frac ?? []) as any}
+        apiRef={api}
+      />
     ),
     progressPoint: true,
     plainCaptions: true,
@@ -805,7 +834,7 @@ export const useScenesWithTranslation = () => {
         captionSide: "left",
         html: (
           <>
-            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.title')}</h3>
+            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.earlyPeriodTitle')}</h3>
             <p className="text-lg">
               {t('scenes.newAbnormal.earlyPeriod')}
             </p>
@@ -814,16 +843,29 @@ export const useScenesWithTranslation = () => {
       },
       {
         captionSide: "left",
-        html: (
-          <>
-            <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
-            <p className="text-lg">
-              {t('scenes.newAbnormal.livingOutside')}
-              <br/><br/>
-              {t('scenes.newAbnormal.result')}
-            </p>
-          </>
-        ),
+        // the headline figure is derived from the payload, never hard-coded,
+        // so prose and chart can never drift apart
+        html: (d: DataBundle) => {
+          const loss = (d as any)?.seasonLossPct;
+          return (
+            <>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
+              {typeof loss === "number" && (
+                <StatChip
+                  value={Math.abs(Math.round(loss))}
+                  prefix="−"
+                  suffix=" %"
+                  label={t('scenes.newAbnormal.consequence')}
+                />
+              )}
+              <p className="text-lg">
+                {t('scenes.newAbnormal.livingOutside')}
+                <br/><br/>
+                {t('scenes.newAbnormal.result')}
+              </p>
+            </>
+          );
+        },
       },
     ],
 
@@ -1034,7 +1076,9 @@ export const useScenesWithTranslation = () => {
   wide: true,
   snow: false,
   bgColor: "#020617",
-  scrollScreens: 6,
+  // 5 caption screens now carry the retreat; the 2 trailing screens are the
+  // hold on 2024 plus the fade-out (see ArcticIceGlobeScene for the timing)
+  scrollScreens: 2,
   chart: (_d, api) => (
     <ArcticIceGlobeScene
       ref={api}
@@ -1042,9 +1086,14 @@ export const useScenesWithTranslation = () => {
     />
   ),
   axesSel: NO_MATCH,
-  // reduced-motion fallback: settle on the whole-Arctic destination
   actions: [
+    // reduced-motion fallback: settle on the whole-Arctic destination
     { captionIdx: 0, call: api => api?.go?.(ARCTIC_PULLBACK_WAYPOINTS.length - 1) },
+    // the retreat is caption-driven so the year on the globe always matches
+    // the sentence next to it (indices into ICE_DECADES)
+    { captionIdx: 2, call: api => api?.showDecade?.(0) },   // 1980
+    { captionIdx: 3, call: api => api?.showDecade?.(2) },   // 2000
+    { captionIdx: 4, call: api => api?.showDecade?.(5) },   // 2024
   ],
   captions: [
     {
@@ -1065,14 +1114,34 @@ export const useScenesWithTranslation = () => {
       html: (
         <>
           <h2 className="text-3xl font-bold mb-3">{t('scenes.arcticGlobe.title')}</h2>
+          <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.intro')}</p>
+        </>
+      ),
+    },
+    // The decades used to run over blank spacer screens, so the headline claim
+    // was read before any ice was on the globe. Each retreat step now has its
+    // own caption, and the figure lands only after the reader has watched it.
+    {
+      html: (
+        <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.decade1980')}</p>
+      ),
+    },
+    {
+      html: (
+        <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.decade2000')}</p>
+      ),
+    },
+    {
+      html: (
+        <>
+          <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.decade2024')}</p>
           <StatChip
-            value={13}
+            value={12}
             prefix="−"
             suffix=" %"
             label={t('scenes.arcticGlobe.statLabel')}
             className="items-center"
           />
-          <p className="text-lg text-center max-w-2xl mx-auto">{t('scenes.arcticGlobe.description')}</p>
         </>
       ),
     },
@@ -1172,7 +1241,7 @@ export const useScenesWithTranslation = () => {
     progressPoint: true,
     plainCaptions: true,
     chart : (d:DataBundle, api) =>
-            <DailyChart data={(d as any).decadalAnomaly} apiRef={api} />,
+            <DailyChart data={((d as any)?.decadalAnomaly ?? []) as any} apiRef={api} />,
     axesSel   : AXES,
     axesInIdx : 0,
 

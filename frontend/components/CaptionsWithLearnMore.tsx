@@ -90,7 +90,7 @@ export const CaptionWithLearnMore: React.FC<CaptionWithLearnMoreProps> = ({
             {learnMore.linkTitle}
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="w-[45vw] sm:max-w-none max-h-[80vh] overflow-y-auto text-black">
+        <AlertDialogContent className="w-full sm:w-[45vw] sm:max-w-none max-h-[80vh] overflow-y-auto text-black">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl">
               {learnMore.title || t('common.moreInformation', 'Weitere Informationen')}

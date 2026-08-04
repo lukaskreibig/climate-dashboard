@@ -20,9 +20,12 @@ import {
   buildFjordSeasonMatrix,
   doyToMonthDay,
   FjordSeasonCell,
+  indexSeasonUncertainty,
   meanOf,
   percentChange,
-  splitEarlyLate,
+  type SeasonMeanRow,
+  type SeasonUncertainty,
+  splitAtYear,
   summarizeFjordSeasons,
   UUMMANNAQ_SEASON_END_DOY,
   UUMMANNAQ_SEASON_START_DOY,
@@ -41,6 +44,8 @@ export interface MemoryMeasurementApi {
 
 interface Props {
   data: Row[];
+  /** per-season mean with its bootstrapped 95 % interval, straight from the API */
+  seasonMeans?: SeasonMeanRow[];
   lossPct?: number | null;
   sourceLabel?: string | null;
   latestYear?: number | null;
@@ -55,6 +60,26 @@ const STAGE_LATE = 3;
 const STAGE_CONTEXT = 4;
 
 const DAY_COUNT = UUMMANNAQ_SEASON_END_DOY - UUMMANNAQ_SEASON_START_DOY + 1;
+
+/**
+ * Row layout: year label, heatmap, season mean with its interval.
+ *
+ * The third column only exists from `sm` upward. Below 640px the heatmap
+ * already needs every pixel it can get (137 day cells at a 2px floor is 274px
+ * against 259px of rendered strip at a 360px viewport), so adding a fixed
+ * column there would clip weeks more off the right edge of every season. The
+ * same interval is on the small multiples in the next scene, which reflow to
+ * full-width panels on a phone, so nothing is lost, only relocated.
+ *
+ * Its width steps at `xl`, not `lg`, because the row is at its narrowest right
+ * at 1024px, where the scene switches to chart beside caption: measured widths
+ * to share are about 493px at a 640px viewport and 488px at 1024px, and a
+ * 10rem column there left the strip 26px short of the 274px the 137 day cells
+ * need, which quietly ate the last week of June. 7rem clears every tested
+ * width; from 1280px up there is room for the roomier version.
+ */
+const ROW_GRID =
+  "grid-cols-[3rem_1fr] sm:grid-cols-[4rem_minmax(0,1fr)_7rem] xl:grid-cols-[4rem_minmax(0,1fr)_10rem]";
 const MONTH_TICKS = [45, 60, 91, 121, 152, 181];
 const EXAMPLE_DOY = 105;
 
@@ -111,6 +136,70 @@ const cellStyle = (cell: FjordSeasonCell, visible: boolean): CSSProperties => {
   };
 };
 
+/**
+ * One season's mean and how firm it is, on a shared 0 to 1 track so the bars
+ * are directly comparable between rows. 2017 is the point of the column: it
+ * rests on 39 measured days against 81 to 107 for the others, and its bar comes
+ * out 2.15 times as wide as 2021's.
+ *
+ * Both ends come from the bootstrap percentile pair. The interval is not
+ * symmetric about the mean, so the tick can sit off-centre inside its own bar;
+ * that is the measurement, not a rendering slip.
+ *
+ * Module scope on purpose: hovering the heatmap sets state on every pointer
+ * move, and a component declared inside the render body is a new type each
+ * time, which would remount all nine of these on every mouse move.
+ */
+function SeasonIntervalCell({
+  season,
+  meanLabel,
+  title,
+}: {
+  season: SeasonUncertainty | null;
+  meanLabel: string;
+  title: string;
+}) {
+  const band = season?.ci95 ?? null;
+  const mean = season?.mean ?? null;
+
+  return (
+    <div
+      data-season-ci={season?.year ?? ""}
+      data-ci-lo={band?.[0] ?? ""}
+      data-ci-hi={band?.[1] ?? ""}
+      data-observed-days={season?.observedDays ?? ""}
+      title={title}
+      className="hidden items-center gap-2 sm:flex"
+    >
+      <span className="w-11 shrink-0 text-right text-[11px] font-semibold tabular-nums text-slate-700">
+        {meanLabel}
+      </span>
+      <span
+        data-ci-track
+        className="relative h-2 min-w-0 flex-1 rounded-full bg-slate-200"
+      >
+        {band && (
+          <span
+            data-ci-bar
+            className="absolute inset-y-0 rounded-full bg-slate-500/75"
+            style={{
+              left: `${band[0] * 100}%`,
+              width: `${(band[1] - band[0]) * 100}%`,
+            }}
+          />
+        )}
+        {mean !== null && (
+          <span
+            data-ci-mean-tick
+            className="absolute top-[-3px] h-[14px] w-[2px] -translate-x-1/2 rounded-full bg-slate-900"
+            style={{ left: `${mean * 100}%` }}
+          />
+        )}
+      </span>
+    </div>
+  );
+}
+
 const nearestMeasuredCell = (
   cells: FjordSeasonCell[] | undefined,
   targetDoy = EXAMPLE_DOY
@@ -124,6 +213,7 @@ const nearestMeasuredCell = (
 
 export default function MemoryMeasurementTimeline({
   data,
+  seasonMeans,
   lossPct,
   sourceLabel,
   latestYear,
@@ -164,11 +254,18 @@ export default function MemoryMeasurementTimeline({
     return () => cancelAnimationFrame(raf);
   }, [stage]);
 
+  const uncertainty = useMemo(
+    () => indexSeasonUncertainty(seasonMeans),
+    [seasonMeans]
+  );
+
   const prepared = useMemo(() => {
     const matrix = buildFjordSeasonMatrix(data);
     const years = matrix.map((row) => row.year);
     const summaries = summarizeFjordSeasons(data);
-    const split = splitEarlyLate(summaries);
+    // Fixed 2021 boundary, so the highlighted rows are the same years the
+    // seasonLossPct badge below the chart is computed from.
+    const split = splitAtYear(summaries);
     const earlyMean = meanOf(split.early.map((row) => row.mean));
     const lateMean = meanOf(split.late.map((row) => row.mean));
     const derivedChange = percentChange(earlyMean, lateMean);
@@ -211,6 +308,17 @@ export default function MemoryMeasurementTimeline({
   });
   const formatPercent = (value: number | null) =>
     value === null ? t("charts.memoryMeasurement.tooltip.noValue") : percentFormatter.format(value);
+  /* separate from the cell formatter above: season means always carry one
+     decimal so the nine rows read as a column of comparable numbers */
+  const seasonPercent = new Intl.NumberFormat(locale, {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  const seasonNumber = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
   const formatDate = (date: string) =>
     new Intl.DateTimeFormat(locale, {
       day: "numeric",
@@ -264,6 +372,21 @@ export default function MemoryMeasurementTimeline({
   const statusLabel = (cell: FjordSeasonCell) =>
     t(`charts.memoryMeasurement.status.${cell.status}`);
 
+  const seasonIntervalLabel = (season: SeasonUncertainty | null) => {
+    const band = season?.ci95 ?? null;
+    const mean = season?.mean ?? null;
+    if (!band || mean === null || season?.observedDays == null) {
+      return t("charts.seasonUncertainty.missing");
+    }
+    return t("charts.seasonUncertainty.rowSummary", {
+      year: season.year,
+      mean: seasonPercent.format(mean),
+      lo: seasonNumber.format(band[0] * 100),
+      hi: seasonPercent.format(band[1]),
+      days: season.observedDays,
+    });
+  };
+
   return (
     <div
       ref={rootRef}
@@ -277,7 +400,7 @@ export default function MemoryMeasurementTimeline({
           {t("charts.memoryMeasurement.axisLabel")}
         </div>
         <div className="flex flex-wrap gap-2">
-          <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
+          <ChartSourceBadge href="https://github.com/lukaskreibig">
             {sourceLabel ?? t("charts.memoryMeasurement.sourceFallback")}
           </ChartSourceBadge>
           <ChartSourceBadge href="https://doi.org/10.1016/j.polar.2017.05.002">
@@ -287,22 +410,44 @@ export default function MemoryMeasurementTimeline({
       </div>
 
       <div data-testid="memory-measurement-table">
-        <div className="relative mb-2 ml-12 grid text-[10px] font-medium text-slate-500 sm:ml-16">
-          <div
-            className="grid"
-            style={{ gridTemplateColumns: `repeat(${DAY_COUNT}, minmax(2px, 1fr))` }}
-          >
-            {MONTH_TICKS.map((doy) => (
-              <div
-                key={doy}
-                className="border-l border-slate-300 pl-1"
-                style={{
-                  gridColumn: `${doy - UUMMANNAQ_SEASON_START_DOY + 1} / span 14`,
-                }}
-              >
-                {doyToMonthDay(doy, locale).replace(/\./g, "")}
-              </div>
-            ))}
+        {/* header shares the row grid so the month ticks stay aligned with the
+            heatmap once the season-mean column is added */}
+        <div className={`mb-2 grid items-end gap-2 ${ROW_GRID}`}>
+          <div aria-hidden="true" />
+          {/* the last month tick spans 14 columns past the end of the 137-day
+              grid, so without clipping it bleeds into the column beside it */}
+          <div className="relative grid overflow-hidden text-[10px] font-medium text-slate-500">
+            <div
+              className="grid"
+              style={{ gridTemplateColumns: `repeat(${DAY_COUNT}, minmax(2px, 1fr))` }}
+            >
+              {MONTH_TICKS.map((doy, index) => {
+                const startColumn = doy - UUMMANNAQ_SEASON_START_DOY + 1;
+                /* the closing tick marks the end of the window, so its label
+                   hangs to the left of its rule instead of off the grid */
+                const isLast = index === MONTH_TICKS.length - 1;
+                return (
+                  <div
+                    key={doy}
+                    className={
+                      isLast
+                        ? "border-r border-slate-300 pr-1 text-right"
+                        : "border-l border-slate-300 pl-1"
+                    }
+                    style={{
+                      gridColumn: isLast
+                        ? `${Math.max(1, startColumn - 14)} / ${startColumn}`
+                        : `${startColumn} / span 14`,
+                    }}
+                  >
+                    {doyToMonthDay(doy, locale).replace(/\./g, "")}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="hidden text-[10px] font-medium leading-tight text-slate-500 sm:block">
+            {t("charts.seasonUncertainty.columnLabel")}
           </div>
         </div>
 
@@ -313,7 +458,7 @@ export default function MemoryMeasurementTimeline({
             return (
               <div
                 key={row.year}
-                className={`grid grid-cols-[3rem_1fr] items-center gap-2 transition-opacity duration-500 sm:grid-cols-[4rem_1fr] ${
+                className={`grid items-center gap-2 transition-opacity duration-500 ${ROW_GRID} ${
                   stage < STAGE_ALL && row.year !== exampleCell.year
                     ? "opacity-0"
                     : dim
@@ -381,6 +526,20 @@ export default function MemoryMeasurementTimeline({
                     );
                   })}
                 </div>
+                {(() => {
+                  const season = uncertainty.get(row.year) ?? null;
+                  return (
+                    <SeasonIntervalCell
+                      season={season}
+                      meanLabel={
+                        season?.mean == null
+                          ? "n/a"
+                          : seasonPercent.format(season.mean)
+                      }
+                      title={seasonIntervalLabel(season)}
+                    />
+                  );
+                })()}
               </div>
             );
           })}
@@ -407,6 +566,21 @@ export default function MemoryMeasurementTimeline({
               <span className="h-2.5 w-4 rounded-sm bg-slate-200 bg-[repeating-linear-gradient(135deg,rgba(100,116,139,0.4)_0_1px,transparent_1px_5px)] ring-1 ring-slate-300" />
               {t("charts.memoryMeasurement.legend.missing")}
             </span>
+          </div>
+          {/* sits directly under the column it describes; hidden with that
+              column below 640px, where the small multiples carry the band */}
+          <div
+            data-season-explainer
+            className="mt-2 hidden max-w-[70ch] items-start gap-2 leading-snug sm:flex"
+          >
+            <span
+              aria-hidden="true"
+              className="relative mt-1 h-2 w-10 shrink-0 rounded-full bg-slate-200"
+            >
+              <span className="absolute inset-y-0 left-[15%] w-[55%] rounded-full bg-slate-500/75" />
+              <span className="absolute top-[-3px] left-[42%] h-[14px] w-[2px] -translate-x-1/2 rounded-full bg-slate-900" />
+            </span>
+            <span>{t("charts.seasonUncertainty.explainer")}</span>
           </div>
         </div>
 

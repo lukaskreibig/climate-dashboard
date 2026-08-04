@@ -226,9 +226,9 @@ export default function StoryProgress() {
   return (
     <div
       ref={container}
-      className="fixed top-1/2 -translate-y-1/2 lg:right-4 hidden sm:flex flex-col items-center z-50"
+      className="fixed top-1/2 -translate-y-1/2 right-1 lg:right-4 flex flex-col items-center z-50 scale-90 sm:scale-100"
     >
-      <div className="text-slate-800 mb-5">{t("arctic.heroTitle")}</div>
+      <div className="hidden sm:block text-slate-800 mb-5">{t("arctic.heroTitle")}</div>
 
       <div ref={track} className="relative h-[40vh] w-[2px] bg-slate-400/60 rounded-full mx-auto">
         {/* Fill */}

@@ -13,6 +13,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import { Send, User } from "lucide-react";
 import clsx from "clsx";
+import DataFreshnessNote from "@/components/DataFreshnessNote";
+import type { ClimateDataMeta, FjordDataMeta } from "@/types";
 
 /* ─── ChatBot Integration Types ─── */
 interface ChatMessage {
@@ -36,7 +38,14 @@ function useBlinkingDots(active: boolean, interval = 400, maxDots = 3) {
 }
 
 /* ─── Main Component ─── */
-export default function OutroCredits() {
+interface OutroCreditsProps {
+  /** meta.freshness from /data, so the credits can date the record */
+  baseMeta?: ClimateDataMeta | null;
+  /** meta.freshness from /uummannaq */
+  fjordMeta?: FjordDataMeta | null;
+}
+
+export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps = {}) {
   const { t } = useTranslation();
   const outroRef = useRef<HTMLDivElement>(null);
 
@@ -276,6 +285,14 @@ export default function OutroCredits() {
             </div>
           ))}
         </div>
+
+        {/* How far the records actually reach. Sits with the methodology,
+            where a reader goes to ask what the numbers are worth. */}
+        <DataFreshnessNote
+          baseMeta={baseMeta}
+          fjordMeta={fjordMeta}
+          className="mt-8 border-t border-gray-800 pt-6"
+        />
 
         {/* Back to Story */}
         <div className="mt-8 pt-6 border-t border-gray-700">

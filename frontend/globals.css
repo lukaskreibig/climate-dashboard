@@ -271,6 +271,19 @@
   margin-bottom: 0.65rem;
 }
 
+/* chapter label for photo scenes, which have no caption box to sit in */
+.caption-kicker--standalone {
+  position: absolute;
+  top: clamp(1.5rem, 5vh, 3rem);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: #e0f2fe;
+  text-shadow: 0 1px 12px rgba(2, 6, 23, 0.85);
+  pointer-events: none;
+  z-index: 30;
+}
+
 /* ── StatChip: big counted number + small label ───────────────── */
 .stat-chip {
   display: flex;

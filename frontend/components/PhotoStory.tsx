@@ -84,7 +84,8 @@ const Figure = ({ p }: { p: Photo }) => (
   </figure>
 );
 
-const clamp01       = (v: number) => Math.max(0, Math.min(1, v));
+const clamp01       = (v: number) =>
+  Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0; // guards 0/0 → NaN during initial layout
 const easeOutCubic  = (t: number) => 1 - (1 - t) ** 3;
 
 

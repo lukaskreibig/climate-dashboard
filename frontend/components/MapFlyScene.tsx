@@ -183,6 +183,20 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
             /* projection unsupported — falls back to mercator */
           }
         }
+        try {
+          // real atmosphere: thin blue rim on the globe, horizon haze on the
+          // terrain approach, faint stars in space. space-color matches the
+          // scenes' #020617 background so the canvas blends into the page.
+          instance.setFog({
+            color: "rgb(186, 210, 235)",
+            "high-color": "rgb(36, 92, 223)",
+            "horizon-blend": globe ? 0.03 : 0.06,
+            "space-color": "rgb(2, 6, 23)",
+            "star-intensity": globe ? 0.45 : 0.15,
+          });
+        } catch {
+          /* fog unsupported — map still renders */
+        }
       };
 
       instance.on("style.load", styleLoadHandler);
@@ -194,6 +208,10 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         markReady();
       } else {
         instance.once("idle", markReady);
+        // "idle" waits for every tile — on slow connections that can keep the
+        // whole scene (scroll camera, overlays) inert for seconds. The style
+        // is usable long before that, so force readiness after a grace period.
+        window.setTimeout(markReady, 3500);
       }
     };
 
@@ -270,6 +288,9 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
     if (!section) return;
 
     const keys = buildKeyframes(waypoints.length);
+    // while the globe holds and the decades pass, let the Earth keep turning:
+    // a slow, scroll-driven bearing drift (scrub-safe and fully reversible)
+    const HOLD_SPIN_DEG = 35;
     const apply = (p: number) => {
       const m = map.current;
       if (!m) return;
@@ -277,18 +298,21 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       // beat (ice retreat) drives the remaining scroll.
       const cp = cameraEnd >= 1 ? p : Math.min(1, p / cameraEnd);
       const cam = cameraAtProgress(waypoints, keys, cp);
+      const spin =
+        globe && cameraEnd < 1 && p > cameraEnd
+          ? ((p - cameraEnd) / (1 - cameraEnd)) * HOLD_SPIN_DEG
+          : 0;
       m.jumpTo({
         center: [cam.lng, cam.lat],
         zoom: cam.zoom,
         pitch: cam.pitch,
-        bearing: cam.bearing,
+        bearing: cam.bearing + spin,
       });
       onProgressRef.current?.(p);
     };
 
     scrubActive.current = true;
     orbitDegPerSec.current = 0;
-    apply(0);
     const st = ScrollTrigger.create({
       trigger: section,
       start: "top top",
@@ -296,12 +320,16 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       scrub: 0.8,
       onUpdate: (self) => apply(self.progress),
     });
+    // catch up to wherever the reader already is — the map often finishes
+    // loading mid-scene, and without this the camera sticks at waypoint 0
+    // until the next scroll event
+    apply(st.progress);
 
     return () => {
       st.kill();
       scrubActive.current = false;
     };
-  }, [scrollCamera, ready, waypoints, cameraEnd]);
+  }, [scrollCamera, ready, waypoints, cameraEnd, globe]);
 
   /* ═════════════════ expose API ═════════════════ */
   useImperativeHandle(

@@ -2,7 +2,10 @@ export interface FjordDailyPoint {
   date?: string;
   year: number;
   doy: number;
+  /** smoothed / gap-filled daily ice fraction (what the charts plot) */
   frac: number | null;
+  /** per-scene value; null or absent = no usable satellite scene that day */
+  fracRaw?: number | null;
 }
 
 export type FjordCellStatus = "measured" | "estimated" | "missing";
@@ -29,6 +32,21 @@ export interface SeasonSummary {
 
 export const UUMMANNAQ_SEASON_START_DOY = 45;
 export const UUMMANNAQ_SEASON_END_DOY = 181;
+
+/**
+ * First year of the "later" Uummannaq period.
+ *
+ * This has to be a fixed year, not a median split of whatever rows happen to
+ * have arrived. The headline the story prints next to these charts is the
+ * backend's seasonLossPct, which is defined over FJORD_EARLY_YEARS =
+ * 2017-2020 against FJORD_LATE_YEARS = 2021-2025 (backend/main.py). A median
+ * split of the nine measured seasons puts 2021 in the *early* group, so the
+ * calendar and the small multiples were highlighting 2017-2021 vs 2022-2025
+ * while the badge beside them reported a 2017-2020 vs 2021-2025 number. One
+ * more measured season would have moved the highlight again without moving
+ * the headline. Keep this in step with backend/main.py.
+ */
+export const FJORD_LATE_START_YEAR = 2021;
 
 export function isoDateFromYearDoy(year: number, doy: number) {
   const date = new Date(Date.UTC(year, 0, doy));
@@ -74,6 +92,92 @@ export function summarizeFjordSeasons(
     .sort((a, b) => a.year - b.year);
 }
 
+/* ------------------------------------------------------------------
+   Per-season sampling uncertainty
+------------------------------------------------------------------ */
+
+/** Raw shape as the API sends it; every field past `year` may be absent. */
+export interface SeasonMeanRow {
+  year: number;
+  mean?: number | null;
+  observedDays?: number | null;
+  standardError?: number | null;
+  ci95?: number[] | readonly number[] | null;
+}
+
+export interface SeasonUncertainty {
+  year: number;
+  mean: number | null;
+  observedDays: number | null;
+  standardError: number | null;
+  /** [lower, upper], already validated as two finite numbers with lower < upper */
+  ci95: [number, number] | null;
+  /** upper − lower; null when there is no interval */
+  ciWidth: number | null;
+}
+
+const finiteOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+/**
+ * Normalises the API's per-season sampling error into something a chart can
+ * draw without re-checking every field.
+ *
+ * The interval is a bootstrap *percentile* interval, so it is not symmetric
+ * about the mean: for 2017 the API reports mean 0.5904 with ci95
+ * [0.4293, 0.6735], which is 0.161 below and 0.083 above. Charts must take
+ * both ends from `ci95` and must not reconstruct them from `standardError`,
+ * or 2017 would be drawn a third narrower on its long side than measured.
+ *
+ * A season with fewer than three observed days carries no interval at all
+ * (the backend returns null); those rows keep a mean and lose the band rather
+ * than getting a fabricated one.
+ */
+export function toSeasonUncertainty(row: SeasonMeanRow): SeasonUncertainty {
+  const bounds = Array.isArray(row?.ci95) ? row.ci95 : null;
+  const lower = finiteOrNull(bounds?.[0]);
+  const upper = finiteOrNull(bounds?.[1]);
+  const usable =
+    bounds !== null &&
+    bounds.length === 2 &&
+    lower !== null &&
+    upper !== null &&
+    upper > lower;
+
+  return {
+    year: row.year,
+    mean: finiteOrNull(row?.mean),
+    observedDays: finiteOrNull(row?.observedDays),
+    standardError: finiteOrNull(row?.standardError),
+    ci95: usable ? [lower as number, upper as number] : null,
+    ciWidth: usable ? (upper as number) - (lower as number) : null,
+  };
+}
+
+/** year → uncertainty, for charts that render one panel or one row per season. */
+export function indexSeasonUncertainty(
+  rows: SeasonMeanRow[] | undefined | null
+): Map<number, SeasonUncertainty> {
+  const index = new Map<number, SeasonUncertainty>();
+  (rows ?? []).forEach((row) => {
+    if (typeof row?.year !== "number") return;
+    index.set(row.year, toSeasonUncertainty(row));
+  });
+  return index;
+}
+
+/** The least firm season in the record, i.e. the widest interval. */
+export function widestSeason(
+  index: Map<number, SeasonUncertainty>
+): SeasonUncertainty | null {
+  let widest: SeasonUncertainty | null = null;
+  index.forEach((season) => {
+    if (season.ciWidth === null) return;
+    if (widest === null || season.ciWidth > (widest.ciWidth ?? 0)) widest = season;
+  });
+  return widest;
+}
+
 export interface BreakupRow {
   year: number;
   breakup: number | null;
@@ -96,13 +200,13 @@ export interface BreakupSummary {
 }
 
 /**
- * Splits at a fixed boundary year (default 2021) to match the story's
- * baseline ("2017–2020 vs 2021–2025"), not a median split — so the labels
+ * Splits at a fixed boundary year (FJORD_LATE_START_YEAR) to match the story's
+ * baseline ("2017 to 2020 vs 2021 to 2025"), not a median split, so the labels
  * and the backend's seasonLossPct window stay consistent.
  */
 export function summarizeBreakup(
   rows: BreakupRow[],
-  lateStartYear = 2021
+  lateStartYear = FJORD_LATE_START_YEAR
 ): BreakupSummary {
   const sorted = [...rows]
     .filter((row) => typeof row.year === "number")
@@ -131,12 +235,19 @@ export function summarizeBreakup(
   return { byYear, earlyMean, lateMean, shiftDays, lateMin, lateMax };
 }
 
-export function splitEarlyLate<T extends { year: number }>(rows: T[]) {
+/**
+ * Splits year-keyed rows at a fixed boundary year. Replaces the old
+ * splitEarlyLate median split; see FJORD_LATE_START_YEAR for why.
+ */
+export function splitAtYear<T extends { year: number }>(
+  rows: T[],
+  lateStartYear: number = FJORD_LATE_START_YEAR
+) {
   const sorted = [...rows].sort((a, b) => a.year - b.year);
-  const splitAt = Math.ceil(sorted.length / 2);
   return {
-    early: sorted.slice(0, splitAt),
-    late: sorted.slice(splitAt),
+    early: sorted.filter((row) => row.year < lateStartYear),
+    late: sorted.filter((row) => row.year >= lateStartYear),
+    lateStartYear,
   };
 }
 
@@ -201,12 +312,16 @@ export function buildFjordSeasonMatrix(
         const doy = startDoy + index;
         const row = yearMap.get(doy);
         const frac = typeof row?.frac === "number" ? row.frac : null;
+        // `frac` is the smoothed/gap-filled series; only a day that also carries
+        // a per-scene `fracRaw` was actually observed by a satellite. Without
+        // this distinction every filled day would claim to be a measurement.
+        const observed = typeof row?.fracRaw === "number";
         return {
           date: row?.date ?? isoDateFromYearDoy(year, doy),
           year,
           doy,
           frac,
-          status: frac === null ? "missing" : "measured",
+          status: frac === null ? "missing" : observed ? "measured" : "estimated",
         } satisfies FjordSeasonCell;
         }
       );

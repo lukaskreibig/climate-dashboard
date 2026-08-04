@@ -87,12 +87,19 @@ function buildDense(rows: SeasonRow[]) {
 }
 
 /* Fallback: mean %-loss wenn nicht vom Backend geliefert */
+/** Seasonal loss = ratio of the two period means. Averaging per-day ratios
+ *  instead divides by an early-period mean that collapses to ~0.008 in late
+ *  June, which understated the loss roughly threefold. Mirrors backend/main.py. */
 function deriveLoss(rows: SeasonRow[]) {
-  const diffs = rows
-    .filter(r => r.eMean != null && r.lMean != null && r.eMean !== 0)
-    .map(r => 1 - (r.lMean! / r.eMean!))
-    .filter(Number.isFinite);
-  return diffs.length ? +(100 * diffs.reduce((a,b)=>a+b,0) / diffs.length).toFixed(1) : 0;
+  let earlySum = 0;
+  let lateSum = 0;
+  rows.forEach((r) => {
+    if (r.eMean != null && r.lMean != null) {
+      earlySum += r.eMean;
+      lateSum += r.lMean;
+    }
+  });
+  return earlySum > 0 ? +(100 * (1 - lateSum / earlySum)).toFixed(1) : 0;
 }
 
 /* ——— tooltip, nur Mittelwerte zeigen ——— */
@@ -115,7 +122,7 @@ const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [metricVisible, setMetricVisible] = useState(false);
   const [focus, setFocus] = useState<"early" | "late" | "both">("both");
@@ -126,29 +133,36 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
     showMetric: (visible) => setMetricVisible(visible),
   }), []);
 
-  if (!Array.isArray(data) || !data.length) {
-    return (
-      <ChartEmptyState title={t("charts.earlyLateSeason.emptyTitle")}>
-        {t("charts.earlyLateSeason.emptyBody")}
-      </ChartEmptyState>
-    );
-  }
+  // the empty-state return sits BELOW the last hook — an early return here
+  // would change the hook count once the payload lands and blank the page
+  const hasData = Array.isArray(data) && data.length > 0;
 
-  const dense = useMemo(() => buildDense(data), [data]);
+  const dense = useMemo(() => buildDense(data ?? []), [data]);
   const meanLossPct = useMemo(
-    () => (typeof lossPct === "number" ? lossPct : deriveLoss(data)),
+    () => (typeof lossPct === "number" ? lossPct : deriveLoss(data ?? [])),
     [lossPct, data]
   );
 
   /* animate % when red mean appears */
   useEffect(() => {
-    if (metricVisible) {
-      gsap.fromTo("#lossValue", { innerText: 0 }, {
-        innerText: meanLossPct ?? 0,
-        duration: 1.2, ease: "power2.out", snap: { innerText: 0.1 },
+    if (!metricVisible) return;
+    const el = document.getElementById("lossValue");
+    if (!el) return;
+    const target = meanLossPct ?? 0;
+    const counter = { v: 0 };
+    const fmt = (n: number) =>
+      n.toLocaleString(i18n.language === "de" ? "de-DE" : "en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
       });
-    }
-  }, [metricVisible, meanLossPct]);
+    const tween = gsap.to(counter, {
+      v: target,
+      duration: 1.2,
+      ease: "power2.out",
+      onUpdate: () => { el.textContent = fmt(counter.v); },
+    });
+    return () => { tween.kill(); };
+  }, [metricVisible, meanLossPct, i18n.language]);
 
   useEffect(() => {
     const earlyEls = gsap.utils.toArray<SVGElement>('.early-epoch');
@@ -168,6 +182,15 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
     }
   }, [focus]);
 
+  /* every hook has run — now it is safe to bail out for an empty payload */
+  if (!hasData) {
+    return (
+      <ChartEmptyState title={t("charts.earlyLateSeason.emptyTitle")}>
+        {t("charts.earlyLateSeason.emptyBody")}
+      </ChartEmptyState>
+    );
+  }
+
   const AxisStyle = { tick: { fill: "#94a3b8", fontSize: 12 }, className: "chart-axis" };
 
   return (
@@ -185,7 +208,7 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
       </div>
 
       <div className="absolute right-5 top-[-30px] z-[5]">
-        <ChartSourceBadge href="https://sentinels.copernicus.eu/copernicus/sentinel-2">
+        <ChartSourceBadge href="https://github.com/lukaskreibig">
           {t("charts.earlyLateSeason.source")}
         </ChartSourceBadge>
       </div>
@@ -193,7 +216,9 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
       {/* animated loss metric */}
       <div style={{ position:"absolute", right:20, top:40, zIndex:5, display:"flex", flexDirection:"column", alignItems:"flex-end", opacity:metricVisible?1:0, transition:"opacity .4s ease", pointerEvents:"none" }}>
         <div style={{ fontSize:42, fontWeight:600, color:"#d62929", lineHeight:1 }}>
-          <span id="lossValue">{typeof meanLossPct === "number" ? meanLossPct : 0}</span>%
+          {/* German needs a decimal comma and a space before the % sign */}
+          <span id="lossValue">{typeof meanLossPct === "number" ? meanLossPct : 0}</span>
+          {i18n.language === "de" ? " %" : "%"}
         </div>
         <div style={{ fontSize:14, color:"#64748b" }}>
           {t('charts.earlyLateSeason.lessIce')}

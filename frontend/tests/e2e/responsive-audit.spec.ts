@@ -33,7 +33,7 @@ const gotoStory = async (page: Page, baseURL: string | undefined, lng = 'de') =>
 
 type Finding = { scene: string; issue: string; detail: string };
 
-test.describe('responsive audit (report only)', () => {
+test.describe('responsive audit (gate: fails on any finding)', () => {
   for (const vp of VIEWPORTS) {
     test(`audit @ ${vp.name}`, async ({ page, baseURL }) => {
       test.setTimeout(300_000);
