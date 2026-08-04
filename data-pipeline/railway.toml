@@ -1,3 +1,16 @@
+# AUTHORITATIVE DATA REFRESH.
+#
+# This Railway cron service is the single writer of the story's datasets. It writes
+# Postgres, and backend/main.py reads Postgres first. Nothing else is allowed to
+# refresh these tables on a schedule. The GitHub Action that used to commit
+# backend/data/data.json was demoted to a manual only fallback refresher, see
+# .github/workflows/fallback-refresh.yml.
+#
+# Railway cron does not auto disable, unlike GitHub scheduled workflows, so the
+# schedule itself cannot rot from inactivity. What it does not give us is any alert,
+# so .github/workflows/data-freshness.yml verifies the served API afterwards and
+# opens a GitHub issue when the numbers are stale.
+
 [build]
 builder = "DOCKERFILE"
 watchPatterns = [
@@ -5,6 +18,14 @@ watchPatterns = [
 ]
 
 [deploy]
-restartPolicyType = "ON_FAILURE"
-startCommand = "bash -lc \"python3 wait_for_db.py && PIPELINE_SINGLE_STAGE=1 python3 -u update_pipeline.py && PIPELINE_SINGLE_STAGE=1 python3 -u update_fjord_data.py\""
+# Kept byte for byte in sync with the CMD in data-pipeline/Dockerfile so it makes no
+# difference which one Railway ends up executing.
+startCommand = "sh -c \"python3 -u wait_for_db.py && python3 -u update_pipeline.py && python3 -u update_fjord_data.py\""
 cronSchedule = "0 6 * * *"
+
+# Cron services must terminate. Railway skips the next scheduled execution while a
+# previous one is still Active, so a restart policy that keeps a failed run alive can
+# wedge the cron permanently after a single bad day. NEVER lets a failed run die and
+# lets tomorrow's tick start clean.
+restartPolicyType = "NEVER"
+restartPolicyMaxRetries = 0
