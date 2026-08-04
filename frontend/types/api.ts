@@ -1,10 +1,7 @@
 export interface DailySeaIceRow {
-  Month: string;
-  Day: number;
   Year: number;
   Extent: number | null;
   DayOfYear: number;
-  DateStr: string;
 }
 
 export interface AnnualAnomalyRow {
@@ -37,14 +34,41 @@ export interface LatestSeaIceSeasonRow {
   Extent: number | null;
 }
 
+/** How current a single upstream dataset is, as reported by the API. */
+export type FreshnessStatus = "current" | "lagging" | "stale" | "unknown";
+
+export interface SourceFreshness {
+  /** "seaIce" | "temperature" | "co2" | "fjord" */
+  key: string;
+  label?: string | null;
+  /** "daily" | "annual" | "seasonal" */
+  cadence?: string | null;
+  latestDate?: string | null;
+  latestYear?: number | null;
+  referenceDate?: string | null;
+  ageDays?: number | null;
+  status: FreshnessStatus;
+  laggingAfterDays?: number | null;
+  staleAfterDays?: number | null;
+}
+
+export interface FreshnessBlock {
+  checkedAt?: string | null;
+  /** worst status across all sources in the block */
+  status: FreshnessStatus;
+  sources: SourceFreshness[];
+}
+
 export interface ClimateDataMeta {
   latestSeaIceDate?: string | null;
   latestSeaIceYear?: number | null;
   latestAnnualYear?: number | null;
   latestTemperatureYear?: number | null;
+  latestCo2Year?: number | null;
   source?: string | null;
   baselineYears?: string | null;
   generatedAt?: string | null;
+  freshness?: FreshnessBlock | null;
 }
 
 export interface BackendDataResponse {
