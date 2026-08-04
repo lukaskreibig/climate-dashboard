@@ -98,13 +98,18 @@ FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
 # whatever its grid.
 #
 # This is the measured one. src/uummannaq_ice/assets/landmask.tif, EPSG:32622 at
-# 10 m, 1474 by 1812 cells: a grid of 267.09 km2 of which 0.05143 is land, so
-# 253.35 km2 of water. Corrected onto the WGS84 ellipsoid the grid is 267.29 km2,
-# a UTM distortion of -0.08 percent, giving 253.5 km2 of water.
+# 10 m, 1474 by 1812 cells: a grid of 267.29 km2 on the WGS84 ellipsoid of which
+# 0.05313 is land, giving 253.1 km2 of water.
+#
+# It read 253.5 until the mask itself was corrected. That version put 151 stray
+# fragments totalling 1.06 km2 of drifting iceberg into the land class, and left
+# a 1.6 km2 bite out of the island where the mountain shadows its own eastern
+# face. The two errors nearly cancelled in the total, which is exactly why a
+# total is a poor check.
 #
 # It was 3450 once, 13.4x too large, and because the spring anomaly is multiplied
 # by it the served anomalies exceeded the entire area they were measured on.
-FJORD_KM2 = 253.5
+FJORD_KM2 = 253.1
 
 app = FastAPI(
     title="Climate Report API",
