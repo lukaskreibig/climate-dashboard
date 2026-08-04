@@ -1,0 +1,300 @@
+# Watchdog for the authoritative refresh.
+#
+# The Railway cron service in data-pipeline/railway.toml is what actually refreshes
+# the data. Railway gives us no alerting, so this job checks the API that readers hit
+# and shouts in the one place the author will see it: a GitHub issue.
+#
+# It deliberately checks the SERVED payload, not the fetch script. A green pipeline
+# run that wrote nothing useful still fails here.
+name: Data freshness watchdog
+
+on:
+  schedule:
+    # Railway refreshes at 06:00 UTC. Ninety minutes of slack, then verify.
+    - cron: '30 7 * * *'
+  workflow_dispatch:
+    inputs:
+      seaice_max_age_days:
+        description: 'Fail when the newest NSIDC daily value is older than this many days'
+        required: false
+        default: '5'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: data-freshness
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Verify the served API is current
+    runs-on: ubuntu-latest
+    # Worst case is three endpoints times three attempts times a 20 second socket
+    # timeout plus backoff, about 4 minutes. A blackholed host burns the full
+    # socket timeout, which is exactly the outage this job exists to catch, so
+    # the budget has to cover it with room to spare.
+    timeout-minutes: 20
+    env:
+      # gh resolves the repository from --repo, GH_REPO, or a git remote. This job
+      # deliberately does not check out the repo, so without GH_REPO every gh call
+      # fails with "not a git repository" and the alert is never raised. That is
+      # the same silent-alerting failure this workflow was written to end.
+      GH_REPO: ${{ github.repository }}
+      # Repository variable, not a secret. Falls back to the staging backend that is
+      # live today. Set the repo variable BACKEND_PUBLIC_URL to point at production.
+      BACKEND_PUBLIC_URL: ${{ vars.BACKEND_PUBLIC_URL || 'https://fastapi-backend-staging1.up.railway.app' }}
+      SEAICE_MAX_AGE_DAYS: ${{ inputs.seaice_max_age_days || vars.SEAICE_MAX_AGE_DAYS || '5' }}
+      # Uummannaq fjord data cannot refresh itself yet, so it only warns. Set the repo
+      # variable FJORD_FRESHNESS_REQUIRED to 'true' once the Sentinel-2 pipeline runs
+      # on a schedule, and a missing season becomes a hard failure.
+      FJORD_FRESHNESS_REQUIRED: ${{ vars.FJORD_FRESHNESS_REQUIRED || 'false' }}
+      ALERT_LABEL: data-freshness
+      ISSUE_TITLE: 'Data freshness alert: the API is serving stale data'
+
+    steps:
+      - name: Probe the served API
+        id: freshness
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+          from datetime import date, datetime, timezone
+
+          base = os.environ["BACKEND_PUBLIC_URL"].rstrip("/")
+          max_age = int(os.environ.get("SEAICE_MAX_AGE_DAYS") or "5")
+          fjord_blocking = os.environ.get("FJORD_FRESHNESS_REQUIRED", "false").strip().lower() == "true"
+          today = datetime.now(timezone.utc).date()
+
+          def fetch(path, tries=3):
+              """Return (status, payload_or_none, error_text). Retries 5xx and transport errors."""
+              url = base + path
+              last_error = ""
+              for attempt in range(1, tries + 1):
+                  request = urllib.request.Request(
+                      url,
+                      headers={
+                          "Accept": "application/json",
+                          "User-Agent": "schmelzpunkt-freshness-watchdog",
+                      },
+                  )
+                  try:
+                      with urllib.request.urlopen(request, timeout=20) as response:
+                          return response.status, json.loads(response.read().decode("utf-8")), ""
+                  except urllib.error.HTTPError as exc:
+                      body = exc.read().decode("utf-8", "replace")[:400]
+                      if exc.code < 500:
+                          return exc.code, None, body
+                      last_error = f"HTTP {exc.code}: {body}"
+                  except Exception as exc:
+                      last_error = f"{type(exc).__name__}: {exc}"
+                  if attempt < tries:
+                      time.sleep(5 * attempt)
+              return 0, None, last_error
+
+          def days(count):
+              return f"{count} day old" if count == 1 else f"{count} days old"
+
+          blocking = []
+          warnings = []
+          rows = []
+
+          def row(dataset, value, verdict):
+              rows.append(f"| {dataset} | {value} | {verdict} |")
+
+          # 1) Is the service even up
+          health_status, health, health_error = fetch("/health")
+          if health_status != 200 or not isinstance(health, dict) or health.get("status") != "ok":
+              blocking.append(f"/health did not report ok (status {health_status}). {health_error}".strip())
+              row("API health", f"HTTP {health_status}", "FAIL")
+          else:
+              row("API health", "ok", "pass")
+
+          # 2) NSIDC daily sea ice, the number the story quotes as current
+          data_status, data, data_error = fetch("/data")
+          meta = (data or {}).get("meta") or {}
+          latest_seaice = meta.get("latestSeaIceDate")
+          if data_status != 200 or not meta:
+              blocking.append(f"/data did not return a meta block (status {data_status}). {data_error}".strip())
+              row("NSIDC daily sea ice", f"HTTP {data_status}", "FAIL")
+          elif not latest_seaice:
+              blocking.append("/data returned meta without latestSeaIceDate.")
+              row("NSIDC daily sea ice", "missing", "FAIL")
+          else:
+              try:
+                  seaice_date = date.fromisoformat(str(latest_seaice)[:10])
+              except ValueError:
+                  seaice_date = None
+              if seaice_date is None:
+                  blocking.append(f"latestSeaIceDate is not a date: {latest_seaice!r}")
+                  row("NSIDC daily sea ice", str(latest_seaice), "FAIL")
+              else:
+                  age = (today - seaice_date).days
+                  if age > max_age:
+                      blocking.append(
+                          f"NSIDC daily sea ice is {days(age)} (newest value {seaice_date.isoformat()}, "
+                          f"limit {max_age} days). The refresh is not reaching the database."
+                      )
+                      row("NSIDC daily sea ice", f"{seaice_date.isoformat()} ({days(age)})", "FAIL")
+                  else:
+                      row("NSIDC daily sea ice", f"{seaice_date.isoformat()} ({days(age)})", "pass")
+
+          # 3) GISTEMP annual temperature, updated once a year
+          latest_temp_year = meta.get("latestTemperatureYear")
+          if isinstance(latest_temp_year, int):
+              if latest_temp_year < today.year - 1:
+                  warnings.append(
+                      f"GISTEMP annual temperature ends {latest_temp_year}, expected at least {today.year - 1}."
+                  )
+                  row("GISTEMP annual temperature", str(latest_temp_year), "WARN")
+              else:
+                  row("GISTEMP annual temperature", str(latest_temp_year), "pass")
+          elif meta:
+              warnings.append("meta.latestTemperatureYear is missing from /data.")
+              row("GISTEMP annual temperature", "missing", "WARN")
+
+          # 4) Uummannaq fjord, the story's own Sentinel-2 dataset.
+          # The season runs mid February to late June, so a previous season is normal
+          # until July. From July onward the current season must be present.
+          expected_fjord_year = today.year if today.month >= 7 else today.year - 1
+          fjord_status, fjord, fjord_error = fetch("/uummannaq")
+          fjord_meta = (fjord or {}).get("meta") or {}
+          fjord_problem = None
+          fjord_display = "unknown"
+          if fjord_status != 200 or not fjord_meta:
+              fjord_problem = (
+                  f"/uummannaq did not return fjord data (status {fjord_status}). {fjord_error}".strip()
+              )
+              fjord_display = f"HTTP {fjord_status}"
+          else:
+              fjord_year = fjord_meta.get("latestYear")
+              fjord_date = fjord_meta.get("latestDate") or "unknown date"
+              fjord_display = f"{fjord_date} (season {fjord_year})"
+              if not isinstance(fjord_year, int) or fjord_year < expected_fjord_year:
+                  fjord_problem = (
+                      f"Uummannaq fjord data ends with season {fjord_year}, expected {expected_fjord_year}."
+                  )
+
+          if fjord_problem:
+              (blocking if fjord_blocking else warnings).append(fjord_problem)
+              row("Uummannaq fjord (Sentinel-2)", fjord_display, "FAIL" if fjord_blocking else "WARN")
+          else:
+              row("Uummannaq fjord (Sentinel-2)", fjord_display, "pass")
+
+          status = "stale" if blocking else "ok"
+          headline = (
+              "The published story is serving stale data."
+              if blocking
+              else "All checked datasets are current."
+          )
+
+          report = []
+          report.append(f"## Data freshness: {'FAILING' if blocking else 'healthy'}")
+          report.append("")
+          report.append(headline)
+          report.append("")
+          report.append(f"Checked `{base}` at {datetime.now(timezone.utc).isoformat(timespec='seconds')}.")
+          report.append("")
+          report.append("| Dataset | Newest value served | Verdict |")
+          report.append("| --- | --- | --- |")
+          report.extend(rows)
+          report.append("")
+          if blocking:
+              report.append("### Blocking problems")
+              report.append("")
+              for item in blocking:
+                  report.append(f"* {item}")
+              report.append("")
+          if warnings:
+              report.append("### Warnings")
+              report.append("")
+              for item in warnings:
+                  report.append(f"* {item}")
+              report.append("")
+          if blocking:
+              report.append("### Where to look")
+              report.append("")
+              report.append("1. Railway, service `data-pipeline`, cron `0 6 * * *`. Open the latest execution and read the log.")
+              report.append("2. A previous execution stuck in `Active` makes Railway skip every following tick. Restart policy must stay `NEVER`.")
+              report.append("3. Check the upstream source URL is still alive before blaming the code.")
+              report.append("4. Run the workflow `Refresh JSON fallback` if the database write cannot be fixed quickly.")
+              report.append("")
+          report.append(f"Run: {os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/"
+                        f"{os.environ.get('GITHUB_REPOSITORY', '')}/actions/runs/"
+                        f"{os.environ.get('GITHUB_RUN_ID', '')}")
+          body = "\n".join(report) + "\n"
+
+          with open("freshness-report.md", "w", encoding="utf-8") as handle:
+              handle.write(body)
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as handle:
+                  handle.write(body)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"status={status}\n")
+              handle.write(f"headline={headline}\n")
+
+          print(body)
+          PY
+
+      - name: Open or update the alert issue
+        if: always() && steps.freshness.outputs.status != 'ok'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ ! -f freshness-report.md ]; then
+            {
+              echo "## Data freshness: FAILING"
+              echo ""
+              echo "The freshness probe itself crashed before it could produce a report."
+              echo ""
+              echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            } > freshness-report.md
+          fi
+
+          gh label create "$ALERT_LABEL" \
+            --color B60205 \
+            --description "Automated watchdog: the API is serving stale data" \
+            --force || true
+
+          # Never let a lookup hiccup swallow the alert.
+          existing=$(gh issue list --state open --label "$ALERT_LABEL" \
+            --json number --jq '.[0].number // empty') || existing=""
+
+          if [ -n "$existing" ]; then
+            echo "Updating existing alert issue #${existing}."
+            gh issue comment "$existing" --body-file freshness-report.md
+          else
+            echo "Opening a new alert issue."
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --label "$ALERT_LABEL" \
+              --body-file freshness-report.md
+          fi
+
+      - name: Close the alert issue after recovery
+        if: steps.freshness.outputs.status == 'ok'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --state open --label "$ALERT_LABEL" \
+            --json number --jq '.[0].number // empty') || existing=""
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file freshness-report.md
+            gh issue close "$existing" --reason completed \
+              --comment "Data is current again, closing automatically."
+          else
+            echo "Nothing to close, no open alert issue."
+          fi
+
+      - name: Fail the run when the data is stale
+        if: always() && steps.freshness.outputs.status != 'ok'
+        run: |
+          echo "::error title=Stale data::${{ steps.freshness.outputs.headline || 'The freshness probe did not complete.' }}"
+          exit 1

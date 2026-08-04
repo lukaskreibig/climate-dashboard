@@ -1,0 +1,163 @@
+# DEMOTED PATH. Manual only. Not a scheduled writer.
+#
+# The authoritative refresh is the Railway cron service defined in
+# data-pipeline/railway.toml, which writes Postgres. backend/main.py reads Postgres
+# first and only falls back to backend/data/data.json when that read fails or returns
+# nothing. This workflow exists to keep that emergency copy from rotting.
+#
+# It replaces the old "Update Data" workflow, which ran the second, divergent copy of
+# the pipeline (backend/update_data.py) on a daily cron and pushed straight to main.
+# Two schedules writing the same dataset through two different code paths was the
+# underlying disease. There is now exactly one automatic writer.
+#
+# Differences from the old workflow, on purpose:
+#   * no cron, a human presses the button
+#   * runs data-pipeline/update_pipeline.py, the same code Railway runs
+#   * pinned to Python 3.12, matching data-pipeline/Dockerfile, instead of '3.x'
+#   * refuses to publish a result that is already stale
+#   * opens a pull request instead of pushing to main
+name: Refresh JSON fallback
+
+on:
+  workflow_dispatch:
+    inputs:
+      open_pull_request:
+        description: 'Open a pull request with the refreshed backend/data/data.json'
+        type: boolean
+        default: true
+      seaice_max_age_days:
+        description: 'Refuse to publish when the freshest downloaded value is older than this many days'
+        required: false
+        default: '5'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: fallback-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Rebuild backend/data/data.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Same interpreter as data-pipeline/Dockerfile, so the fallback file cannot
+          # drift from what Railway produces.
+          python-version: '3.12'
+
+      - name: Install pipeline dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r data-pipeline/requirements.txt
+
+      - name: Run the pipeline without a database
+        env:
+          # Deliberately no DATABASE_URL. This path must never write Postgres, that
+          # is the Railway cron's job alone.
+          PIPELINE_SINGLE_STAGE: '1'
+          # Optional escape hatch. Leave the repository variable unset and the URL
+          # baked into update_pipeline.py is used. Set it only when an upstream host
+          # moves again and you need a refresh before the code change lands.
+          SEA_ICE_URL_OVERRIDE: ${{ vars.SEA_ICE_DAILY_CSV_URL }}
+        run: |
+          set -euo pipefail
+          cd data-pipeline
+          if [ -n "${SEA_ICE_URL_OVERRIDE:-}" ]; then
+            echo "Using SEA_ICE_DAILY_CSV_URL override from repository variables."
+            export SEA_ICE_DAILY_CSV_URL="$SEA_ICE_URL_OVERRIDE"
+          fi
+          python3 -u update_pipeline.py
+
+      - name: Refuse to publish stale output
+        env:
+          MAX_AGE_DAYS: ${{ inputs.seaice_max_age_days || '5' }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import sys
+          from datetime import date, datetime, timezone
+
+          max_age = int(os.environ.get("MAX_AGE_DAYS") or "5")
+          with open("data-pipeline/data/data.json", encoding="utf-8") as handle:
+              payload = json.load(handle)
+
+          dates = [
+              str(row["DateStr"])[:10]
+              for row in payload.get("dailySeaIce", [])
+              if isinstance(row, dict) and row.get("DateStr")
+          ]
+          if not dates:
+              sys.exit("The rebuilt data.json has no dated dailySeaIce rows.")
+
+          newest = date.fromisoformat(max(dates))
+          age = (datetime.now(timezone.utc).date() - newest).days
+          aged = f"{age} day old" if age == 1 else f"{age} days old"
+          summary = (
+              f"Rebuilt fallback ends {newest.isoformat()}, {aged}, "
+              f"{len(payload['dailySeaIce'])} daily rows."
+          )
+          print(summary)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write(f"## Refresh JSON fallback\n\n{summary}\n")
+
+          if age > max_age:
+              sys.exit(
+                  f"Refusing to publish: the freshest value is {aged}, "
+                  f"limit is {max_age} days. The upstream source is the problem, not this file."
+              )
+          PY
+
+      - name: Copy the result into the backend fallback location
+        run: |
+          set -euo pipefail
+          cp data-pipeline/data/data.json backend/data/data.json
+          ls -l backend/data/data.json
+
+      - name: Upload the refreshed fallback as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-data-fallback
+          path: backend/data/data.json
+          retention-days: 14
+
+      - name: Open a pull request with the refreshed fallback
+        if: ${{ inputs.open_pull_request }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- backend/data/data.json; then
+            echo "backend/data/data.json is already identical, nothing to propose."
+            exit 0
+          fi
+
+          branch="data/fallback-refresh-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          # Only this one file. The pipeline also rewrites CSVs under
+          # data-pipeline/data, and that churn stays out of the pull request.
+          git add backend/data/data.json
+          git commit -m "Refresh backend/data/data.json fallback"
+          git push origin "$branch"
+
+          gh pr create \
+            --base "${GITHUB_REF_NAME}" \
+            --head "$branch" \
+            --title "Refresh the backend JSON fallback" \
+            --body "Regenerated \`backend/data/data.json\` with \`data-pipeline/update_pipeline.py\`, the same code the Railway cron runs.
+
+          This file is only the emergency copy the API serves when the Postgres read fails. It is not the live data path. Merging it does not fix a stale database.
+
+          Triggered manually from run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}."

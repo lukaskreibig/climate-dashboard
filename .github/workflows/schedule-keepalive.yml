@@ -1,0 +1,66 @@
+# Mitigation for the failure that started all of this.
+#
+# GitHub disables scheduled workflows in a public repository after 60 days without
+# repository activity, and it does NOT re-enable them when activity resumes. That is
+# exactly what happened here: the watchdog's predecessor went to
+# state `disabled_inactivity`, the author pushed again months later, and the schedule
+# stayed dead and silent.
+#
+# This workflow is push triggered, never scheduled, so GitHub can never auto disable
+# it. Every push to the default branch resets the 60 day clock and repairs any
+# schedule that was already switched off. Workflows disabled by hand are left alone.
+name: Schedule keepalive
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: schedule-keepalive
+  cancel-in-progress: true
+
+jobs:
+  reenable:
+    name: Re-enable schedules disabled for inactivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Re-enable and report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
+            --jq '.workflows[] | [.id, .state, .name] | @tsv' > workflows.tsv
+
+          echo "## Schedule keepalive" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Workflow | State before | Action |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+
+          repaired=0
+          while IFS=$'\t' read -r id state name; do
+            [ -n "${id:-}" ] || continue
+            if [ "$state" = "disabled_inactivity" ]; then
+              if gh api --method PUT \
+                   "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/enable" --silent; then
+                echo "| ${name} | ${state} | re-enabled |" >> "$GITHUB_STEP_SUMMARY"
+                repaired=$((repaired + 1))
+              else
+                echo "| ${name} | ${state} | COULD NOT ENABLE, do it in the Actions tab |" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            else
+              echo "| ${name} | ${state} | none needed |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done < workflows.tsv
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Workflows re-enabled in this run: ${repaired}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Workflows re-enabled in this run: ${repaired}"
