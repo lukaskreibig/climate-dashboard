@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { jsonResponse } from "@/lib/jsonResponse";
 import type { BackendDataResponse, ApiErrorPayload } from "@/types";
 
 function getBackendBaseUrls() {
@@ -31,7 +32,7 @@ function forwardClimateHeaders(from: Headers, to: Headers) {
   }
 }
 
-export async function GET(_request: Request) {
+export async function GET(request: Request) {
   try {
     const backendUrls = getBackendBaseUrls();
     if (backendUrls.length === 0) {
@@ -66,14 +67,14 @@ export async function GET(_request: Request) {
         }
 
         const data = (await response.json()) as BackendDataResponse;
-        const out = NextResponse.json(data);
-        forwardClimateHeaders(response.headers, out.headers);
+        const outHeaders = new Headers();
+        forwardClimateHeaders(response.headers, outHeaders);
         try {
-          out.headers.set("x-climate-backend-host", new URL(base).host);
+          outHeaders.set("x-climate-backend-host", new URL(base).host);
         } catch {
           // Ignore malformed URL in debug header, response body has already succeeded.
         }
-        return out;
+        return jsonResponse(request, data, { headers: outHeaders });
       } catch (error) {
         lastError = error;
         if (backendUrl !== backendUrls[backendUrls.length - 1]) {

@@ -15,6 +15,27 @@ const gotoStory = async (page: Page, baseURL: string | undefined, lng = 'de') =>
 };
 
 test.describe('story layout guardrails', () => {
+  // The loading overlay once waited for the full Mapbox tile warmup: two maps,
+  // five waypoints each, 225 tile requests. That takes 36 seconds, so it always
+  // hit its 10s timeout and let the reader in after ~12 seconds with a map that
+  // was still two thirds cold. The gate now covers building the maps, not
+  // filling them, which puts it near 1.5s locally. This budget is deliberately
+  // loose so load does not make it flaky, and still fails if the wait returns.
+  test('the story appears without a long blocking wait', async ({ page, baseURL }) => {
+    const started = Date.now();
+    await page.goto(`${baseURL}/de`, { waitUntil: 'commit' });
+    await page.locator('[data-loading-overlay="true"]').waitFor({
+      state: 'detached',
+      timeout: 20_000,
+    });
+    const elapsed = Date.now() - started;
+
+    expect(
+      elapsed,
+      `loading overlay held the reader for ${(elapsed / 1000).toFixed(1)}s`,
+    ).toBeLessThan(6_000);
+  });
+
   for (const lng of ['en', 'de']) {
     test(`/${lng} renders the live intro shell`, async ({ page, baseURL }) => {
       await page.goto(`${baseURL}/${lng}`, { waitUntil: 'domcontentloaded' });
@@ -103,7 +124,115 @@ test.describe('story layout guardrails', () => {
     await memoryScene.locator('[data-cap-idx="0"]').scrollIntoViewIfNeeded();
     await page.getByTestId('memory-cell-2025-105').hover();
     await expect(page.getByTestId('memory-cell-tooltip')).toContainText('15. April 2025');
-    await expect(page.getByTestId('memory-cell-tooltip')).toContainText('71,8');
+
+    // The value used to be asserted as the literal 71,8. That pinned a number
+    // that legitimately moves whenever the denominator or the archive changes,
+    // and it could not tell a changed number from a broken one: when the series
+    // switched to the clear-sky denominator this cell read 100,6 percent, which
+    // is not a possible share, and the literal assertion reported it as "wrong
+    // text" rather than as an impossible value.
+    // The decimal is optional: the formatter drops it for whole values, so a
+    // frozen fjord reads "99 %" rather than "99,0 %".
+    const tooltip = page.getByTestId('memory-cell-tooltip');
+    await expect(tooltip).toContainText(/\d+(,\d+)?\s*%/);
+    const shown = await tooltip.textContent();
+    const percent = Number(shown?.match(/(\d+(?:,\d+)?)\s*%/)?.[1].replace(',', '.'));
+    expect(percent, `ice share shown as ${percent} percent`).toBeGreaterThan(0);
+    expect(percent, `ice share shown as ${percent} percent`).toBeLessThanOrEqual(100);
+  });
+
+  /**
+   * Season means are averages over the days a satellite happened to see, and
+   * the seasons are not equally observed (2017: 39 days, the rest 81 to 107).
+   * Drawing them as bare points asserted a precision the record does not have,
+   * so both fjord charts now carry the API's bootstrapped 95% interval. This
+   * guards the property that matters: the drawn width is the measured width,
+   * and the least observed season is visibly the least firm one.
+   */
+  test('season means are drawn with their measured 95 percent interval', async ({ page, baseURL }) => {
+    await gotoStory(page, baseURL, 'de');
+
+    const memoryScene = page.locator('section[data-scene="memory-measurement"]');
+    await memoryScene.locator('[data-cap-idx="3"]').scrollIntoViewIfNeeded();
+    await page.locator('[data-season-ci]').first().waitFor({ state: 'attached' });
+    await page.waitForTimeout(700);
+
+    const rows = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-season-ci]')).map((row) => ({
+        year: row.getAttribute('data-season-ci') ?? '',
+        measuredDays: Number(row.getAttribute('data-observed-days')),
+        ciLo: Number(row.getAttribute('data-ci-lo')),
+        ciHi: Number(row.getAttribute('data-ci-hi')),
+        barWidth:
+          row.querySelector('[data-ci-bar]')?.getBoundingClientRect().width ?? 0,
+      })),
+    );
+
+    expect(rows.length).toBeGreaterThanOrEqual(9);
+    for (const row of rows) {
+      expect(row.ciHi).toBeGreaterThan(row.ciLo);
+      expect(row.barWidth).toBeGreaterThan(0);
+    }
+
+    // the least firm season is the least measured one, and it reads that way
+    const widest = [...rows].sort((a, b) => b.barWidth - a.barWidth)[0];
+    const leastMeasured = [...rows].sort((a, b) => a.measuredDays - b.measuredDays)[0];
+    expect(widest.year).toBe(leastMeasured.year);
+    const others = rows.filter((row) => row.year !== widest.year).map((row) => row.barWidth);
+    expect(widest.barWidth).toBeGreaterThan(Math.max(...others) * 1.2);
+
+    // and the reader is told what it is, next to the column, in German
+    await expect(memoryScene).toContainText('Das graue Band zeigt');
+
+    // small multiples: every season panel carries a band drawn from its ci95
+    const proofScene = page.locator('section[data-scene="visual-proof"]');
+    await proofScene.locator('[data-cap-idx="1"]').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(900);
+    await page.locator('[data-season-panel]').first().waitFor({ state: 'attached' });
+
+    const panels = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('[data-season-panel]')).map((panel) => {
+        const band = panel.querySelector('.season-ci-band > *') as SVGGraphicsElement | null;
+        return {
+          year: panel.getAttribute('data-season-panel') ?? '',
+          ciLo: Number(panel.getAttribute('data-ci-lo')),
+          ciHi: Number(panel.getAttribute('data-ci-hi')),
+          bandHeight: band ? band.getBBox().height : 0,
+          hasMeanLine: Boolean(panel.querySelector('.season-mean-line line')),
+        };
+      }),
+    );
+
+    expect(panels.length).toBeGreaterThanOrEqual(9);
+    for (const panel of panels) {
+      expect(panel.bandHeight).toBeGreaterThan(0);
+      expect(panel.hasMeanLine).toBe(true);
+    }
+
+    // drawn height must track the measured interval, not just look decorative
+    const drawn = Math.max(...panels.map((p) => p.bandHeight)) /
+      Math.min(...panels.map((p) => p.bandHeight));
+    const measured = Math.max(...panels.map((p) => p.ciHi - p.ciLo)) /
+      Math.min(...panels.map((p) => p.ciHi - p.ciLo));
+    expect(Math.abs(drawn - measured)).toBeLessThan(0.15);
+
+    // the reader also meets the band above the first panel, in German
+    await expect(proofScene).toContainText('Das graue Band zeigt');
+  });
+
+  /* the same explanation has to reach an English reader, or the band is a
+     decoration for half the audience */
+  test('the season interval is explained in English too', async ({ page, baseURL }) => {
+    await gotoStory(page, baseURL, 'en');
+
+    const proofScene = page.locator('section[data-scene="visual-proof"]');
+    await proofScene.locator('[data-cap-idx="1"]').scrollIntoViewIfNeeded();
+    await page.locator('[data-season-panel]').first().waitFor({ state: 'attached' });
+    await page.waitForTimeout(700);
+
+    await expect(proofScene).toContainText('The grey band shows where the season average');
+    const bands = await page.locator('[data-season-panel] .season-ci-band').count();
+    expect(bands).toBeGreaterThanOrEqual(9);
   });
 
   test('memory measurement table does not jump between scroll stages', async ({ page, baseURL }) => {

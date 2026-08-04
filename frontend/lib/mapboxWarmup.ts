@@ -56,7 +56,10 @@ interface WarmMapState {
   id: string;
   host: HTMLDivElement;
   map: mapboxgl.Map;
-  promise: Promise<void>;
+  /** resolves once the style, layers and labels are attached: the loader's gate */
+  styled: Promise<void>;
+  /** resolves once every waypoint has been visited and its tiles are cached */
+  primed: Promise<void>;
   ready: boolean;
   failed: boolean;
   claimedBy: HTMLElement | null;
@@ -312,7 +315,7 @@ const warmRegisteredMap = async (
     if (!existing.host.isConnected && !existing.claimedBy) {
       root.appendChild(existing.host);
     }
-    await existing.promise;
+    await existing.styled;
     return;
   }
 
@@ -336,23 +339,50 @@ const warmRegisteredMap = async (
     id: config.id,
     host,
     map,
-    promise: Promise.resolve(),
+    styled: Promise.resolve(),
+    primed: Promise.resolve(),
     ready: false,
     failed: false,
     claimedBy: null,
   };
 
-  const promise = (async () => {
+  const onFailure = (error: unknown) => {
+    state.failed = true;
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`Mapbox warmup failed for ${config.id}`, error);
+    }
+  };
+
+  // What the loading overlay waits for is the map being BUILT: style parsed,
+  // terrain and overlay layers attached, labels in the reader's language. That
+  // is the part a reader must not see happening, and it takes about a second.
+  //
+  // It deliberately does not wait for tiles. Waiting for `idle` never actually
+  // succeeded here: two maps and 225 tile requests meant even the opening view
+  // ran into its 8s timeout, so the old overlay sat for 12 seconds and then let
+  // the reader in anyway with a map that was two thirds cold. Tiles resolving
+  // progressively on a map already on screen is what maps normally look like,
+  // and by the time the reader has scrolled past the intro they are there.
+  const styleReady = (async () => {
     try {
       await waitForStyle(map);
       ensureMapTilerLayers(map, { terrain: config.terrain ?? true });
       ensureSatelliteOverlay(map, config.satelliteOverlay);
       applyMapLanguage(map, currentLanguage);
+      performance.mark?.(`map-warm-styled:${config.id}`);
+    } catch (error) {
+      onFailure(error);
+    }
+  })();
 
-      await waitForIdle(map);
-      onStep();
-
-      for (const view of views.slice(1)) {
+  // Tiles along the flight path then prime in the background while the reader
+  // is still on the intro, so the scroll-driven descent has them cached. If a
+  // scene takes the map over the camera belongs to the reader, so the sweep
+  // stops rather than fighting it for both the viewport and the bandwidth.
+  state.primed = styleReady.then(async () => {
+    try {
+      for (const view of views) {
+        if (state.claimedBy || state.failed) return;
         map.jumpTo({
           center: [view.lng, view.lat],
           zoom: view.zoom,
@@ -360,24 +390,22 @@ const warmRegisteredMap = async (
           bearing: view.bearing ?? 0,
         });
         await waitForIdle(map);
-        onStep();
       }
-
+      if (state.claimedBy) return;
       state.ready = true;
       performance.mark?.(`map-warm-ready:${config.id}`);
     } catch (error) {
-      state.failed = true;
-      if (process.env.NODE_ENV !== "production") {
-        console.error(`Mapbox warmup failed for ${config.id}`, error);
-      }
+      onFailure(error);
     }
-  })();
+  });
 
-  state.promise = promise;
+
+  state.styled = styleReady;
   warmMaps.set(config.id, state);
   performance.mark?.(`map-warm-start:${config.id}`);
 
-  await promise;
+  await styleReady;
+  onStep();
 };
 
 const runWarmup = async () => {
@@ -388,8 +416,9 @@ const runWarmup = async () => {
   const root = await waitForRoot();
   const maps = getRegisteredMapPreloadMaps();
   const mapConfigs = maps.length ? maps : [fallbackMapConfig()];
-  const totalSteps =
-    mapConfigs.reduce((sum, config) => sum + Math.max(1, config.views.length), 0) + 1;
+  // one step per map (its opening view) plus one for the images; the deeper
+  // waypoints prime after the overlay is gone and no longer move the bar
+  const totalSteps = mapConfigs.length + 1;
   let doneSteps = 0;
 
   const onStep = () => {
@@ -401,7 +430,11 @@ const runWarmup = async () => {
     mapConfigs.map((config) => warmRegisteredMap(config, root, onStep))
   );
 
-  await preloadMapImages();
+  // Same reasoning as in the page: the overlay imagery is 2.4 MB for a scene
+  // far down the story, so it warms the cache alongside the reader rather than
+  // ahead of them. Awaiting it here would put it back into the loading gate
+  // through preloadTiles.
+  void preloadMapImages();
   doneSteps += 1;
   emitProgress(100);
 };

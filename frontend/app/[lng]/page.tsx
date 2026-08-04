@@ -15,6 +15,7 @@ import MapboxPreloader, {
   preloadTiles,
 } from "@/components/MapboxPreloader";
 import ChartScene from "@/components/scenes/ChartScene";
+import SceneErrorBoundary from "@/components/SceneErrorBoundary";
 import StoryProgress from "@/components/StoryProgress";
 import SmoothScroll from "@/components/SmoothScroll";
 import ChatBot from "@/components/ChatBot";
@@ -58,7 +59,12 @@ export default function Page() {
         const modulePromise = preloadModules(dynamicModules).then(() => {
           updateProgress(18);
         });
-        const mapImagesPromise = preloadMapImages().then(() => {
+        // Started, deliberately not awaited. These are the raw scene and the
+        // classified mask of the computer vision beat, 2.4 MB together, and
+        // that beat is a long way down the page. Holding the first screen for
+        // them cost fifteen seconds on a 4 Mbit/s connection. Warming the cache
+        // now means they are there by the time the reader arrives.
+        void preloadMapImages().then(() => {
           updateProgress(28);
         });
         const tilesPromise = preloadTiles({
@@ -78,7 +84,7 @@ export default function Page() {
         });
 
         const [baseJson, fjordData] = await Promise.all([basePromise, fjordPromise]);
-        await Promise.all([modulePromise, mapImagesPromise, tilesPromise]);
+        await Promise.all([modulePromise, tilesPromise]);
 
         if (cancelled) return;
 
@@ -129,16 +135,19 @@ export default function Page() {
         <IntroHero />
         {scenes.map((sc) => (
           <div key={sc.key} id={sc.key}>
-            <ChartScene
-              cfg={sc}
-              globalData={data}
-              snowRef={snowRef}
-            />
+            {/* one failing scene must never take the whole story down */}
+            <SceneErrorBoundary fallback={<section className="h-screen" aria-hidden />}>
+              <ChartScene
+                cfg={sc}
+                globalData={data}
+                snowRef={snowRef}
+              />
+            </SceneErrorBoundary>
           </div>
         ))}
         <OutroHero />
         <ChatBot />
-        <OutroCredits />
+        <OutroCredits baseMeta={data?.baseMeta} fjordMeta={data?.fjordMeta} />
       </main>
       <StoryProgress />
       <LegalFooter />
