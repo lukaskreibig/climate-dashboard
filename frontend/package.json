@@ -30,6 +30,7 @@
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
+    "framer-motion": "12.10.4",
     "gsap": "^3.13.0",
     "i18next": "^25.3.2",
     "i18next-browser-languagedetector": "^8.2.0",
