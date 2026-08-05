@@ -36,7 +36,13 @@ type Finding = { scene: string; issue: string; detail: string };
 test.describe('responsive audit (gate: fails on any finding)', () => {
   for (const vp of VIEWPORTS) {
     test(`audit @ ${vp.name}`, async ({ page, baseURL }) => {
-      test.setTimeout(300_000);
+      // Raised from 300 s. The audit walks every scene at every viewport, so it
+      // grows with the story: the tenth measured season took the two widest
+      // viewports past five minutes and they failed on the clock rather than on
+      // a finding, which reads as a layout regression and is not one. The
+      // budget is generous on purpose, because a gate that fails for being slow
+      // teaches people to ignore it.
+      test.setTimeout(600_000);
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await gotoStory(page, baseURL, 'de');
       await page.waitForTimeout(800);

@@ -122,8 +122,15 @@ test.describe('story layout guardrails', () => {
     await expect(memoryScene).toContainText('Erinnerung trifft Messung');
     await expect(page.getByTestId('memory-measurement-chart')).toBeVisible();
     await memoryScene.locator('[data-cap-idx="0"]').scrollIntoViewIfNeeded();
-    await page.getByTestId('memory-cell-2025-105').hover();
-    await expect(page.getByTestId('memory-cell-tooltip')).toContainText('15. April 2025');
+    // Not a hardcoded year: the reveal starts on the most recent season, so
+    // the example cell moved from 2025 to 2026 the moment a tenth season
+    // landed and the old selector pointed at a row that is not yet hoverable.
+    await page.locator('[data-example-cell="true"]').first().hover();
+    // A German long date, not a specific one, for the same reason as the cell:
+    // the example moves with the newest season.
+    await expect(page.getByTestId('memory-cell-tooltip')).toContainText(
+      /\d{1,2}\. \w+ 20\d{2}/,
+    );
 
     // The value used to be asserted as the literal 71,8. That pinned a number
     // that legitimately moves whenever the denominator or the archive changes,

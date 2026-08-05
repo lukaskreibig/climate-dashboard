@@ -23,6 +23,8 @@ export interface FjordMeanFraction {
    * Gap-filled days are excluded, so this is the sample the interval rests on.
    */
   observedDays?: number | null;
+  /** Mean of exactly the measured days; the one ci95 belongs to. */
+  measuredMean?: number | null;
   /** Bootstrap standard error of the seasonal mean (2000 draws, seeded by year). */
   standardError?: number | null;
   /**
