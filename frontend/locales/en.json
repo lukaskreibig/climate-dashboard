@@ -160,7 +160,7 @@
       "shift": {
         "title": "Earlier, on Average",
         "statUnit": "days",
-        "statLabel": "mean breakup, 2021–25 vs. 2017–20",
+        "statLabel": "mean breakup, from 2021 vs. 2017–20",
         "description": "Across the measured years, breakup moved from a late-May average toward mid-May, about eleven days earlier. It is a short, nine-year window, so read it as a direction, not a fixed date."
       },
       "unpredictable": {
@@ -487,7 +487,7 @@
     },
     "earlyLateSeason": {
       "earlyTitle": "Sea Ice 2017–20 (Mean)",
-      "lateTitle": "Sea Ice 2021–25 (Mean)",
+      "lateTitle": "Sea Ice from 2021 (Mean)",
       "lessIce": "less ice coverage",
       "iqrSuffix": " IQR",
       "meanSuffix": " mean",
@@ -594,7 +594,7 @@
       "source": "Own analysis, Sentinel-2",
       "breakupLabel": "Breakup",
       "earlyLabel": "2017–20 mean",
-      "lateLabel": "2021–25 mean",
+      "lateLabel": "mean from 2021",
       "daysEarlier": "days earlier",
       "memoryNote": "remembered, a generation ago",
       "shiftMetricLabel": "Later period",

@@ -122,6 +122,11 @@ const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
+  const formatLoss = (n: number) =>
+    n.toLocaleString(i18n.language === "de" ? "de-DE" : "en-US", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
   const { t, i18n } = useTranslation();
 
   const [metricVisible, setMetricVisible] = useState(false);
@@ -150,11 +155,7 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
     if (!el) return;
     const target = meanLossPct ?? 0;
     const counter = { v: 0 };
-    const fmt = (n: number) =>
-      n.toLocaleString(i18n.language === "de" ? "de-DE" : "en-US", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      });
+    const fmt = formatLoss;
     const tween = gsap.to(counter, {
       v: target,
       duration: 1.2,
@@ -216,8 +217,14 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
       {/* animated loss metric */}
       <div style={{ position:"absolute", right:20, top:40, zIndex:5, display:"flex", flexDirection:"column", alignItems:"flex-end", opacity:metricVisible?1:0, transition:"opacity .4s ease", pointerEvents:"none" }}>
         <div style={{ fontSize:42, fontWeight:600, color:"#d62929", lineHeight:1 }}>
-          {/* German needs a decimal comma and a space before the % sign */}
-          <span id="lossValue">{typeof meanLossPct === "number" ? meanLossPct : 0}</span>
+          {/*
+            German needs a decimal comma and a space before the % sign. The
+            count-up below formats correctly, but the first render wrote the raw
+            number, so the served HTML said "29.3 %" to a German reader until
+            the animation happened to run: before hydration, with the animation
+            suppressed, and for anything reading the DOM rather than watching it.
+          */}
+          <span id="lossValue">{formatLoss(meanLossPct ?? 0)}</span>
           {i18n.language === "de" ? " %" : "%"}
         </div>
         <div style={{ fontSize:14, color:"#64748b" }}>
