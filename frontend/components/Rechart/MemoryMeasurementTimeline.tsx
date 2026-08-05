@@ -489,6 +489,11 @@ export default function MemoryMeasurementTimeline({
                         key={cell.doy}
                         type="button"
                         data-testid={`memory-cell-${cell.year}-${cell.doy}`}
+                        // The one cell the reveal starts on. It lives in the
+                        // most recent season, so its year moves whenever a new
+                        // one lands; a test that hardcodes the year silently
+                        // starts hovering an invisible row.
+                        data-example-cell={example ? "true" : undefined}
                         aria-label={`${formatDate(cell.date)}: ${formatPercent(
                           cell.frac
                         )}, ${statusLabel(cell)}`}

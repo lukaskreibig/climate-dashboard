@@ -100,6 +100,7 @@ export function summarizeFjordSeasons(
 export interface SeasonMeanRow {
   year: number;
   mean?: number | null;
+  measuredMean?: number | null;
   observedDays?: number | null;
   standardError?: number | null;
   ci95?: number[] | readonly number[] | null;
@@ -107,7 +108,14 @@ export interface SeasonMeanRow {
 
 export interface SeasonUncertainty {
   year: number;
+  /** The gap-filled, smoothed average over the whole window. */
   mean: number | null;
+  /**
+   * The mean of exactly the days that were measured. This is the one the
+   * bootstrap resampled, so it is the one `ci95` belongs to. Pairing the
+   * interval with `mean` instead put the 2018 point below its own lower bound.
+   */
+  measuredMean: number | null;
   observedDays: number | null;
   standardError: number | null;
   /** [lower, upper], already validated as two finite numbers with lower < upper */
@@ -147,6 +155,7 @@ export function toSeasonUncertainty(row: SeasonMeanRow): SeasonUncertainty {
   return {
     year: row.year,
     mean: finiteOrNull(row?.mean),
+    measuredMean: finiteOrNull(row?.measuredMean),
     observedDays: finiteOrNull(row?.observedDays),
     standardError: finiteOrNull(row?.standardError),
     ci95: usable ? [lower as number, upper as number] : null,

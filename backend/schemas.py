@@ -49,6 +49,10 @@ class FjordMeanFraction(BaseModel):
     # measured days against 102 to 107 for most others. Bootstrapped from the
     # measured days, so the charts can draw a band instead of a point.
     observedDays: Optional[int] = None
+    # The mean of exactly those measured days. The interval below is its
+    # interval; `mean` above is the gap-filled, smoothed average over the whole
+    # window and is a different number.
+    measuredMean: Optional[float] = None
     standardError: Optional[float] = None
     ci95: Optional[List[float]] = None
 

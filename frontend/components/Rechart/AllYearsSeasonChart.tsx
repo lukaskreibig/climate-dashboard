@@ -162,21 +162,27 @@ export default function AllYearsSeasonChart({data, seasonMeans, apiRef}:Props){
        symmetric when the measured interval reaches 0.161 below the mean and
        only 0.083 above it. */
     const band = season?.ci95 ?? null;
+    /* The band belongs to the mean of the MEASURED days, because that is what
+       was resampled. `mean` is the average of the gap-filled, smoothed series
+       across the whole window, which is a different estimator: pairing the two
+       drew the 2018 point 0.004 below its own lower bound. So the figure shown
+       beside the interval is measuredMean where the API supplies it. */
+    const banded = season?.measuredMean ?? season?.mean ?? null;
     const seasonLine =
-      season && season.mean !== null && band
+      banded !== null && band
         ? t("charts.seasonUncertainty.panelLine", {
-            mean: pct(season.mean),
+            mean: pct(banded),
             lo: bare(band[0]),
             hi: pct(band[1]),
           })
-        : season && season.mean !== null
-        ? pct(season.mean)
+        : banded !== null
+        ? pct(banded)
         : null;
     const summary =
-      season && season.mean !== null && band && season.observedDays !== null
+      banded !== null && band && season?.observedDays != null
         ? t("charts.seasonUncertainty.rowSummary", {
             year: yr,
-            mean: pct(season.mean),
+            mean: pct(banded),
             lo: bare(band[0]),
             hi: pct(band[1]),
             days: season.observedDays,
@@ -188,6 +194,7 @@ export default function AllYearsSeasonChart({data, seasonMeans, apiRef}:Props){
       key={yr}
       data-season-panel={yr}
       data-season-mean={season?.mean ?? ""}
+      data-measured-mean={season?.measuredMean ?? ""}
       data-ci-lo={band?.[0] ?? ""}
       data-ci-hi={band?.[1] ?? ""}
       data-observed-days={season?.observedDays ?? ""}

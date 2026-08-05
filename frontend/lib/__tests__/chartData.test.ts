@@ -229,6 +229,7 @@ describe("chartData helpers", () => {
     expect(index.get(2019)).toEqual({
       year: 2019,
       mean: 0.4263,
+      measuredMean: null,
       observedDays: null,
       standardError: null,
       ci95: null,
@@ -236,5 +237,28 @@ describe("chartData helpers", () => {
     });
     expect(widestSeason(indexSeasonUncertainty([]))).toBeNull();
     expect(indexSeasonUncertainty(undefined).size).toBe(0);
+  });
+  it("hands the interval the mean it belongs to", () => {
+    // The bootstrap resamples the measured days, so the interval describes
+    // their mean. `mean` is the gap-filled, smoothed average over the whole
+    // window and can legitimately sit outside the band: on the 2018 season it
+    // landed 0.004 below the lower bound. Both have to survive the mapping so a
+    // chart can pick the right one.
+    const index = indexSeasonUncertainty([
+      {
+        year: 2018,
+        mean: 0.761,
+        measuredMean: 0.851,
+        observedDays: 60,
+        standardError: 0.041,
+        ci95: [0.765, 0.925],
+      } as never,
+    ]);
+    const season = index.get(2018)!;
+    expect(season.mean).toBe(0.761);
+    expect(season.measuredMean).toBe(0.851);
+    expect(season.ci95![0]).toBeLessThanOrEqual(season.measuredMean!);
+    expect(season.ci95![1]).toBeGreaterThanOrEqual(season.measuredMean!);
+    expect(season.mean!).toBeLessThan(season.ci95![0]);
   });
 });

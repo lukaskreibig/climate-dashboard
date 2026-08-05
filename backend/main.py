@@ -461,6 +461,13 @@ def _season_sampling_error(season_rows: "pd.DataFrame", year: int) -> dict[str, 
 
     Only days with an actual observation count. Gap-filled days carry no
     independent information and would shrink the interval by pretending to.
+
+    Which is why `measuredMean` is returned alongside the interval: the interval
+    describes the mean of the MEASURED days, while the season mean the charts
+    plot is the average of the gap-filled, smoothed series over the whole
+    window. Those are two different estimators, and drawing the second inside
+    the first put the 2018 point 0.004 below its own lower bound. Anything
+    showing a band has to anchor it to the mean it actually belongs to.
     """
     measured_column = "frac_raw" if "frac_raw" in season_rows.columns else "frac"
     values = pd.to_numeric(
@@ -476,6 +483,7 @@ def _season_sampling_error(season_rows: "pd.DataFrame", year: int) -> dict[str, 
     means = draws.mean(axis=1)
     return {
         "observedDays": observed,
+        "measuredMean": round(float(sample.mean()), 4),
         "standardError": round(float(means.std(ddof=1)), 4),
         "ci95": [
             round(float(np.percentile(means, 2.5)), 4),
