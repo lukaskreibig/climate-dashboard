@@ -88,6 +88,43 @@ const Figure = ({ p }: { p: Photo }) => (
   </figure>
 );
 
+/**
+ * The split scenes put a 140 px gutter beside the progress rail and a second
+ * one on the inside, and below roughly 800 px those two eat the whole half
+ * width. Measured on an iPhone-sized viewport of 390 px, the photo column came
+ * out 164 px wide carrying 164 px of padding, so the picture rendered at zero
+ * by zero and the reader saw a quote on a coloured field with no photograph at
+ * all. Under this width the two halves stack, photo first.
+ *
+ * 800 rather than a Tailwind breakpoint because it is where the arithmetic
+ * turns: half of 800, less the two gutters, still leaves the photo 236 px. A
+ * landscape phone at 812 by 390 therefore stays side by side, which is right,
+ * because stacking into 390 px of height would be worse.
+ */
+const SPLIT_STACK_BELOW = 800;
+
+/** the progress rail is hidden below the sm breakpoint, so it needs no gutter there */
+const RAIL_BREAKPOINT = 640;
+const RAIL_GUTTER = 76;
+
+const useSplitLayout = () => {
+  const [layout, setLayout] = useState({ stacked: false, railGutter: 0 });
+
+  useEffect(() => {
+    const measure = () =>
+      setLayout({
+        stacked: window.innerWidth < SPLIT_STACK_BELOW,
+        railGutter: window.innerWidth >= RAIL_BREAKPOINT ? RAIL_GUTTER : 0,
+      });
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  return layout;
+};
+
 const clamp01       = (v: number) =>
   Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0; // guards 0/0 → NaN during initial layout
 const easeOutCubic  = (t: number) => 1 - (1 - t) ** 3;
@@ -364,22 +401,32 @@ const FullscreenSplit = () => {
   } = fullscreenQuoteOpts ?? {};
 
   /* ── Hilfswerte ───────────────────────────────────────── */
-  const offsetPx  = (quoteOffsetVH / 100) * innerHeight;     // VH → px
+  const { stacked, railGutter } = useSplitLayout();
+  const offsetPx  = stacked ? 0 : (quoteOffsetVH / 100) * innerHeight;  // VH → px
   const GAP_VW    = 6;   // Seiten-Einrückung in vw
   const GAP_MIN   = 24;  // min  px
   const GAP_MAX   = 96;  // max  px
   const SAFE_BAR  = 140; // Abstand zur Progress-Leiste
 
-  /* Einrückungen – Bild bekommt auf der Bar-Seite extra Puffer */
-  const imgPadStyle =
-    imageSide === "left"
+  /* Stacked: symmetrisch, nur die Leiste bekommt ihren Platz.
+     Nebeneinander: Bild bekommt auf der Bar-Seite extra Puffer */
+  const STACK_EDGE = "clamp(20px,5vw,40px)";
+  const stackPadStyle = {
+    paddingLeft: STACK_EDGE,
+    paddingRight: `max(${STACK_EDGE}, ${railGutter}px)`,
+  };
+
+  const imgPadStyle = stacked
+    ? stackPadStyle
+    : imageSide === "left"
       ? { paddingLeft: 0,
           paddingRight: `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)` }
       : { paddingRight: SAFE_BAR,
           paddingLeft : `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)` };
 
-  const textPadStyle =
-    imageSide === "left"
+  const textPadStyle = stacked
+    ? stackPadStyle
+    : imageSide === "left"
       ? { paddingLeft : `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)`,
           paddingRight: SAFE_BAR }
       : { paddingRight: `clamp(${GAP_MIN}px,${GAP_VW}vw,${GAP_MAX}px)`,
@@ -400,7 +447,10 @@ const FullscreenSplit = () => {
                    ?1-clamp01((progress-fadeOutAt)/(1-fadeOutAt))
                    :easeOutCubic(lin);
   const effBgParallax = reducedMotion ? 0 : bgParallax;
-  const effQuoteParallax = reducedMotion ? 0 : quoteParallax;
+  /* The quote drifts against its own column on a wide screen. Stacked it has no
+     column to drift in, and 0.3 of the viewport height is enough to carry it up
+     over the photograph, so it holds still there. */
+  const effQuoteParallax = reducedMotion || stacked ? 0 : quoteParallax;
   const effBgZoom = reducedMotion ? 0 : bgZoom;
   const bgY      = -progress*innerHeight*effBgParallax;
   const quoteY   = -progress*innerHeight*effQuoteParallax;
@@ -411,55 +461,52 @@ const FullscreenSplit = () => {
   const tilt = reducedMotion ? 0 : (0.5 - progress) * 7;
 
   /* ── Render ───────────────────────────────────────────── */
+  const photoBlock = (
+    <div
+      className={`flex justify-center items-center ${stacked ? "w-full shrink-0" : "flex-1"}`}
+      style={{ ...imgPadStyle, perspective: 1100 }}
+    >
+      <motion.div
+        style={{
+          y: bgY,
+          scale: zoomScale,
+          x: stacked ? 0 : imageSide === "left" ? bgXAlign + 30 : bgXAlign,
+          rotateY: imageSide === "left" ? tilt : -tilt,
+        }}
+        transition={{ type:"spring", stiffness:40, damping:15 }}
+      >
+        <Image
+          src={photos[0].src} alt={photos[0].alt}
+          {...imageSize(photos[0].src)}
+          sizes={stacked ? "100vw" : "50vw"}
+          className={`${stacked ? "max-h-[46vh]" : "max-h-[90vh]"} w-auto h-auto object-contain`}
+        />
+      </motion.div>
+    </div>
+  );
+
   return (
     <section
       ref={secRef}
-      className={`relative h-screen w-full overflow-hidden flex items-center ${className}`}
+      className={`relative h-screen w-full overflow-hidden flex ${
+        stacked ? "flex-col justify-center gap-6" : "items-center"
+      } ${className}`}
       style={{ background: BG }}
     >
-
-      {/* Bild links */}
-      {imageSide==="left"&&(
-        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
-          <motion.div
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30, rotateY: tilt }}
-            transition={{ type:"spring", stiffness:40, damping:15 }}
-          >
-            <Image
-              src={photos[0].src} alt={photos[0].alt}
-              {...imageSize(photos[0].src)}
-              sizes="50vw"
-              className="max-h-[90vh] w-auto h-auto object-contain"
-            />
-          </motion.div>
-        </div>
-      )}
+      {/* stacked always leads with the photo, whichever side it takes on a
+          wide screen, because a quote followed by its picture reads backwards */}
+      {(stacked || imageSide === "left") && photoBlock}
 
       {/* Text */}
       <motion.div
-        className="flex-1 flex items-center"
+        className={`flex items-center ${stacked ? "w-full" : "flex-1"}`}
         style={{ ...textPadStyle, opacity, y: quoteY + offsetPx }}
         transition={{ type:"spring", stiffness:40, damping:15 }}
       >
         {Quote}
       </motion.div>
 
-      {/* Bild rechts */}
-      {imageSide==="right"&&(
-        <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
-          <motion.div
-            style={{ y:bgY, scale:zoomScale, x:bgXAlign, rotateY: -tilt }}
-            transition={{ type:"spring", stiffness:40, damping:15 }}
-          >
-            <Image
-              src={photos[0].src} alt={photos[0].alt}
-              {...imageSize(photos[0].src)}
-              sizes="50vw"
-              className="max-h-[90vh] w-auto h-auto object-contain"
-            />
-          </motion.div>
-        </div>
-      )}
+      {!stacked && imageSide === "right" && photoBlock}
     </section>
   );
 };
