@@ -147,8 +147,11 @@ export default function IntroHero() {
         alt={t("alt.arcticPanorama")}
         fill
         sizes="100vw"
-        className="object-cover"
-        style={{ opacity: 0 }}
+        /* opacity-0 as a class, not a style prop: the timeline below sets an
+           inline opacity, and a style prop would put React back in charge of it
+           and blank the photo again on the next re-render (a language switch
+           mid-scene would do it) */
+        className="object-cover opacity-0"
       />
 
       <div ref={overlay} className="absolute inset-0 bg-slate-500 opacity-0" />
