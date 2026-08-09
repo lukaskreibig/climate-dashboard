@@ -8,7 +8,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import {
   ChartCallout,
@@ -109,22 +108,21 @@ const SatellitePixelInspector = forwardRef<SatellitePixelInspectorApi, Props>(
           ref={imageRef}
           className="relative mx-auto aspect-[1.35/1] w-full max-h-[76vh] max-w-[min(100%,920px)] overflow-hidden rounded-sm bg-slate-900 ring-1 ring-white/10"
         >
-          <Image
+          {/* Plain img, not next/image: these two are static WebP already, and
+              the same files feed a Mapbox image source that cannot go through
+              the optimiser. Sending them through it here would give this copy a
+              different URL and download the picture a second time. See
+              scripts/gen-satellite-rasters.mjs. */}
+          <img
             src={rawImg}
             alt={t("charts.pixelInspector.rawAlt")}
-            fill
-            sizes="(max-width: 768px) 100vw, 66vw"
-            className="object-cover"
-            priority={false}
+            className="absolute inset-0 h-full w-full object-cover"
           />
-          <Image
+          <img
             src={maskImg}
             alt={t("charts.pixelInspector.maskAlt")}
-            fill
-            sizes="(max-width: 768px) 100vw, 66vw"
-            className="object-cover transition-opacity duration-500"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
             style={{ opacity: stage >= 1 ? 0.7 : 0 }}
-            priority={false}
           />
 
           {stage >= 1 && (

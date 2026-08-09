@@ -211,7 +211,10 @@ const preloadImage = (src: string) =>
     }
 
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // No crossOrigin. Everything warmed here is same-origin, and a CORS request
+    // lands in a different cache partition from the plain <img> that consumes
+    // it later, so asking for CORS would make this preload fetch the picture
+    // for nobody.
     img.onload = () => resolve();
     img.onerror = () => resolve();
     img.src = src;

@@ -70,7 +70,16 @@ const SATELLITE_WAYPOINTS: Waypoint[] = [
   { lng: -52.22, lat: 70.7, zoom: 9.8, pitch: 52, bearing: 20 },
 ];
 
-const SATELLITE_IMAGES = ["/images/satellite.jpg", "/images/overlay.jpg"];
+/**
+ * Static WebP rather than the JPEG masters or a next/image URL. These two go to
+ * a Mapbox image source, to the loading gate's preloader and to the pixel
+ * inspector, and those three send three different Accept headers: behind the
+ * optimiser's `Vary: Accept` that meant four downloads of the same picture.
+ * A static file has no Vary, so one download serves all three, and 2.4 MB of
+ * JPEG becomes 537 KB at the same 1251 by 1500.
+ * Regenerate with scripts/gen-satellite-rasters.mjs.
+ */
+const SATELLITE_IMAGES = ["/images/satellite.webp", "/images/overlay.webp"];
 const SATELLITE_COORDS: [[number, number], [number, number], [number, number], [number, number]] = [
   [-52.333915, 70.798511], // top left
   [-51.905163, 70.787129], // top right

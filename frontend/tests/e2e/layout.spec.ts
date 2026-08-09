@@ -71,14 +71,28 @@ test.describe('story layout guardrails', () => {
   });
 
   test('satellite mask overlay reaches the computer-vision step', async ({ page, baseURL }) => {
-    const imageRequests = {
+    /**
+     * Three consumers want these two rasters: a Mapbox image source, the
+     * loading gate's preloader and the pixel inspector. Counting requests could
+     * not tell a cache hit from a second download, and it also read zero once
+     * the files changed extension, which is the worst way for a guard to fail.
+     * So this measures the wire instead: three requests are fine, three
+     * downloads are not.
+     */
+    const wireBytes = {
       satellite: 0,
       overlay: 0,
     };
-    page.on('request', (request) => {
-      const url = request.url();
-      if (url.includes('/images/satellite.jpg')) imageRequests.satellite += 1;
-      if (url.includes('/images/overlay.jpg')) imageRequests.overlay += 1;
+    page.on('requestfinished', async (request) => {
+      const url = decodeURIComponent(request.url());
+      const key = /\/images\/satellite\.\w+/.test(url)
+        ? 'satellite'
+        : /\/images\/overlay\.\w+/.test(url)
+          ? 'overlay'
+          : null;
+      if (!key) return;
+      const sizes = await request.sizes().catch(() => null);
+      wireBytes[key] += Math.max(0, sizes?.responseBodySize ?? 0);
     });
 
     await gotoStory(page, baseURL, 'de');
@@ -104,8 +118,19 @@ test.describe('story layout guardrails', () => {
     }).toBe('2');
 
     await page.waitForTimeout(2000);
-    expect(imageRequests.satellite).toBeLessThanOrEqual(2);
-    expect(imageRequests.overlay).toBeLessThanOrEqual(2);
+
+    // satellite.webp is 302 KB and overlay.webp 235 KB, so anything past 400 KB
+    // means a consumer fetched its own copy instead of sharing the cached one.
+    const BUDGET = 400 * 1024;
+    expect(
+      wireBytes.satellite,
+      `satellite raster pulled ${(wireBytes.satellite / 1024).toFixed(0)} KB over the wire`,
+    ).toBeLessThan(BUDGET);
+    expect(
+      wireBytes.overlay,
+      `mask raster pulled ${(wireBytes.overlay / 1024).toFixed(0)} KB over the wire`,
+    ).toBeLessThan(BUDGET);
+    expect(wireBytes.satellite, 'satellite raster never loaded').toBeGreaterThan(0);
   });
 
   test('new chart explainers render with localized copy', async ({ page, baseURL }) => {
