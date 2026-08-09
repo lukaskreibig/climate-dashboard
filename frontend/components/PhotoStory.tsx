@@ -10,8 +10,10 @@ import React, {
   useState,
   useEffect,
 } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/lib/reducedMotion";
+import { imageSize } from "@/lib/imageMeta";
 
 /* ────────────────────────── TYPES ────────────────────────── */
 export interface PhotoStoryApi {
@@ -69,9 +71,11 @@ const Figure = ({ p }: { p: Photo }) => (
     className="relative flex items-center justify-center rounded-3xl shadow-xl overflow-hidden"
     style={{ maxWidth: MAX_IMAGE_WIDTH }}
   >
-    <img
+    <Image
       src={p.src}
+      {...imageSize(p.src)}
       alt={p.alt}
+      sizes={`(max-width: 900px) 100vw, ${MAX_IMAGE_WIDTH}px`}
       className="max-h-[80vh] w-auto max-w-full h-auto object-contain"
     />
     {(p.location || p.year) && (
@@ -315,15 +319,21 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
         className={`relative h-screen w-full overflow-hidden ${className}`}
         style={{ background: BG }}
       >
-        {/* background */}
-        <motion.img
+        {/* background. The parallax rides the wrapper so the photo underneath
+            can be a real next/image and ship a phone-sized variant. */}
+        <motion.div
+          className="absolute inset-0"
+          style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
+          transition={{ type: "spring", stiffness: 40, damping: 15 }}
+        >
+          <Image
             src={photos[0].src}
             alt={photos[0].alt}
-            className={`absolute inset-0 w-full h-full ${fit} object-center`}
-            style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
-
-            transition={{ type: "spring", stiffness: 40, damping: 15 }}
-            />
+            fill
+            sizes="100vw"
+            className={`${fit} object-center`}
+          />
+        </motion.div>
 
         {/* quote */}
         <motion.div
@@ -411,12 +421,17 @@ const FullscreenSplit = () => {
       {/* Bild links */}
       {imageSide==="left"&&(
         <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
-          <motion.img
-            src={photos[0].src} alt={photos[0].alt}
-            className="max-h-[90vh] w-auto object-contain"
+          <motion.div
             style={{ y:bgY, scale:zoomScale, x:bgXAlign + 30, rotateY: tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
-          />
+          >
+            <Image
+              src={photos[0].src} alt={photos[0].alt}
+              {...imageSize(photos[0].src)}
+              sizes="50vw"
+              className="max-h-[90vh] w-auto h-auto object-contain"
+            />
+          </motion.div>
         </div>
       )}
 
@@ -432,12 +447,17 @@ const FullscreenSplit = () => {
       {/* Bild rechts */}
       {imageSide==="right"&&(
         <div className="flex-1 flex justify-center items-center" style={{ ...imgPadStyle, perspective: 1100 }}>
-          <motion.img
-            src={photos[0].src} alt={photos[0].alt}
-            className="max-h-[90vh] w-auto object-contain"
+          <motion.div
             style={{ y:bgY, scale:zoomScale, x:bgXAlign, rotateY: -tilt }}
             transition={{ type:"spring", stiffness:40, damping:15 }}
-          />
+          >
+            <Image
+              src={photos[0].src} alt={photos[0].alt}
+              {...imageSize(photos[0].src)}
+              sizes="50vw"
+              className="max-h-[90vh] w-auto h-auto object-contain"
+            />
+          </motion.div>
         </div>
       )}
     </section>

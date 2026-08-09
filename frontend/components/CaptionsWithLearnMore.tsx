@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -14,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { imageSize } from '@/lib/imageMeta';
 
 interface LearnMoreData {
   title?: string;
@@ -99,10 +101,12 @@ export const CaptionWithLearnMore: React.FC<CaptionWithLearnMoreProps> = ({
           <AlertDialogDescription asChild>
             <div className="prose prose-slate max-w-none text-base leading-relaxed space-y-4 !text-black">
               {learnMore.image && (
-                <img 
-                  src={learnMore.image} 
+                <Image
+                  src={learnMore.image}
+                  {...imageSize(learnMore.image)}
                   alt={learnMore.title || ''}
-                  className="w-full rounded-lg mb-4"
+                  sizes="(max-width: 640px) 100vw, 45vw"
+                  className="w-full h-auto rounded-lg mb-4"
                 />
               )}
               {renderWithLineBreaks(learnMore.content)}

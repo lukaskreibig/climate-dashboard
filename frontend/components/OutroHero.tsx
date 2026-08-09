@@ -9,6 +9,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from "react-i18next";
@@ -138,12 +139,16 @@ export default function IntroHero() {
   return (
     <section ref={wrap} className="relative h-screen overflow-hidden text-snow-50">
       {/* background photo */}
-      <motion.img
+      {/* same file as the intro, so it comes out of cache; the timeline below
+          fades it in and then zooms it, both on the element itself */}
+      <Image
         ref={photo}
         src="/images/heartofaseal-28.jpg"
         alt={t("alt.arcticPanorama")}
-        className="absolute inset-0 w-full h-full object-cover"
-        initial={{ opacity: 0 }}
+        fill
+        sizes="100vw"
+        className="object-cover"
+        style={{ opacity: 0 }}
       />
 
       <div ref={overlay} className="absolute inset-0 bg-slate-500 opacity-0" />

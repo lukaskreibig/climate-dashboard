@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
+import Image from "next/image";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from 'react-i18next';
@@ -146,12 +147,16 @@ export default function IntroHero() {
       {/* background photo (outer div carries the mouse parallax so GSAP can
           keep animating the image itself) */}
       <motion.div className="absolute inset-0" style={{ x: springX, y: springY, scale: 1.04 }}>
-        <motion.img
+        {/* the story's largest paint, so it is the one image that gets
+            priority; next/image hands a phone a phone-sized crop of it */}
+        <Image
           ref={photo}
           src="/images/heartofaseal-28.jpg"
           alt={t("alt.arcticPanorama")}
-          className="absolute inset-0 w-full h-full object-cover"
-          initial={{ opacity: 1 }}
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover"
         />
       </motion.div>
 
