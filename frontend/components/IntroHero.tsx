@@ -44,7 +44,6 @@ export default function IntroHero() {
   const line1    = useRef<HTMLHeadingElement>(null);
   const line2    = useRef<HTMLHeadingElement>(null);
   const arrow    = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
 
   /* SVG-filter refs */
   const idleTurb = useRef<SVGFETurbulenceElement>(null);
@@ -134,8 +133,9 @@ export default function IntroHero() {
       tl.to(overlay.current, { opacity: 0, duration: .45, ease: "none" }, "end")
         .to(bgFade.current,   { opacity: 1, duration: .45, ease: "none" }, "end");
 
-      /* chart fade-in behind copy (unchanged) */
-      tl.to(chartRef.current, { opacity: 1, duration: .6, ease: "none" }, "sent2+=.35");
+      /* A chart used to fade in behind the copy here. It has been gone for a
+         while, and its ref was never attached to anything, so the tween ran
+         against null on every load: accepted, and doing nothing. */
     }, wrap);
 
     return () => ctx.revert();
