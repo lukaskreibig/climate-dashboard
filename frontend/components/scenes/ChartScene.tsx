@@ -20,7 +20,6 @@ import { prefersReducedMotion } from "@/lib/reducedMotion";
 
 /* ===== tweakables =========================================== */
 const CHART_PARALLAX = 0.12;
-const PROGRESS_GUTTER_VAR = "var(--progress-gutter, 0px)";
 const MIN_CHART_WIDTH = 520;
 const MAX_CHART_WIDTH = 960;
 /* ============================================================ */
@@ -136,7 +135,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const hasMounted = useRef(false);
   const isCompact = useIsCompact();
   const isShort = useIsShort();
-  const [needsStack, setNeedsStack] = useState(false);
   const [chartMaxWidth, setChartMaxWidth] = useState(() => MAX_CHART_WIDTH);
   const [layoutBounds, setLayoutBounds] = useState(() => ({
     wrapWidth: 0,
@@ -173,7 +171,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         sec.current.querySelectorAll<HTMLElement>("[data-cap-idx] .caption-box")
       );
       if (!captions.length) {
-        setNeedsStack(false);
         setChartMaxWidth((prev) =>
           Math.abs(prev - chartTarget) > 1 ? chartTarget : prev
         );
@@ -199,7 +196,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
       const shouldStack = availableForChart < MIN_CHART_WIDTH * 0.8;
 
       if (shouldStack) {
-        setNeedsStack(true);
         const stackedWidth = Math.min(
           Math.max(wrapWidth * 0.82, MIN_CHART_WIDTH),
           MAX_CHART_WIDTH
@@ -220,7 +216,6 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
         Math.max(availableForChart, MIN_CHART_WIDTH)
       );
 
-      setNeedsStack(false);
       setChartMaxWidth((prev) =>
         Math.abs(prev - nextWidth) > 1 ? nextWidth : prev
       );

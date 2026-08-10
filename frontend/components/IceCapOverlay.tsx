@@ -198,8 +198,13 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
         return;
       }
       boundMap = map;
-      map.isStyleLoaded() ? addLayers() : map.once("style.load", addLayers);
-      map.on("style.load", addLayers); // re-add if the style reloads (language switch)
+      if (map.isStyleLoaded()) addLayers();
+      // Re-add whenever the style reloads, on a language switch for instance.
+      // This also covers the first load when the style was not ready yet, which
+      // a separate once() used to handle: both fired on that first load, so
+      // addLayers ran twice, and the once() outlived an unmount that happened
+      // before the style ever loaded.
+      map.on("style.load", addLayers);
     };
 
     waitForMap();

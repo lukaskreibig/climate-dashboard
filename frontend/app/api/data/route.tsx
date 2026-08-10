@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { jsonResponse } from "@/lib/jsonResponse";
-import type { BackendDataResponse, ApiErrorPayload } from "@/types";
+import type { BackendDataResponse } from "@/types";
 
 function getBackendBaseUrls() {
   const urls = [

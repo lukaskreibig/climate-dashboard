@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import * as Popover from "@radix-ui/react-popover";
-import { Globe, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import clsx from "clsx";
 
 const languages = [
