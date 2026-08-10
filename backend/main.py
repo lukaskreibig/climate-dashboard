@@ -103,10 +103,6 @@ def _fjord_year_groups(years) -> tuple[list[int], list[int]]:
     return early, late
 
 
-# Kept as module-level names because they are read in several places; they cover
-# the seasons published so far and are recomputed from the data where it matters.
-FJORD_EARLY_YEARS = list(range(FJORD_FIRST_YEAR, FJORD_LATE_START_YEAR))
-FJORD_LATE_YEARS = [2021, 2022, 2023, 2024, 2025]
 # The fjord WATER surface the ice fraction is a fraction OF, and the one number
 # every area statement in the story has to come from.
 #
@@ -614,6 +610,15 @@ def _freeze_and_breakup(
     return doys[start], (doys[end + 1 + thaw] if thaw is not None else None)
 
 
+def _fjord_baseline_label(years) -> str:
+    """Name the two comparison periods from the seasons actually present."""
+    early, late = _fjord_year_groups(years)
+    if not early or not late:
+        return ""
+    span = lambda g: str(g[0]) if g[0] == g[-1] else f"{g[0]} to {g[-1]}"
+    return f"{span(early)} vs {span(late)}"
+
+
 def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
     daily = payload.get("daily", [])
     latest_daily = _latest_daily_row(daily if isinstance(daily, list) else [])
@@ -645,7 +650,10 @@ def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
         "latestDate": latest_date,
         "latestYear": latest_year,
         "source": "Sentinel-2 Uummannaq computer-vision pipeline",
-        "baselineYears": "2017-2020 vs 2021-2025",
+        # Derived, not written down. This read "2017-2020 vs 2021-2025" while
+        # the record already ran to 2026, which is the same freeze the comment
+        # on FJORD_LATE_START_YEAR warns about.
+        "baselineYears": _fjord_baseline_label(years),
         "generatedAt": _utc_now_iso(),
         "freshness": _freshness_block([fjord_source], checked_at=_utc_now_iso()),
     }
@@ -1209,7 +1217,6 @@ async def chat_stream(req: ChatRequest):
     retrieved_chunks = results.get("documents", [[]])[0]
     context = "\n\n".join(retrieved_chunks)
 
-    print("DEBUG - Retrieved Context:\n", context)
     if not context:
         raise HTTPException(status_code=404, detail="No relevant context found")
 
