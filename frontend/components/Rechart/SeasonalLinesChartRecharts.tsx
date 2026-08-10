@@ -84,8 +84,17 @@ export default function SeasonalLinesChartRecharts({
   // A type guard states what the filter actually establishes.
   const flat = (data ?? []).filter((d): d is MeasuredRow => d.Extent != null);
   const extent = flat.length ? d3.extent(flat, (d) => d.Extent) : undefined;
-  const minE = extent?.[0] ?? 0;
-  const maxE = extent?.[1] ?? 1;
+  // Snapped outward to a whole tick step. Handed the raw extent, the axis read
+  // 16.6, 11.3, 7.3, which are the ends of the data divided into equal parts
+  // and not numbers anybody reads an area off. The ticks then have to be
+  // supplied too, because a hand-set domain stops Recharts choosing its own.
+  const rawMin = extent?.[0] ?? 0;
+  const rawMax = extent?.[1] ?? 1;
+  const eStep = [0.5, 1, 2, 2.5, 5, 10].find((s) => (rawMax - rawMin) / s <= 6) ?? 10;
+  const minE = Math.floor(rawMin / eStep) * eStep;
+  const maxE = Math.ceil(rawMax / eStep) * eStep;
+  const eTicks: number[] = [];
+  for (let v = minE; v <= maxE + 1e-9; v += eStep) eTicks.push(Math.round(v * 100) / 100);
 
   const minYear = byYear[0]?.year ?? 0;
   const maxYear = byYear.at(-1)?.year ?? 0;
@@ -191,7 +200,14 @@ export default function SeasonalLinesChartRecharts({
 
       <ChartCallout
         tone={highlight === "current" ? "warning" : "ice"}
-        className="absolute bottom-2 left-3 z-10 max-w-[250px]"
+        // bottom-2 put this on top of the month ticks and hid January
+        // through April. The axis and its label own the bottom of the
+        // box, so the callout has to clear all of it, measured rather
+        // than guessed: the month ticks start 73 pixels above the
+        // container floor and the extent ticks end 72 pixels in from
+        // its left edge, at every width the audit covers. So the box
+        // starts where the drawing area does, at 80.
+        className="absolute bottom-24 left-20 z-10 max-w-[min(250px,calc(100%-6rem))]"
         title={t(`charts.seasonal.callouts.${highlight}.title`, {
           defaultValue: t("charts.seasonal.callouts.all.title"),
         })}
@@ -216,6 +232,7 @@ export default function SeasonalLinesChartRecharts({
           />
           <YAxis
             domain={[minE, maxE]}
+            ticks={eTicks}
             tickFormatter={(v) => v.toFixed(1)}
             className="chart-axis"
             label={{ value: t('charts.seasonal.yAxisLabel'), angle: -90, position: "insideLeft" }}
