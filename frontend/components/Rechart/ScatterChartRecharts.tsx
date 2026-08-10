@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import React, { useMemo } from "react";
 import {
@@ -17,7 +16,9 @@ interface Props {
   data: AnnualRowScatter[];
 }
 
-type ValidRow = Required<Pick<AnnualRowScatter, "Year" | "Glob" | "SeaIceMean">>;
+// Required only strips the question mark and leaves | null standing, so the
+// six arithmetic reads below were all unchecked. Spelled out instead.
+type ValidRow = { Year: number; Glob: number; SeaIceMean: number };
 
 export default function ScatterChartRecharts({ data }: Props) {
   // Everything derived sits above the empty-data guard on purpose. The useMemo
@@ -114,4 +115,3 @@ export default function ScatterChartRecharts({ data }: Props) {
     </div>
   );
 }
-// @ts-nocheck

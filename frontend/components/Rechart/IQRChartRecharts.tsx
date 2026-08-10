@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 "use client";
 import React from "react";
 import {
@@ -68,7 +67,12 @@ export default function IQRChartRecharts({ stats,   partial2025 = [],}: Props) {
             domain={[minE, maxE]}
             label={{ value:"Sea Ice Extent", angle:-90, position:"insideLeft"}}
           />
-          <Tooltip formatter={(val)=>(typeof val==="number"? val.toFixed(2) : parseInt(val).toFixed(2))}/>
+          <Tooltip formatter={(val) => {
+            // Recharts hands this an array for stacked or ranged series, and
+            // parseInt of an array returns NaN. Take the first component.
+            const n = Number(Array.isArray(val) ? val[0] : val);
+            return Number.isFinite(n) ? n.toFixed(2) : String(val);
+          }}/>
           <Legend className="chart-axis" />
 
           {/* The IQR area => we must feed one combined array. We'll do area referencing q25 & q75. */}
@@ -117,4 +121,3 @@ export default function IQRChartRecharts({ stats,   partial2025 = [],}: Props) {
       </div>
   );
 }
-// @ts-nocheck

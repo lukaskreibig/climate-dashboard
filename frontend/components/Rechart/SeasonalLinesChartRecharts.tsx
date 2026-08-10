@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import React, {
   useMemo,
@@ -11,7 +10,6 @@ import {
   Line,
   LineChart,
   ReferenceArea,
-  ReferenceLine,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -27,6 +25,9 @@ import {
 /* ------------------------------------------------------------------
    SeasonalLinesChartRecharts – headline, highlight API, delta badge
 ------------------------------------------------------------------- */
+// A row whose Extent survived the null filter, used where the value is read.
+type MeasuredRow = Row & { Extent: number };
+
 interface Row {
   Year: number;
   DayOfYear: number;
@@ -78,10 +79,13 @@ export default function SeasonalLinesChartRecharts({
   }, [data]);
 
   /* ── stats (all null-safe: they must survive the empty first render) ── */
-  const flat = (data ?? []).filter((d) => d.Extent != null) as Required<Row>[];
-  const [minE, maxE] = flat.length ? d3.extent(flat, (d) => d.Extent)! : [0, 1];
-  const max = flat.length ? flat.reduce((a, b) => (b.Extent > a.Extent ? b : a)) : null;
-  const min = flat.length ? flat.reduce((a, b) => (b.Extent < a.Extent ? b : a)) : null;
+  // The cast used to be Required<Row>[], which only strips the question mark
+  // and leaves | null in place, so every read of .Extent below was unchecked.
+  // A type guard states what the filter actually establishes.
+  const flat = (data ?? []).filter((d): d is MeasuredRow => d.Extent != null);
+  const extent = flat.length ? d3.extent(flat, (d) => d.Extent) : undefined;
+  const minE = extent?.[0] ?? 0;
+  const maxE = extent?.[1] ?? 1;
 
   const minYear = byYear[0]?.year ?? 0;
   const maxYear = byYear.at(-1)?.year ?? 0;
@@ -198,7 +202,7 @@ export default function SeasonalLinesChartRecharts({
       </ChartCallout>
 
       <ResponsiveContainer height={400}>
-        <LineChart margin={{ top: 4, right: 20, bottom: 40, left: 20 }} isAnimationActive={false}>
+        <LineChart margin={{ top: 4, right: 20, bottom: 40, left: 20 }}>
           {/* grid / axes keep their classes so GSAP fades still work */}
           <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
           <XAxis
@@ -237,6 +241,10 @@ export default function SeasonalLinesChartRecharts({
                 }
                 dot={false}
                 activeDot={false}
+                // LineChart has no isAnimationActive, so the prop that used to
+                // sit on the container was accepted by nobody and every one of
+                // these lines drew itself on mount anyway. It belongs here.
+                isAnimationActive={false}
                 style={lineStyle}
                 onMouseEnter={() => setHoverYear(year)}
               />
@@ -254,34 +262,8 @@ export default function SeasonalLinesChartRecharts({
   />
 )}
 
-          {/* helper lines keep .chart-ref for GSAP fade */}
-          {/* <ReferenceLine
-            className="chart-ref"
-            x={max.DayOfYear}
-            stroke={col(max.Year)}
-            strokeDasharray="3 3"
-            label={{
-              position: "right",
-              value: `Max ${max.Extent.toFixed(2)} M km² (${max.Year})`,
-              fill: col(max.Year),
-              fontSize: 12,
-            }}
-          /> */}
-          {/* <ReferenceLine
-            className="chart-ref"
-            x={min.DayOfYear}
-            stroke={col(min.Year)}
-            strokeDasharray="3 3"
-            label={{
-              position: "top",
-              value: `Min ${min.Extent.toFixed(2)} M km² (${min.Year})`,
-              fill: col(min.Year),
-              fontSize: 12,
-            }}
-          /> */}
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
 }
-// @ts-nocheck
