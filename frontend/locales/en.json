@@ -20,13 +20,16 @@
     "pushingSled": "A person pushing a sled across the ice",
     "snowstorm": "A heavy snowstorm in Uummannaq",
     "motorsledge": "A snowmobile in Uummannaq",
-    "kids": "Children in Uummannaq",
-    "dogsSnowstorm": "Sled dogs in a snowstorm",
+    "kids": "Two girls in red anoraks seated in front of painted portraits",
+    "dogsSnowstorm": "Two sled dogs curled up and covered in snow",
     "fisherboat": "A fishing boat in the harbour",
-    "polarBear": "A polar bear on fragile sea ice",
     "arcticPanorama": "Arctic panorama",
     "knudPortrait": "Portrait of Knud Rasmussen",
-    "knudAvatar": "Knud Rasmussen avatar"
+    "knudAvatar": "Knud Rasmussen avatar",
+    "iceFishing": "A fisher at a hole in the sea ice, circled by gulls, an iceberg behind",
+    "townAtNight": "Uummannaq at night, its houses lit under a green aurora",
+    "iceberg": "An iceberg in open water with a bird overhead",
+    "celebration": "Two women dancing close at a community celebration, balloons behind them"
   },
   "scenes": {
     "2024": {
@@ -178,8 +181,8 @@
       "title": "From Uummannaq to the Arctic",
       "description": "Uummannaq shows one local shift. The Arctic-wide record gives the scale: winter maximums, summer minimums, old ice, and rapid regional warming.",
       "learnMoreLink": "Methodology",
-      "learnMoreTitle": "Methodology & Data Sources – Arctic Sea Ice",
-      "learnMoreContent": "This story draws on operational datasets from NASA, NOAA/NSIDC and Our World in Data. An automated Python pipeline pulls them in. How far each source actually reaches is listed in the credits under “State of the data”.\\n\\nData sources\\nNASA GISS – temperature anomalies: https://data.giss.nasa.gov/gistemp/\\nNOAA – daily Arctic sea-ice extent: https://nsidc.org/sea-ice-today\\nOur World in Data – global CO₂ emissions: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nProcessing steps\\n1. A scheduled GitHub Actions workflow triggers the update.\\n2. Latest CSV / JSON files are downloaded, validated and reshaped with Pandas.\\n3. Z-scores standardise temperature, ice extent and CO₂ to a common scale.\\n4. The cleaned dataset is written to data.json and served by FastAPI to the Next.js frontend."
+      "learnMoreTitle": "Methodology & Data Sources: Arctic Sea Ice",
+      "learnMoreContent": "This story draws on operational datasets from NASA, NOAA/NSIDC and Our World in Data. An automated Python pipeline pulls them in. How far each source actually reaches is listed in the credits under “State of the data”.\\n\\nData sources\\nNASA GISS, temperature anomalies: https://data.giss.nasa.gov/gistemp/\\nNOAA, daily Arctic sea-ice extent: https://nsidc.org/sea-ice-today\\nOur World in Data, global CO₂ emissions: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nProcessing steps\\n1. A scheduled GitHub Actions workflow triggers the update.\\n2. Latest CSV / JSON files are downloaded, validated and reshaped with Pandas.\\n3. Z-scores standardise temperature, ice extent and CO₂ to a common scale.\\n4. The cleaned dataset is written to data.json and served by FastAPI to the Next.js frontend."
     },
     "arcticGlobe": {
       "title": "What Summer Leaves Behind",
@@ -244,7 +247,7 @@
     "annual": {
       "title": "Below the Average",
       "description": "Each bar shows how far a year finished above (blue) or below (red) the 1981 to 2010 average. Zero is that fixed reference, not the average of every year on the chart.",
-      "analysis": "Every year of the 1980s finishes above the line, on average 0.54 million km² above it. The 1990s wobble: nine years above, one below. From 2000 on, not a single year finishes above the reference.",
+      "analysis": "The 1980s sit on average 0.47 million km² above the line, the 1990s only 0.18. Nine of ten years finish above it in both decades, so what shrinks is the distance, not the frequency. From 2000 both give way at once: not a single year above the reference, and the 2010s average 1.11 million km² below it.",
       "conclusion": "The reference line does not drift with the data. It stays on the 1981 to 2010 average, the same line the decade chart uses. The bars are what moved."
     },
     "drivers": {
@@ -315,13 +318,13 @@
       },
       "rights": {
         "title": "4. Your Rights",
-        "access": "Access – Art. 15 GDPR",
-        "rectification": "Rectification – Art. 16 GDPR",
-        "erasure": "Erasure – Art. 17 GDPR",
-        "restriction": "Restriction of processing – Art. 18 GDPR",
-        "portability": "Data portability – Art. 20 GDPR",
-        "objection": "Objection – Art. 21 GDPR",
-        "complaint": "Complaint to a supervisory authority – Art. 77 GDPR"
+        "access": "Access, Art. 15 GDPR",
+        "rectification": "Rectification, Art. 16 GDPR",
+        "erasure": "Erasure, Art. 17 GDPR",
+        "restriction": "Restriction of processing, Art. 18 GDPR",
+        "portability": "Data portability, Art. 20 GDPR",
+        "objection": "Objection, Art. 21 GDPR",
+        "complaint": "Complaint to a supervisory authority, Art. 77 GDPR"
       },
       "changes": {
         "title": "5. Changes to this Statement",
@@ -347,7 +350,7 @@
     "backToStory": "← Back to Story",
     "startConversation": "Start Conversation",
     "role": "Data journalism, coding & visual design.",
-    "rights": "© 2026 – All rights reserved",
+    "rights": "© 2026, all rights reserved",
     "explorerSubtitle": "Explorer • Storyteller • Guide",
     "contact": "Contact",
     "phone": "Phone",
@@ -357,7 +360,7 @@
     "arcticButton": "Arctic Data Sources",
     "closing": {
       "lead": "Listening is not the same as measuring.",
-      "body": "The satellites count the ice. The people of Uummannaq live with what its absence takes: routes, timing, trust, a way of being on the sea. The record here is nine years; the memory is a lifetime. Both point the same way.",
+      "body": "The satellites count the ice. The people of Uummannaq live with what its absence takes: routes, timing, trust, a way of being on the sea. The record here is ten winters; the memory is a lifetime. Both point the same way.",
       "question": "The future is unwritten. What we make of the measurement and the memory is the open question.",
       "scrollCue": "Sources & a conversation below"
     },
@@ -391,14 +394,14 @@
   },
   "charts": {
     "ariaSummaries": {
-      "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window. A grey band on each panel marks the 95% range of that season's average; the band is widest for 2017, which the satellite measured on only 39 days.",
-      "memoryMeasurement": "Calendar heatmap of measured ice days for each Uummannaq winter, February to June; later winters show fewer ice days. A column on the right gives each winter's average with its 95% range, widest for 2017 with 39 measured days.",
-      "breakupTiming": "Scatter of the day each Uummannaq winter's ice broke up, 2017 to 2025; breakup is about eleven days earlier on average and far more variable.",
-      "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on the years from 2021 (red) across the season; averaged over the season the later period sits about 29 percent lower.",
+      "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window. A grey band on each panel marks the 95% range of that season's average; the band is widest for 2026, whose season runs through break-up; 2017 has the fewest measurements at 24 days but not the widest band.",
+      "memoryMeasurement": "Calendar heatmap of measured ice days for each Uummannaq winter, February to June; later winters show fewer ice days. A column on the right gives each winter's average with its 95% range, widest for 2026; 2017 has the fewest measurements at 24 days.",
+      "breakupTiming": "Scatter of the day each Uummannaq winter's ice broke up, 2017 to 2026; breakup is about ten days earlier on average and far more variable.",
+      "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on the years from 2021 (red) across the season; averaged over the season the later period sits about 23 percent lower.",
       "seasonal": "Line chart of Arctic sea-ice extent by year since 1979; recent years (red) sit below older years (blue), especially at the winter maximum and late-summer minimum.",
       "dailyAnomaly": "Arctic sea-ice anomaly by decade; each decade steps lower, from near the average in the 1980s to well below it in the 2020s.",
       "annualAnomaly": "Yearly Arctic sea-ice anomaly bars; from the 2000s onward most years fall below the long-term average.",
-      "multiLine": "Atmospheric CO2, global temperature, and Arctic temperature since the 1980s all rise, with Arctic temperature rising fastest.",
+      "multiLine": "Global CO₂ emissions, global temperature, and Arctic temperature since the 1980s all rise, with Arctic temperature rising fastest.",
       "zScore": "CO2, temperature, and sea ice standardized to one scale; rising CO2 and temperature move opposite to falling sea ice.",
       "bar2024": "Bar chart comparing the Arctic and global temperature anomaly in the latest year; the Arctic anomaly is far larger."
     },
@@ -645,7 +648,7 @@
   },
   "meta": {
     "title": "The Big Melt: How the Sea Ice Around Uummannaq Is Vanishing",
-    "description": "A data story from Greenland. People in Uummannaq say the winter ice breaks up earlier than it did in their childhood. Eight years of Sentinel-2 imagery put that memory to the test.",
+    "description": "A data story from Greenland. People in Uummannaq say the winter ice breaks up earlier than it did in their childhood. Ten winters of Sentinel-2 imagery put that memory to the test.",
     "siteName": "The Big Melt",
     "imageAlt": "Uummannaq beneath its heart shaped mountain, seen from the frozen fjord in winter"
   }

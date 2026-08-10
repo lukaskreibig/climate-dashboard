@@ -20,13 +20,16 @@
     "pushingSled": "Eine Person schiebt einen Schlitten über das Eis",
     "snowstorm": "Heftiger Schneesturm in Uummannaq",
     "motorsledge": "Ein Motorschlitten in Uummannaq",
-    "kids": "Kinder in Uummannaq",
-    "dogsSnowstorm": "Schlittenhunde im Schneesturm",
+    "kids": "Zwei Mädchen in roten Anoraks sitzen vor gemalten Porträts",
+    "dogsSnowstorm": "Zwei Schlittenhunde, zusammengerollt und vom Schnee überzogen",
     "fisherboat": "Ein Fischerboot im Hafen",
-    "polarBear": "Ein Eisbär auf brüchigem Meereis",
     "arcticPanorama": "Arktisches Panorama",
     "knudPortrait": "Porträt von Knud Rasmussen",
-    "knudAvatar": "Avatar von Knud Rasmussen"
+    "knudAvatar": "Avatar von Knud Rasmussen",
+    "iceFishing": "Ein Fischer über einem Loch im Meereis, umkreist von Möwen, dahinter ein Eisberg",
+    "townAtNight": "Uummannaq bei Nacht, die Häuser erleuchtet unter grünem Polarlicht",
+    "iceberg": "Ein Eisberg im offenen Wasser, darüber ein Vogel im Flug",
+    "celebration": "Zwei Frauen tanzen eng umschlungen bei einem Fest der Gemeinde, im Hintergrund Luftballons"
   },
   "scenes": {
     "2024": {
@@ -178,8 +181,8 @@
       "title": "Von Uummannaq zur gesamten Arktis",
       "description": "Uummannaq zeigt den Wandel im Kleinen. Die arktisweite Messreihe liefert den Maßstab: Wintermaximum, Sommerminimum, altes Eis, rasche Erwärmung.",
       "learnMoreLink": "Methodik anzeigen",
-      "learnMoreTitle": "Methodik & Datenquellen – Arktisches Meereis",
-      "learnMoreContent": "Diese Geschichte nutzt operationelle Datensätze von NASA, NOAA/NSIDC und Our World in Data. Eine automatisierte Python-Pipeline holt sie nach. Wie weit jede Quelle tatsächlich reicht, steht im Abspann unter „Stand der Daten“.\\n\\nDatenquellen\\nNASA GISS – Temperaturanomalien: https://data.giss.nasa.gov/gistemp/\\nNOAA – tägliche Meereisausdehnung: https://nsidc.org/sea-ice-today\\nOur World in Data – weltweite CO₂-Emissionen: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nVerarbeitungsschritte\\n1. Ein geplanter GitHub-Actions-Workflow stößt das Update an.\\n2. Neueste CSV-/JSON-Dateien werden geladen, geprüft und mit Pandas vereinheitlicht.\\n3. Z-Scores setzen Temperatur, Eisausdehnung und CO₂ auf eine gemeinsame Skala.\\n4. Die bereinigten Daten werden als data.json gespeichert und via FastAPI an das Next.js-Frontend ausgeliefert."
+      "learnMoreTitle": "Methodik & Datenquellen: Arktisches Meereis",
+      "learnMoreContent": "Diese Geschichte nutzt operationelle Datensätze von NASA, NOAA/NSIDC und Our World in Data. Eine automatisierte Python-Pipeline holt sie nach. Wie weit jede Quelle tatsächlich reicht, steht im Abspann unter „Stand der Daten“.\\n\\nDatenquellen\\nNASA GISS, Temperaturanomalien: https://data.giss.nasa.gov/gistemp/\\nNOAA, tägliche Meereisausdehnung: https://nsidc.org/sea-ice-today\\nOur World in Data, weltweite CO₂-Emissionen: https://ourworldindata.org/co2-and-greenhouse-gas-emissions\\n\\nVerarbeitungsschritte\\n1. Ein geplanter GitHub-Actions-Workflow stößt das Update an.\\n2. Neueste CSV-/JSON-Dateien werden geladen, geprüft und mit Pandas vereinheitlicht.\\n3. Z-Scores setzen Temperatur, Eisausdehnung und CO₂ auf eine gemeinsame Skala.\\n4. Die bereinigten Daten werden als data.json gespeichert und via FastAPI an das Next.js-Frontend ausgeliefert."
     },
     "arcticGlobe": {
       "title": "Was der Sommer übrig lässt",
@@ -244,7 +247,7 @@
     "annual": {
       "title": "Unter dem Durchschnitt",
       "description": "Jeder Balken zeigt, wie weit ein Jahr über (blau) oder unter (rot) dem Mittel der Jahre 1981 bis 2010 endete. Null ist genau dieses Mittel, nicht der Durchschnitt aller Jahre im Diagramm.",
-      "analysis": "Die 1980er enden ausnahmslos über der Linie, im Mittel 0,54 Mio. km² darüber. Die 1990er pendeln: neun Jahre darüber, eines darunter. Seit 2000 endet kein einziges Jahr mehr über dem Referenzniveau.",
+      "analysis": "Die 1980er liegen im Mittel 0,47 Mio. km² über der Linie, die 1990er nur noch 0,18. In beiden Jahrzehnten enden neun von zehn Jahren darüber, der Abstand schrumpft also, nicht die Häufigkeit. Ab 2000 kippt beides zugleich: kein einziges Jahr mehr über dem Referenzniveau, und die 2010er liegen im Mittel 1,11 Mio. km² darunter.",
       "conclusion": "Die Referenzlinie wandert nicht mit. Sie steht fest auf dem Mittel von 1981 bis 2010, dieselbe Linie wie in der Dekadengrafik. Verschoben haben sich die Balken."
     },
     "drivers": {
@@ -315,13 +318,13 @@
       },
       "rights": {
         "title": "4. Ihre Rechte",
-        "access": "Auskunft – Art. 15 DSGVO",
-        "rectification": "Berichtigung – Art. 16 DSGVO",
-        "erasure": "Löschung – Art. 17 DSGVO",
-        "restriction": "Einschränkung der Verarbeitung – Art. 18 DSGVO",
-        "portability": "Daten­übertrag­barkeit – Art. 20 DSGVO",
-        "objection": "Widerspruch – Art. 21 DSGVO",
-        "complaint": "Beschwerde bei einer Aufsichtsbehörde – Art. 77 DSGVO"
+        "access": "Auskunft, Art. 15 DSGVO",
+        "rectification": "Berichtigung, Art. 16 DSGVO",
+        "erasure": "Löschung, Art. 17 DSGVO",
+        "restriction": "Einschränkung der Verarbeitung, Art. 18 DSGVO",
+        "portability": "Daten­übertrag­barkeit, Art. 20 DSGVO",
+        "objection": "Widerspruch, Art. 21 DSGVO",
+        "complaint": "Beschwerde bei einer Aufsichtsbehörde, Art. 77 DSGVO"
       },
       "changes": {
         "title": "5. Änderungen dieser Erklärung",
@@ -347,7 +350,7 @@
     "backToStory": "← Zurück zur Geschichte",
     "startConversation": "Gespräch beginnen",
     "role": "Datenjournalismus, Code und visuelles Design.",
-    "rights": "© 2026 – Alle Rechte vorbehalten",
+    "rights": "© 2026, alle Rechte vorbehalten",
     "explorerSubtitle": "Entdecker • Geschichtenerzähler • Wegweiser",
     "contact": "Kontakt",
     "phone": "Tel.",
@@ -357,7 +360,7 @@
     "arcticButton": "Arktische Datenquellen",
     "closing": {
       "lead": "Ein Satellit sieht das Eis. Was es bedeutet, weiß er nicht.",
-      "body": "Die Menschen in Uummannaq leben mit dem, was sein Rückzug ihnen nimmt: Wege über den gefrorenen Fjord, verlässliche Zeiten, das Vertrauen, sich aufs Eis wagen zu können. Neun Jahre Satellitendaten und ein ganzes Menschenleben voller Erinnerung: Beide erzählen vom selben Wandel, auf je eigene Art.",
+      "body": "Die Menschen in Uummannaq leben mit dem, was sein Rückzug ihnen nimmt: Wege über den gefrorenen Fjord, verlässliche Zeiten, das Vertrauen, sich aufs Eis wagen zu können. Zehn Winter Satellitendaten und ein ganzes Menschenleben voller Erinnerung: Beide erzählen vom selben Wandel, auf je eigene Art.",
       "question": "Wie es weitergeht, steht nicht fest. Was wir aus den Daten und aus den Erinnerungen machen, liegt an uns.",
       "scrollCue": "Weiter unten: Quellen und ein Gespräch"
     },
@@ -391,10 +394,10 @@
   },
   "charts": {
     "ariaSummaries": {
-      "allYearsSeason": "Kleine Einzeldiagramme des täglichen Eisanteils je Uummannaq-Saison ab 2017; jüngere Saisons liegen im selben Zeitfenster (Februar bis Juni) niedriger. Ein graues Band markiert in jedem Feld den 95-Prozent-Bereich des Saisonmittels; am breitesten ist es 2017, als der Fjord nur an 39 Tagen gemessen wurde.",
-      "memoryMeasurement": "Kalender-Heatmap der gemessenen Eistage je Uummannaq-Winter, Februar bis Juni; jüngere Winter zeigen weniger Eistage. Rechts steht je Winter das Saisonmittel mit seinem 95-Prozent-Bereich, am breitesten 2017 mit 39 gemessenen Tagen.",
-      "breakupTiming": "Streudiagramm des Tages, an dem das Eis jedes Uummannaq-Winters aufbrach, 2017 bis 2025; der Aufbruch erfolgt im Mittel rund elf Tage früher und deutlich unregelmäßiger.",
-      "earlyLateSeason": "Mittlerer Eisanteil 2017 bis 2020 (blau) über die Jahre ab 2021 (rot) im Saisonverlauf; im Saisonmittel liegt der jüngere Zeitraum rund 29 Prozent niedriger.",
+      "allYearsSeason": "Kleine Einzeldiagramme des täglichen Eisanteils je Uummannaq-Saison ab 2017; jüngere Saisons liegen im selben Zeitfenster (Februar bis Juni) niedriger. Ein graues Band markiert in jedem Feld den 95-Prozent-Bereich des Saisonmittels; am breitesten ist es 2026, dessen Saison durch den Aufbruch läuft; 2017 hat mit 24 Tagen die wenigsten Messungen, aber nicht das breiteste Band.",
+      "memoryMeasurement": "Kalender-Heatmap der gemessenen Eistage je Uummannaq-Winter, Februar bis Juni; jüngere Winter zeigen weniger Eistage. Rechts steht je Winter das Saisonmittel mit seinem 95-Prozent-Bereich, am breitesten 2026; 2017 hat mit 24 Tagen die wenigsten Messungen.",
+      "breakupTiming": "Streudiagramm des Tages, an dem das Eis jedes Uummannaq-Winters aufbrach, 2017 bis 2026; der Aufbruch erfolgt im Mittel rund zehn Tage früher und deutlich unregelmäßiger.",
+      "earlyLateSeason": "Mittlerer Eisanteil 2017 bis 2020 (blau) über die Jahre ab 2021 (rot) im Saisonverlauf; im Saisonmittel liegt der jüngere Zeitraum rund 23 Prozent niedriger.",
       "seasonal": "Liniendiagramm der arktischen Meereisausdehnung je Jahr seit 1979; jüngere Jahre (rot) liegen unter älteren (blau), besonders am Wintermaximum und Spätsommerminimum.",
       "dailyAnomaly": "Arktische Meereis-Anomalie nach Jahrzehnt; jedes Jahrzehnt liegt tiefer, von nahe dem Durchschnitt in den 1980ern bis deutlich darunter in den 2020ern.",
       "annualAnomaly": "Jährliche Balken der arktischen Meereis-Anomalie; ab den 2000ern liegen die meisten Jahre unter dem langfristigen Durchschnitt.",
@@ -645,7 +648,7 @@
   },
   "meta": {
     "title": "Schmelzpunkt: Wie das Meereis vor Uummannaq verschwindet",
-    "description": "Eine Datengeschichte aus Grönland. Menschen in Uummannaq berichten, dass das Wintereis früher aufbricht als in ihrer Kindheit. Acht Jahre Sentinel-2-Aufnahmen prüfen diese Erinnerung nach.",
+    "description": "Eine Datengeschichte aus Grönland. Menschen in Uummannaq berichten, dass das Wintereis früher aufbricht als in ihrer Kindheit. Zehn Winter Sentinel-2-Aufnahmen prüfen diese Erinnerung nach.",
     "siteName": "Schmelzpunkt",
     "imageAlt": "Uummannaq unter dem herzförmigen Berg, im Winter vom gefrorenen Fjord aus gesehen"
   }

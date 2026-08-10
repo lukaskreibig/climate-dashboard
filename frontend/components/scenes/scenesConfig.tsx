@@ -293,7 +293,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/motorsledge.jpg", alt: t("alt.uummannaqView") }]}
+      photos={[{ src: "/images/motorsledge.jpg", alt: t("alt.motorsledge") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -328,7 +328,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_fishing.jpg", alt: t("alt.uummannaqView") }]}
+      photos={[{ src: "/images/heartofaseal_fishing.jpg", alt: t("alt.iceFishing") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -366,7 +366,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_voices.jpg", alt: t("alt.uummannaqView") }]}
+      photos={[{ src: "/images/heartofaseal_voices.jpg", alt: t("alt.townAtNight") }]}
       variant="fullscreen"
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
@@ -980,7 +980,7 @@ export const useScenesWithTranslation = () => {
   chart: (_d, api) => (
     <PhotoStory
       ref={api}
-      photos={[{ src: "/images/heartofaseal_iceberg.jpg", alt: t("alt.snowstorm") }]}
+      photos={[{ src: "/images/heartofaseal_iceberg.jpg", alt: t("alt.iceberg") }]}
       variant="fullscreen-split"
       fullscreenImageFit="contain" 
       imageSide="left" 
@@ -1412,7 +1412,7 @@ export const useScenesWithTranslation = () => {
     <PhotoStory
       ref={api}
       photos={[
-        { src: "/images/community-bonds.jpg", alt: t("alt.polarBear") }
+        { src: "/images/community-bonds.jpg", alt: t("alt.celebration") }
       ]}
       variant="fullscreen-split"
       imageSide="right"
