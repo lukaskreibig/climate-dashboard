@@ -37,13 +37,13 @@ A Sentinel Hub style OAuth client id and its client secret, assigned as plain st
 literals in a notebook code cell:
 
 ```
-client_id     = "<the client id>"    (39 characters)
-client_secret = "<the client secret>"                     (32 characters)
+client_id     = "sh-<uuid, 39 characters in total>"
+client_secret = "<32 characters, mixed case and digits>"
 ```
 
-The full values are not written into this document on purpose, because this document lives
-in a public repository. Recover them from history when you build the replacement file in
-section 7.
+Neither the values nor their opening characters are written into this document, because it
+lives in a public repository and a prefix of a live credential is still a piece of one.
+Recover them from history when you build the replacement file in section 7.
 
 **In `climate-dashboard`, at `final-project-submission/ice_classification_final.ipynb`:**
 
@@ -463,8 +463,9 @@ literal:<the client secret>==>CDSE_CLIENT_SECRET_REMOVED
 literal:<the OpenAI key>==>OPENAI_API_KEY_REMOVED
 ```
 
-The ellipses stand for the parts deliberately withheld from this document. Replace them with
-the values the two `git cat-file` commands above print.
+Each angle bracket stands for a value this document does not carry. Take them from what the
+two `git cat-file` commands above print. This file stays in `~/secret-rewrite-work/` and is
+never committed.
 
 `literal:` means no regex interpretation, which matters because the notebook stores these
 inside JSON strings with escaped quotes around them. `--replace-text` operates on raw blob
@@ -566,15 +567,19 @@ three, which is what demonstrates it is capable of detecting them.
 covers unreachable objects, dangling objects and anything the tree walk would miss.
 
 ```bash
+# The needles come out of the replacement file from section 7, so the real values
+# enter neither this document nor your shell history.
+sed -E 's/^literal:(.*)==>.*/\1/' ~/secret-rewrite-work/replacements.txt \
+  > ~/secret-rewrite-work/needles.txt
+
 git cat-file --batch-all-objects --batch-check='%(objectname) %(objecttype)' \
   | awk '$2=="blob"{print $1}' \
   | git cat-file --batch \
-  | LC_ALL=C grep -c -a -e '<the client secret>' -e '<the OpenAI key>' -e '<the client id>'
+  | LC_ALL=C grep -c -a -F -f ~/secret-rewrite-work/needles.txt
 ```
 
 Expect `0`. Against `climate-dashboard` today this prints `3`, and against
-`uummannaq-ice-from-space` it prints `2`. Substitute the real secret fragments; the point of
-using fragments rather than full values is that this command ends up in your shell history.
+`uummannaq-ice-from-space` it prints `2`.
 
 **Check 3: the first changed commit is unreachable.**
 
