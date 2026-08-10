@@ -44,7 +44,9 @@ Outputs:
 | `partial_2025` | In-progress year data |
 | `data/data.json` | JSON fallback served by FastAPI |
 
-Environment variables (optional) to tune smoothing windows:
+### Environment variables
+
+Optional, to tune smoothing windows:
 
 ```ini
 SEAICE_YR_MIN=1980

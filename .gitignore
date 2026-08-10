@@ -49,6 +49,9 @@ Thumbs.db
 # ----------------------------
 .env
 .env.*
+# die Vorlagen gehoeren ins Repo, sonst kann ein Klon die echten nicht anlegen
+!.env.example
+!.env.*.example
 
 # ----------------------------
 # Python

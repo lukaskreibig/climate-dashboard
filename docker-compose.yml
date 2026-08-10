@@ -7,7 +7,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-climate}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-climate}
     env_file:
-      - ./docker/.env.dev
+      - path: ./docker/.env.dev
+        required: false
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -29,7 +30,8 @@ services:
       db:
         condition: service_healthy
     env_file:
-      - ./docker/.env.dev
+      - path: ./docker/.env.dev
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-climate}:${POSTGRES_PASSWORD:-climate}@db:5432/${POSTGRES_DB:-climate}
     ports:
@@ -43,7 +45,8 @@ services:
       db:
         condition: service_healthy
     env_file:
-      - ./docker/.env.dev
+      - path: ./docker/.env.dev
+        required: false
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-climate}:${POSTGRES_PASSWORD:-climate}@db:5432/${POSTGRES_DB:-climate}
       FJORD_CSV_PATH: /app/input/summary_test_cleaned.csv

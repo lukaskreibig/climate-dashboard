@@ -121,7 +121,10 @@ NEXT_PUBLIC_MAPTILER_KEY=your-key
 DATABASE_URL=postgresql://user:pass@localhost:5432/climate
 # Optional when connecting from your laptop to Railway Postgres:
 # DATABASE_PUBLIC_URL=postgresql://...@yamabiko.proxy.rlwy.net:24663/railway?sslmode=require
-OPENAI_API_KEY=sk-...
+
+# The chatbot runs on OpenRouter. OPENAI_API_KEY is only a fallback, used when
+# no OpenRouter key is set, and neither is needed unless you want the chatbot.
+OPENROUTER_API_KEY=sk-or-...
 ```
 
 For pipeline jobs, see [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md#environment-variables).
@@ -169,7 +172,17 @@ docker compose up api db
 docker compose --profile pipeline up pipeline
 ```
 
-The compose file uses environment overrides from `docker/.env.dev`. Mounts are configured so pipeline CSV outputs can be swapped without rebuilding the image. See [docs/OPERATIONS.md](docs/OPERATIONS.md#docker-compose) for more detail.
+Both commands work in a fresh clone with no preparation: every value the
+compose file needs has a default. To override any of them, copy the template
+and edit your copy, which stays out of version control:
+
+```bash
+cp docker/.env.dev.example docker/.env.dev
+```
+
+Mounts are configured so pipeline CSV outputs can be swapped without rebuilding
+the image. For the deployed environments rather than this local one, see
+[docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ### Related repository: Uummannaq Ice From Space
 
