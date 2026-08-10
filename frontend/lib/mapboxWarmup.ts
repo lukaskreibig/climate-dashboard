@@ -63,6 +63,8 @@ interface WarmMapState {
   /** kept so the imagery can be attached later than the map is built */
   overlay?: MapSatelliteOverlayPreload;
   overlayAttached: boolean;
+  /** kept so MapTiler can be attached at claim time rather than during warmup */
+  terrain: boolean;
   ready: boolean;
   failed: boolean;
   claimedBy: HTMLElement | null;
@@ -349,6 +351,7 @@ const warmRegisteredMap = async (
     primed: Promise.resolve(),
     overlay: config.satelliteOverlay,
     overlayAttached: false,
+    terrain: config.terrain ?? true,
     ready: false,
     failed: false,
     claimedBy: null,
@@ -374,7 +377,18 @@ const warmRegisteredMap = async (
   const styleReady = (async () => {
     try {
       await waitForStyle(map);
-      ensureMapTilerLayers(map, { terrain: config.terrain ?? true });
+      // MapTiler is NOT attached here, and that is a quota decision.
+      //
+      // The priming sweep below jumps through every waypoint of every map, and
+      // whatever sources are on the map at that moment get fetched for each
+      // view. With MapTiler attached that came to 260 requests before the
+      // reader had scrolled at all, out of 571 for a whole page view. The free
+      // plan allows 100 000 a month, so about 175 readers, and in August 2026
+      // the account hit that ceiling and the keys were suspended.
+      //
+      // So the sweep primes the Mapbox base map only, and MapTiler's imagery
+      // and terrain go on when a scene actually claims the map. The story does
+      // not open on a map, so there is room for it to arrive.
       applyMapLanguage(map, currentLanguage);
       // The satellite overlay is NOT attached here. Mapbox fetches an image
       // source the moment it is added, and these two are 2.4 MB for a scene far
@@ -535,7 +549,10 @@ export function claimWarmedMap(
   if (state.claimedBy && state.claimedBy !== container) return null;
 
   // Whatever the reader did or did not do, a scene taking this map must have
-  // its imagery.
+  // its imagery: MapTiler's relief and satellite layer, kept off the map during
+  // the priming sweep so the sweep does not multiply them by every waypoint,
+  // and the two classified rasters.
+  ensureMapTilerLayers(state.map, { terrain: state.terrain });
   attachSatelliteOverlays();
 
   container.innerHTML = "";
