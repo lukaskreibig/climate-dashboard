@@ -1266,21 +1266,24 @@ export const useScenesWithTranslation = () => {
     axesInIdx : 0,
 
     captions : [
-      // {
-      //   captionSide:"left",
-      //   html:(<>
-      //     <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
-      //     <p className="text-lg">
-      //       {t('scenes.decades.description')}
-      //     </p>
-      //   </>)
-      // },
       {
         captionSide:"left",
         html:(<>
           <h3 className="text-2xl font-display mb-2">{t('scenes.decades.title')}</h3>
           <p className="text-lg">
             {t('scenes.decades.description')}
+          </p>
+        </>)
+      },
+      {
+        /* The 1980s beat. Its copy has been written in both languages the whole
+           time and no caption rendered it, so the sequence announced five
+           decades and started on the second one. */
+        captionSide:"left",
+        html:(<>
+          <h3 className="text-2xl font-display mb-2">{t('scenes.decades.1980s.title')}</h3>
+          <p className="text-lg">
+            {t('scenes.decades.1980s.description')}
           </p>
         </>)
       },
