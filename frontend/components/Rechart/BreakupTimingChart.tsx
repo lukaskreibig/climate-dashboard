@@ -103,16 +103,19 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
   // also removed the ordinal dot German dates require ("30 Apr")
   const fmtDay = (doy: number) => doyToMonthDay(doy, locale).replace(/\.$/, "");
 
+  // The badges used an em dash for "no value" and an en dash between the two
+  // ends of the range. Both are read out as silence, and the range one also
+  // broke the rule the rest of the copy follows, so both are words now.
   const shiftLabel =
     summary.shiftDays === null
-      ? "—"
+      ? t("common.noData")
       : `${Math.round(Math.abs(summary.shiftDays))} ${t(
           "charts.breakupTiming.daysEarlier"
         )}`;
   const spreadLabel =
     summary.lateMin === null || summary.lateMax === null
-      ? "—"
-      : `${fmtDay(summary.lateMin)} – ${fmtDay(summary.lateMax)}`;
+      ? t("common.noData")
+      : `${fmtDay(summary.lateMin)} ${t("common.rangeTo")} ${fmtDay(summary.lateMax)}`;
 
   const DotShape = (props: any) => {
     const { cx, cy, payload } = props;
@@ -212,13 +215,19 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
             )}
 
             {/* early / late mean lines */}
+            {/* Anchored inside the plot, not in the left gutter. "left" puts the
+                text outside the drawing area, where the only thing waiting for
+                it is the date axis, and "mean 2017 to 2020" is twice as wide as
+                the axis is. The early mean is the later date and therefore the
+                upper line, so its label rides above it and the late one below,
+                and the two can never meet however close the lines run. */}
             {stage >= STAGE_SHIFT && summary.earlyMean != null && (
               <ReferenceLine y={summary.earlyMean} stroke={EARLY_COLOR} strokeWidth={2} strokeDasharray="6 4"
-                label={{ value: t("charts.breakupTiming.earlyLabel"), position: "left", fill: EARLY_COLOR, fontSize: 11 }} />
+                label={{ value: t("charts.breakupTiming.earlyLabel"), position: "insideTopLeft", fill: EARLY_COLOR, fontSize: 11 }} />
             )}
             {stage >= STAGE_SHIFT && summary.lateMean != null && (
               <ReferenceLine y={summary.lateMean} stroke={LATE_COLOR} strokeWidth={2} strokeDasharray="6 4"
-                label={{ value: t("charts.breakupTiming.lateLabel"), position: "left", fill: LATE_COLOR, fontSize: 11 }} />
+                label={{ value: t("charts.breakupTiming.lateLabel"), position: "insideBottomLeft", fill: LATE_COLOR, fontSize: 11 }} />
             )}
 
             <Line type="linear" dataKey="breakup" stroke="#cbd5e1" strokeWidth={1.5} dot={false} connectNulls legendType="none" isAnimationActive={false} />

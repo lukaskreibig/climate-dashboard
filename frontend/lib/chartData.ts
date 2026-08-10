@@ -283,7 +283,10 @@ export function latestYearFrom<T extends { Year?: number; year?: number }>(
 export function doyToMonthDay(doy: number, locale: string) {
   const date = new Date(Date.UTC(2020, 0, doy));
   return new Intl.DateTimeFormat(locale, {
-    day: "2-digit",
+    // numeric, not 2-digit: neither language writes a date this way. "08. Juni"
+    // and "Jun 08" are both wrong outside a filename, and the padding bought
+    // nothing, since these are right-aligned axis ticks and inline badge text.
+    day: "numeric",
     month: "short",
     timeZone: "UTC",
   }).format(date);

@@ -644,7 +644,9 @@
     "openSource": "Open original source",
     "jumpTo": "Jump to {{title}}",
     "scrollCue": "Keep scrolling",
-    "close": "Close"
+    "close": "Close",
+    "rangeTo": "to",
+    "noData": "no data"
   },
   "meta": {
     "title": "The Big Melt: How the Sea Ice Around Uummannaq Is Vanishing",

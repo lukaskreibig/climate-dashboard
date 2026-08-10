@@ -56,6 +56,31 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
   const [visible,setVisible]=useState(1);
   useImperativeHandle(apiRef,()=>({ showLevel:(lvl:number)=>setVisible(Math.max(1, Math.min(lvl, series.length))) }),[series.length]);
 
+  /* The zero line carries the whole reading of this chart, and while only the
+     decades above it are drawn, an automatic domain put it exactly on the axis
+     floor: indistinguishable from the axis itself, with its label "1981 to 2010
+     average" landing on top of the month ticks.
+
+     Snapping the domain outwards to a whole tick step lifts the line clear at
+     every stage of the reveal. The ticks are then handed over explicitly,
+     because a hand-set domain makes Recharts divide the range evenly and it
+     stops choosing round numbers. This way the axis keeps quarters and halves,
+     and zero is always one of them. */
+  const { yDomain, yTicks } = useMemo(() => {
+    const shown = series.slice(0, visible).flatMap(({ rows }) => rows.map((r) => r.an));
+    const lo0 = Math.min(0, ...shown, 0);
+    const hi0 = Math.max(0, ...shown, 0);
+    const step = [0.25, 0.5, 1].find((s) => (hi0 - lo0) / s <= 5) ?? 1;
+    const r2 = (v: number) => Math.round(v * 100) / 100;
+    // outwards to a whole step so the domain holds all the data, and never
+    // closer than one step to zero so the reference line keeps its own row
+    const lo = r2(Math.min(Math.floor(lo0 / step) * step, -step));
+    const hi = r2(Math.max(Math.ceil(hi0 / step) * step, step));
+    const ticks: number[] = [];
+    for (let v = lo; v <= hi + 1e-9; v += step) ticks.push(Math.round(v * 100) / 100);
+    return { yDomain: [lo, hi] as [number, number], yTicks: ticks };
+  }, [series, visible]);
+
   if (!Array.isArray(data) || !data.length || !series.length) {
     return (
       <ChartEmptyState title={t("charts.dailyAnomaly.emptyTitle")}>
@@ -80,7 +105,7 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
         <LineChart data={chartData} margin={{top:20,right:20,bottom:20,left:40}}>
           <CartesianGrid strokeDasharray="3 3" className="chart-grid"/>
           <XAxis dataKey="day" type="number" domain={[1,365]} ticks={monthTicks} tickFormatter={monthOf} className="chart-axis"/>
-          <YAxis label={{value:t('charts.dailyAnomaly.yAxisLabel'),angle:-90,position:"insideLeft"}} className="chart-axis"/>
+          <YAxis domain={yDomain} ticks={yTicks} allowDataOverflow={false} label={{value:t('charts.dailyAnomaly.yAxisLabel'),angle:-90,position:"insideLeft"}} className="chart-axis"/>
           <Tooltip
             formatter={(v: number | string | Array<number | string>) => {
               if (Array.isArray(v)) return v;

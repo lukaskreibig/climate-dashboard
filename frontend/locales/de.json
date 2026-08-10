@@ -644,7 +644,9 @@
     "openSource": "Originalquelle öffnen",
     "jumpTo": "Zu „{{title}}“ springen",
     "scrollCue": "Weiterscrollen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "rangeTo": "bis",
+    "noData": "keine Daten"
   },
   "meta": {
     "title": "Schmelzpunkt: Wie das Meereis vor Uummannaq verschwindet",
