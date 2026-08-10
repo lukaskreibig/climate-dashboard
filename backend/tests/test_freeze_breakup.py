@@ -136,3 +136,45 @@ def test_break_up_is_never_before_freeze_up():
 @pytest.mark.parametrize("length", [0, 1, 5, 6])
 def test_short_seasons_do_not_raise(length):
     assert _freeze_and_breakup(season([0.9] * length)) == (None, None)
+
+
+# --- an early cold snap must not end the season before it starts ----------
+
+
+def test_an_early_cold_snap_does_not_become_the_whole_winter():
+    """The shape that broke 2025.
+
+    That winter froze late. A snap on 24 to 27 February held the fraction above
+    the threshold just long enough to clear the persistence rule, the fjord
+    opened again, and the season proper arrived three weeks later and held for
+    two months. Dating the season from the FIRST sustained frozen run called
+    that pair of events freeze-up and break-up, and ended the winter before the
+    winter happened.
+    """
+    snap = [0.6] * FJORD_PERSISTENCE_DAYS
+    lull = [0.02] * 14
+    winter = [0.95] * 60
+    spring = [0.01] * 30
+    freeze, breakup = _freeze_and_breakup(season(snap + lull + winter + spring))
+
+    assert freeze == 45 + len(snap) + len(lull)
+    assert breakup == 45 + len(snap) + len(lull) + len(winter)
+
+
+def test_the_longest_frozen_spell_wins_even_when_it_comes_second():
+    values = [0.9] * 8 + [0.02] * 10 + [0.9] * 30 + [0.02] * 12
+    freeze, breakup = _freeze_and_breakup(season(values))
+    assert freeze == 45 + 8 + 10
+    assert breakup == 45 + 8 + 10 + 30
+
+
+def test_a_cloudy_day_still_does_not_split_the_winter_in_two():
+    """Guards the gap closing that picking the longest spell made necessary.
+
+    Without it, one misread day inside a winter would leave two shorter spells
+    and freeze-up would be dated from whichever side happened to be longer.
+    """
+    values = [0.9] * 10 + [0.01] + [0.9] * 19 + [0.02] * 30
+    freeze, breakup = _freeze_and_breakup(season(values))
+    assert freeze == 45
+    assert breakup == 45 + 30

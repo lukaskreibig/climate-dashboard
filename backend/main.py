@@ -514,26 +514,84 @@ def _first_run_start(flags: list[bool], need: int) -> Optional[int]:
     return None
 
 
+def _sustained_runs(flags: list[bool], need: int) -> list[tuple[int, int]]:
+    """Every maximal run of at least `need` consecutive True values, as (start, end)."""
+    runs: list[tuple[int, int]] = []
+    i = 0
+    while i < len(flags):
+        if not flags[i]:
+            i += 1
+            continue
+        j = i
+        while j < len(flags) and flags[j]:
+            j += 1
+        if j - i >= need:
+            runs.append((i, j - 1))
+        i = j
+    return runs
+
+
+def _close_short_gaps(flags: list[bool], need: int) -> list[bool]:
+    """Fill interruptions shorter than `need`, so one cloudy day cannot split a winter.
+
+    Without this, picking the longest frozen spell would date freeze-up from
+    whichever side of a single misread day happened to be longer.
+    """
+    closed = list(flags)
+    i = 0
+    while i < len(flags):
+        if flags[i]:
+            i += 1
+            continue
+        j = i
+        while j < len(flags) and not flags[j]:
+            j += 1
+        interior = i > 0 and j < len(flags)
+        if interior and (j - i) < need:
+            for k in range(i, j):
+                closed[k] = True
+        i = j
+    return closed
+
+
+# The ice season is the LONGEST sustained frozen run, not the first one.
+#
+# Taking the first cost us 2025. That winter froze late, and a cold snap on 24
+# to 27 February put the fraction at 0.65 and 0.55 for long enough to clear the
+# persistence rule. The fjord then opened again, and the old definition called
+# that pair of events freeze-up on 23 February and break-up on 8 March, ending
+# the season before the season happened: the real ice arrived on 16 March,
+# reached 1.00 by 25 March, held through April and did not open until mid May.
+#
+# The test that catches it is simply "is there ice after break-up". Across the
+# ten seasons only 2025 fails it, with 32 measured days at or above the
+# threshold after its declared break-up, peaking at 1.00. Every other season
+# has exactly one sustained frozen run, so first, longest and last agree and
+# this change moves nothing else. It moves 2025 from 54/67 to 75/134, and with
+# it the early-to-late shift from 23.1 days to 11.9.
 def _freeze_and_breakup(
     group: "pd.DataFrame",
     threshold: float = FJORD_THRESHOLD,
     need: int = FJORD_PERSISTENCE_DAYS,
 ) -> tuple[Optional[int], Optional[int]]:
-    """First sustained frozen day and the first sustained open day after it."""
+    """Start of the main frozen spell, and the first sustained open day after it."""
     ordered = group.sort_values("doy")
     doys = [int(d) for d in ordered["doy"].tolist()]
     values = ordered["frac"].tolist()
 
     frozen = [bool(v is not None and not pd.isna(v) and v >= threshold) for v in values]
-    start = _first_run_start(frozen, need)
-    if start is None:
+    winters = _sustained_runs(_close_short_gaps(frozen, need), need)
+    if not winters:
         return None, None
 
+    start, end = max(winters, key=lambda run: run[1] - run[0])
+
     open_after = [
-        bool(v is not None and not pd.isna(v) and v < threshold) for v in values[start:]
+        bool(v is not None and not pd.isna(v) and v < threshold)
+        for v in values[end + 1 :]
     ]
-    end = _first_run_start(open_after, need)
-    return doys[start], (doys[start + end] if end is not None else None)
+    thaw = _first_run_start(open_after, need)
+    return doys[start], (doys[end + 1 + thaw] if thaw is not None else None)
 
 
 def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
