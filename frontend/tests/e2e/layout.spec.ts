@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 const SCENES = [
   { key: 'visual-proof', captionSide: 'right' as const },
@@ -71,6 +71,15 @@ test.describe('story layout guardrails', () => {
   });
 
   test('satellite mask overlay reaches the computer-vision step', async ({ page, baseURL }) => {
+    // The one test that opts out of the MapTiler stub in fixtures.ts, because
+    // this one is about the map. Aborting the terrain makes the map fail and
+    // retry, and the retry re-adds the image sources: four full downloads of
+    // satellite.webp instead of one, purely as an artefact of the stub. Under a
+    // working or merely 403ing MapTiler the sharing holds, which is the
+    // property being asserted. One test's worth of tiles is a rounding error
+    // against the quota this stub exists to protect.
+    await page.unroute('**://api.maptiler.com/**');
+
     /**
      * Three consumers want these two rasters: a Mapbox image source, the
      * loading gate's preloader and the pixel inspector. Counting requests could

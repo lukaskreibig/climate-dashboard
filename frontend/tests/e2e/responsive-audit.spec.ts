@@ -11,7 +11,7 @@
  * Run: yarn playwright test tests/e2e/responsive-audit.spec.ts --reporter=line
  * Read the console report to see where each viewport breaks.
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './fixtures';
 
 const VIEWPORTS = [
   { name: 'mobile-360', width: 360, height: 740 },
