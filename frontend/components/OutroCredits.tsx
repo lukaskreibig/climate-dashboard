@@ -60,7 +60,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
   /* ─── Typing Animation ─── */
   const currentAssistantIdx = useRef<number | null>(null);
   const [accumulatedText, setAcc] = useState("");
-  const typingIntervalRef = useRef<NodeJS.Timer | null>(null);
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /* ─── Update greeting on language change ─── */
@@ -71,14 +71,14 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
   /* ─── Typing Effect ─── */
   useEffect(() => {
     if (currentAssistantIdx.current == null || !accumulatedText) return;
-    clearInterval(typingIntervalRef.current as any);
+    clearInterval(typingIntervalRef.current ?? undefined);
     typingIntervalRef.current = setInterval(() => {
       setMessages(prev => {
         const idx = currentAssistantIdx.current!;
         if (idx >= prev.length) return prev;
         const msg = prev[idx];
         if (!msg || msg.text.length >= accumulatedText.length) {
-          clearInterval(typingIntervalRef.current as any);
+          clearInterval(typingIntervalRef.current ?? undefined);
           return prev;
         }
         const updated = [...prev];
@@ -86,7 +86,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
         return updated;
       });
     }, TYPING_SPEED_MS);
-    return () => clearInterval(typingIntervalRef.current as any);
+    return () => clearInterval(typingIntervalRef.current ?? undefined);
   }, [accumulatedText]);
 
   /* ─── Auto-Scroll Chat ─── */

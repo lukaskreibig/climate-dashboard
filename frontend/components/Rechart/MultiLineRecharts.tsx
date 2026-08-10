@@ -30,7 +30,7 @@ export default function MultiLineChartRecharts({ data }: Props) {
   const { t } = useTranslation();
   
   // Custom tooltip formatter that formats CO₂ values in gigatonnes
-  const tooltipFormatter = (value: any, name: string) => {
+  const tooltipFormatter = (value: number | string, name: string) => {
     if (name === t('charts.multiLine.co2') && typeof value === "number") {
       return [(value / 1e9).toFixed(2) + " Gt", name];
     }

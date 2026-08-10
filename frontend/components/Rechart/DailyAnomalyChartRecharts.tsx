@@ -5,8 +5,16 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { useTranslation } from 'react-i18next';
 import { ChartEmptyState, ChartSourceBadge } from "@/components/ChartExplainers";
 
-export interface DecadeRow { decade: string; day: number; an: number; sd?: number|null; n: number; }
-export interface Props { data: DecadeRow[]; apiRef?: React.MutableRefObject<any>; }
+// an is nullable at the API boundary and was cast away at the mount site.
+// Nulls never reached the chart in practice, but had one arrived it would
+// have been pulled through Math.min for the axis domain, where null reads
+// as zero and would have dragged the floor to the reference line.
+export interface DecadeRow { decade: string; day: number; an: number | null; sd?: number|null; n?: number|null; }
+export interface DailyAnomalyApi {
+  /** reveal decades one at a time, 1 shows only the 1980s */
+  showLevel: (level: number) => void;
+}
+export interface Props { data: DecadeRow[]; apiRef?: React.MutableRefObject<DailyAnomalyApi | null>; }
 
 const monthTicks = [1,32,60,91,121,152,182,213,244,274,305,335];
 const colorOf = (d:string)=>({ "1980s":"#1e40af","1990s":"#2563eb","2000s":"#f59e0b","2010s":"#ef4444","2020s":"#b91c1c" }[d] || "#6b7280");
@@ -22,6 +30,7 @@ export default function DailyAnomalyChart({ data, apiRef }: Props) {
     const byDec = new Map<string, {day:number; an:number}[]>();
     for (const r of data) {
       if (decadeNum(r.decade) < 1980) continue;
+      if (r.an == null) continue;      // a day without an anomaly is not a point
       if (!byDec.has(r.decade)) byDec.set(r.decade, []);
       byDec.get(r.decade)!.push({ day: r.day, an: r.an });
     }

@@ -49,17 +49,17 @@ export default function ChatBot() {
   /* ---------- Typing-Animation ---------- */
   const currentAssistantIdx         = useRef<number | null>(null);
   const [accumulatedText, setAcc]   = useState("");
-  const typingIntervalRef           = useRef<NodeJS.Timer | null>(null);
+  const typingIntervalRef           = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (currentAssistantIdx.current == null || !accumulatedText) return;
-    clearInterval(typingIntervalRef.current as any);
+    clearInterval(typingIntervalRef.current ?? undefined);
     typingIntervalRef.current = setInterval(() => {
       setMessages(prev => {
         const idx = currentAssistantIdx.current!;
         const msg = prev[idx];
         if (!msg || msg.text.length >= accumulatedText.length) {
-          clearInterval(typingIntervalRef.current as any);
+          clearInterval(typingIntervalRef.current ?? undefined);
           return prev;
         }
         const updated = [...prev];
@@ -67,7 +67,7 @@ export default function ChatBot() {
         return updated;
       });
     }, TYPING_SPEED_MS);
-    return () => clearInterval(typingIntervalRef.current as any);
+    return () => clearInterval(typingIntervalRef.current ?? undefined);
   }, [accumulatedText]);
 
   /* ---------- Auto-Scroll ---------- */

@@ -60,7 +60,12 @@ const CHART_H = 470;
 /* densify rows und Bandbreiten vorberechnen */
 function buildDense(rows: SeasonRow[]) {
   const byDay = Object.fromEntries(rows.map((r) => [r.day, r]));
-  const dense: any[] = [];
+  type DenseRow = Partial<SeasonRow> & {
+    day: string;
+    eBand: number | null;
+    lBand: number | null;
+  };
+  const dense: DenseRow[] = [];
 
   // Wir laufen den vollen Feb–Jun Bereich ab, damit X-Achse immer gleich ist
   for (let doy = SUN_START; doy <= SUN_END; doy++) {
@@ -103,7 +108,7 @@ function deriveLoss(rows: SeasonRow[]) {
 }
 
 /* ——— tooltip, nur Mittelwerte zeigen ——— */
-const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string; }) => {
+const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value?: number | null; name?: string; dataKey?: string | number; color?: string }[]; label?: string; }) => {
   if (!active || !payload?.length) return null;
   const means = payload.filter((p) => String(p.dataKey).endsWith("Mean") && p.value != null);
   if (!means.length) return null;
@@ -113,7 +118,7 @@ const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload
       <strong>{label}</strong>
       {means.map((m) => (
         <div key={String(m.dataKey)} style={{ color: m.color }}>
-          {m.name}: {(m.value * 100).toFixed(1)} %
+          {m.name}: {((m.value ?? 0) * 100).toFixed(1)} %
         </div>
       ))}
     </div>

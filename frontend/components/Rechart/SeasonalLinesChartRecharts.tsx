@@ -33,9 +33,14 @@ interface Row {
   DayOfYear: number;
   Extent?: number | null;
 }
+export interface SeasonalLinesApi {
+  /** which half of the record to bring forward */
+  highlight: (mode: HighlightMode) => void;
+}
+
 interface Props {
   data: Row[];
-  apiRef?: React.MutableRefObject<any>; // ChartScene passes this
+  apiRef?: React.MutableRefObject<SeasonalLinesApi | null>; // ChartScene passes this
 }
 
 /* ─── tweakables ───────────────────────────────────────────── */

@@ -117,9 +117,12 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
       ? t("common.noData")
       : `${fmtDay(summary.lateMin)} ${t("common.rangeTo")} ${fmtDay(summary.lateMax)}`;
 
-  const DotShape = (props: any) => {
-    const { cx, cy, payload } = props;
-    if (cx == null || cy == null) return <g />;
+  // Recharts hands a custom shape the placed coordinates plus the row it came
+  // from. Only those three are read, so only those three are promised.
+  type BreakupPoint = (typeof points)[number];
+  type DotProps = { cx?: number; cy?: number; payload?: BreakupPoint };
+  const DotShape = ({ cx, cy, payload }: DotProps) => {
+    if (cx == null || cy == null || !payload) return <g />;
     const isLate = payload.period === "late";
     const isLatest = latestYear != null && payload.year === latestYear;
     const color = isLate ? LATE_COLOR : EARLY_COLOR;
@@ -130,7 +133,8 @@ export default function BreakupTimingChart({ data, apiRef, latestYear }: Props) 
     );
   };
 
-  const TooltipContent = ({ active, payload }: any) => {
+  type TooltipProps = { active?: boolean; payload?: { payload: BreakupPoint }[] };
+  const TooltipContent = ({ active, payload }: TooltipProps) => {
     if (!active || !payload?.length) return null;
     const p = payload[0].payload;
     return (

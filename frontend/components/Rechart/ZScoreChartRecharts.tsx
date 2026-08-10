@@ -30,10 +30,15 @@ export interface RowZ {
   SeaIce_z_inv?: number | null;
   GlobCO2Mean_z?: number | null;
 }
+export interface ZScoreApi {
+  /** flip the sign so ice loss reads upward */
+  toggleInvert: (invert: boolean) => void;
+}
+
 interface Props {
   data: RowZ[];
   inverted?: boolean;
-  apiRef?: MutableRefObject<any>;
+  apiRef?: MutableRefObject<ZScoreApi | null>;
 }
 
 /* ---------------- component ------------------------------------ */
