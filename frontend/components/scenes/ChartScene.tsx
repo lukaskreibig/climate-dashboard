@@ -17,6 +17,47 @@ gsap.registerPlugin(ScrollTrigger);
 
 import { SnowApi } from "@/components/ArcticBackgroundSystem";
 import { prefersReducedMotion } from "@/lib/reducedMotion";
+import type { MapFlyApi } from "@/components/MapFlyScene";
+import type { IceCapApi } from "@/components/IceCapOverlay";
+import type { SatOverlayApi } from "@/components/SatOverlay";
+import type { PhotoStoryApi } from "@/components/PhotoStory";
+import type { SatellitePixelInspectorApi } from "@/components/SatellitePixelInspector";
+import type { AllYearsApi } from "@/components/Rechart/AllYearsSeasonChart";
+import type { EarlyLateApi } from "@/components/Rechart/EarlyLateSeasonChart";
+import type { BreakupTimingApi } from "@/components/Rechart/BreakupTimingChart";
+import type { MemoryMeasurementApi } from "@/components/Rechart/MemoryMeasurementTimeline";
+import type { DailyAnomalyApi } from "@/components/Rechart/DailyAnomalyChartRecharts";
+import type { SeasonalLinesApi } from "@/components/Rechart/SeasonalLinesChartRecharts";
+import type { ZScoreApi } from "@/components/Rechart/ZScoreChartRecharts";
+import type { DashboardDataOrNull } from "@/types/dashboard";
+
+/* One scene holds one chart, but this file holds all of them, so the handle it
+   passes around is whichever of these the scene happens to mount. Every member
+   is optional and every call site already reaches through ?., which is what
+   makes the union usable: a scene may call anything, and a method name that
+   exists in none of the charts is now a type error instead of a silent no-op
+   at three in the morning. */
+export type SceneChartApi = Partial<
+  MapFlyApi &
+    IceCapApi &
+    SatOverlayApi &
+    PhotoStoryApi &
+    SatellitePixelInspectorApi &
+    AllYearsApi &
+    EarlyLateApi &
+    BreakupTimingApi &
+    MemoryMeasurementApi &
+    DailyAnomalyApi &
+    SeasonalLinesApi &
+    ZScoreApi
+>;
+
+/* The scene knows which chart it mounted; the shared handle does not, and a
+   ref cannot be both the loose read type and the chart's own write type at
+   once. This names that step rather than leaving `as any` at a dozen mount
+   sites. */
+export const asChartRef = <T,>(ref: MutableRefObject<SceneChartApi | null>) =>
+  ref as unknown as MutableRefObject<T | null>;
 
 /* ===== tweakables =========================================== */
 const CHART_PARALLAX = 0.12;
@@ -28,7 +69,7 @@ const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /* ---------- TYPES ------------------------------------------- */
-type CaptionContent = React.ReactNode | ((data: any) => React.ReactNode);
+type CaptionContent = React.ReactNode | ((data: DashboardDataOrNull) => React.ReactNode);
 
 export interface CaptionCfg {
   html: CaptionContent;
@@ -48,7 +89,7 @@ export interface SceneCfg {
   /** small editorial chapter label rendered above the first caption's title,
    *  e.g. "Die Messung" — orients the reader inside the story's acts */
   kicker?: string;
-  chart: (d: any, api: MutableRefObject<any>) => React.ReactElement;
+  chart: (d: DashboardDataOrNull, api: MutableRefObject<SceneChartApi | null>) => React.ReactElement;
   axesSel: string;
   helperSel?: string;
   captions: CaptionCfg[];
@@ -60,7 +101,7 @@ export interface SceneCfg {
   axesOutIdx?: number;
   helperInIdx?: number;
   helperOutIdx?: number;
-  actions?: { captionIdx: number; call: (api?: any) => void }[];
+  actions?: { captionIdx: number; call: (api?: SceneChartApi | null) => void }[];
   scrollScreens?: number;
   slideIn?: boolean;
   slideUp?: boolean;
@@ -117,7 +158,7 @@ const useIsShort = () => useMediaQuery("(max-height: 620px)");
 /* ============================================================ */
 interface Props {
   cfg: SceneCfg;
-  globalData: any;
+  globalData: DashboardDataOrNull;
   /** reference to the snow layer so we can fade it */
   snowRef?: MutableRefObject<SnowApi | null>;
 }
@@ -127,7 +168,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const fitWrap = useRef<HTMLDivElement>(null);
-  const api = useRef<any>(null);
+  const api = useRef<SceneChartApi | null>(null);
   /* stack-layout: uniform down-scale so a chart never overflows into the
      caption on short/narrow viewports. 1 = no scaling (desktop side-by-side). */
   const [fit, setFit] = useState<{ scale: number; height: number }>({ scale: 1, height: 0 });
@@ -609,7 +650,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
   if (helperEls.length) bind(helperEls, helpIn,  helpOut);
 
   /* evtl. benutzerdefinierte Aktionen der Szene -------------- */
-  const callActionWhenReady = (action: { call: (api?: any) => void }) => {
+  const callActionWhenReady = (action: { call: (api?: SceneChartApi | null) => void }) => {
     ensureMounted();
     const startedAt = performance.now();
 
@@ -983,11 +1024,27 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
      standalone chapter label over the image instead of losing the act. */
   const kickerNeedsOwnCard = !!cfg.kicker && firstNonEmptyIdx === -1;
 
+  /* The rail label, dug out of the first caption's heading when a scene does
+     not name one. This used to reach through `as any` two levels of props deep
+     and would happily have handed the rail a React element; the rail wants a
+     string. Same shape as isCaptionEmpty above, checked at each step. */
+  const HEADINGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
+  const headingText = (content: React.ReactNode): string | undefined => {
+    if (!React.isValidElement(content)) return undefined;
+    const first = React.Children.toArray(
+      (content.props as { children?: React.ReactNode }).children
+    )[0];
+    // Only a heading. A caption that opens on a paragraph has no title to
+    // lend, and lending the paragraph puts three sentences in the rail.
+    if (!React.isValidElement(first) || !HEADINGS.has(String(first.type)))
+      return undefined;
+    const inner = (first.props as { children?: React.ReactNode }).children;
+    return typeof inner === "string" ? inner : undefined;
+  };
+
   const titleContent = resolveCaptionContent(cfg.captions[0]?.html);
   const progressTitle =
-    cfg.progressTitle ??
-    (titleContent as any)?.props?.children?.[0]?.props?.children ??
-    cfg.key;
+    cfg.progressTitle ?? headingText(titleContent) ?? cfg.key;
   /* ---------- render --------------------------------------- */
   return (
     <section

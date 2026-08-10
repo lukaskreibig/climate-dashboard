@@ -269,6 +269,16 @@
         "description": "Dreht man die Meereisreihe um, wird der Vergleich leichter lesbar: steigende Wärme und sinkendes Eis bewegen sich gegeneinander.",
         "conclusion": "Drei verschiedene Messgrößen werden dadurch nicht gleich. Sie werden auf derselben Skala lesbar."
       }
+    },
+    "railTitles": {
+      "winterMonths": "Das Meer wird zur Straße",
+      "fishing": "Ein Ort, der vom Fisch lebt",
+      "iceDisappears": "Als das Eis noch bis Juli lag",
+      "unstableClimate": "Der Wind ist schwerer zu lesen",
+      "motorsledge": "Vom Hundeschlitten zum Motor",
+      "onlyMemory": "Was die Kinder erben",
+      "noMoreDogs": "Eine unruhigere Saison",
+      "fisherboat": "Vom Jahrzehnt zum einzelnen Jahr"
     }
   },
   "legal": {

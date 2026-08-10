@@ -269,6 +269,16 @@
         "description": "When we flip the ice-loss data upside down, the pattern becomes easier to compare: rising CO₂ and temperature move against falling ice.",
         "conclusion": "Three different measurements do not become the same thing. They become readable on the same scale."
       }
+    },
+    "railTitles": {
+      "winterMonths": "The Sea Becomes a Road",
+      "fishing": "A Town That Lives on Fish",
+      "iceDisappears": "When the Ice Stayed Into July",
+      "unstableClimate": "A Wind Harder to Read",
+      "motorsledge": "From Dog Sled to Engine",
+      "onlyMemory": "What the Children Inherit",
+      "noMoreDogs": "A More Unstable Season",
+      "fisherboat": "From Decades to Single Years"
     }
   },
   "legal": {

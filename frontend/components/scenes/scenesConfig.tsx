@@ -4,7 +4,17 @@
 ------------------------------------------------------------------- */
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
-import { SceneCfg, NO_MATCH } from "./ChartScene";
+import { SceneCfg, NO_MATCH, asChartRef } from "./ChartScene";
+import type { MapFlyApi } from "../MapFlyScene";
+import type { SatelliteSceneApi } from "@/components/SatelliteScene";
+import type { SatellitePixelInspectorApi } from "@/components/SatellitePixelInspector";
+import type { MemoryMeasurementApi } from "@/components/Rechart/MemoryMeasurementTimeline";
+import type { AllYearsApi } from "@/components/Rechart/AllYearsSeasonChart";
+import type { EarlyLateApi } from "@/components/Rechart/EarlyLateSeasonChart";
+import type { BreakupTimingApi } from "@/components/Rechart/BreakupTimingChart";
+import type { SeasonalLinesApi } from "@/components/Rechart/SeasonalLinesChartRecharts";
+import type { DailyAnomalyApi } from "@/components/Rechart/DailyAnomalyChartRecharts";
+import type { ZScoreApi } from "@/components/Rechart/ZScoreChartRecharts";
 import PhotoStory from "../PhotoStory";
 import MapFlyScene, { Waypoint } from "../MapFlyScene";
 import ArcticIceGlobeScene from "@/components/ArcticIceGlobeScene";
@@ -109,6 +119,11 @@ registerMapPreload({
   ],
 });
 
+// A registry of lazily loaded components with nothing in common but the
+// preload hook. There is no honest shared props type here, and a wrong one
+// would be worse than a named exception: the list is only ever iterated to
+// call preload(), never to render from.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PreloadableComponent = ComponentType<any> & {
   preload?: () => Promise<unknown>;
 };
@@ -175,7 +190,7 @@ export const useScenesWithTranslation = () => {
       prefetchMarginPx: 12000,
       chart: (_d, api) => (
           <MapFlyScene
-            ref={api}
+            ref={asChartRef<MapFlyApi>(api)}
             waypoints={GEOGRAPHIC_WAYPOINTS}
             preloadKey="geographic-journey"
             scrollCamera
@@ -286,6 +301,7 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "Winter Months",
+  progressTitle: t('scenes.railTitles.winterMonths'),
   kicker: t('scenes.kickers.ground'),
   chartSide: "fullscreen",
   fadeIn: true,
@@ -321,6 +337,7 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "Fishing Town",
+  progressTitle: t('scenes.railTitles.fishing'),
   kicker: t('scenes.kickers.ground'),
   chartSide: "fullscreen",
   fadeIn: true,
@@ -410,6 +427,7 @@ export const useScenesWithTranslation = () => {
 },
     {
   key: "Ice Disappears",
+  progressTitle: t('scenes.railTitles.iceDisappears'),
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -439,6 +457,7 @@ export const useScenesWithTranslation = () => {
 
 {
   key: "Unstable Climate",
+  progressTitle: t('scenes.railTitles.unstableClimate'),
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -473,6 +492,7 @@ export const useScenesWithTranslation = () => {
 
     {
   key: "Motorsledge",
+  progressTitle: t('scenes.railTitles.motorsledge'),
   chartSide: "fullscreen",
   fadeIn: true,
   parallax: false,
@@ -514,7 +534,7 @@ export const useScenesWithTranslation = () => {
 
   chart: (_d, api) => (
     <SatelliteScene
-      ref={api}
+      ref={asChartRef<SatelliteSceneApi>(api)}
       waypoints={SATELLITE_WAYPOINTS}
       preloadKey="introcharts"
       rawImg={SATELLITE_IMAGES[0]}
@@ -612,7 +632,7 @@ export const useScenesWithTranslation = () => {
   bgColor: "#020617",
   chart: (_d, api) => (
     <SatellitePixelInspector
-      ref={api}
+      ref={asChartRef<SatellitePixelInspectorApi>(api)}
       rawImg={SATELLITE_IMAGES[0]}
       maskImg={SATELLITE_IMAGES[1]}
     />
@@ -671,14 +691,14 @@ export const useScenesWithTranslation = () => {
   bgColor: "#e8eef3",
   chart: (d: DataBundle, api) => (
     <MemoryMeasurementTimeline
-      data={(d?.daily ?? []) as any}
-      seasonMeans={(d?.frac ?? []) as any}
+      data={d?.daily ?? []}
+      seasonMeans={d?.frac ?? []}
       lossPct={d?.seasonLossPct ?? null}
       latestYear={d?.fjordMeta?.latestYear ?? undefined}
       sourceLabel={t("charts.memoryMeasurement.source", {
         year: d?.fjordMeta?.latestYear ?? latestYearFromRows(d?.daily),
       })}
-      apiRef={api}
+      apiRef={asChartRef<MemoryMeasurementApi>(api)}
     />
   ),
   axesSel: NO_MATCH,
@@ -769,9 +789,9 @@ export const useScenesWithTranslation = () => {
     axesInIdx: 0,
     chart: (d: DataBundle, api) => (
       <AllYearsSeasonChart
-        data={(d?.daily ?? []) as any}
-        seasonMeans={(d?.frac ?? []) as any}
-        apiRef={api}
+        data={d?.daily ?? []}
+        seasonMeans={d?.frac ?? []}
+        apiRef={asChartRef<AllYearsApi>(api)}
       />
     ),
     progressPoint: true,
@@ -819,8 +839,8 @@ export const useScenesWithTranslation = () => {
     kicker: t('scenes.kickers.pattern'),
     chart: (d: DataBundle, api) => (
       <EarlyLateSeasonChart
-        data={(d?.season ?? []) as any}
-        apiRef={api}
+        data={d?.season ?? []}
+        apiRef={asChartRef<EarlyLateApi>(api)}
         lossPct={d?.seasonLossPct ?? null}
       />
     ),
@@ -856,7 +876,7 @@ export const useScenesWithTranslation = () => {
         // the headline figure is derived from the payload, never hard-coded,
         // so prose and chart can never drift apart
         html: (d: DataBundle) => {
-          const loss = (d as any)?.seasonLossPct;
+          const loss = d?.seasonLossPct;
           return (
             <>
               <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
@@ -901,8 +921,8 @@ export const useScenesWithTranslation = () => {
     progressTitle: t('scenes.breakup.progressTitle'),
     chart: (d: DataBundle, api) => (
       <BreakupTimingChart
-        data={(d?.freeze ?? []) as any}
-        apiRef={api}
+        data={d?.freeze ?? []}
+        apiRef={asChartRef<BreakupTimingApi>(api)}
         latestYear={d?.fjordMeta?.latestYear ?? latestYearFromRows(d?.daily)}
       />
     ),
@@ -930,7 +950,7 @@ export const useScenesWithTranslation = () => {
            the chart read ten. Both now come from summarizeBreakup, so they
            cannot disagree again. */
         html: (d: DataBundle) => {
-          const shift = summarizeBreakup((d?.freeze ?? []) as any).shiftDays;
+          const shift = summarizeBreakup(d?.freeze ?? []).shiftDays;
           return (
             <>
               <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.shift.title')}</h3>
@@ -1011,6 +1031,7 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "Only a Memory",
+  progressTitle: t('scenes.railTitles.onlyMemory'),
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -1049,6 +1070,7 @@ export const useScenesWithTranslation = () => {
 },
 {
   key: "No More Dogs",
+  progressTitle: t('scenes.railTitles.noMoreDogs'),
   chartSide: "fullscreen",
   fadeIn: true,
   fadeOut: true,
@@ -1101,7 +1123,7 @@ export const useScenesWithTranslation = () => {
   scrollScreens: 2,
   chart: (_d, api) => (
     <ArcticIceGlobeScene
-      ref={api}
+      ref={asChartRef<MapFlyApi>(api)}
       waypoints={ARCTIC_PULLBACK_WAYPOINTS}
     />
   ),
@@ -1172,7 +1194,7 @@ export const useScenesWithTranslation = () => {
   kicker: t('scenes.kickers.arctic'),
   chart: (d: DataBundle, api) => (
     // pass apiRef so the chart exposes highlight() to ScrollTrigger
-    <SeasonalChart data={(d?.dailySeaIce ?? []) as any} apiRef={api} />
+    <SeasonalChart data={d?.dailySeaIce ?? []} apiRef={asChartRef<SeasonalLinesApi>(api)} />
   ),
   axesSel: AXES,
   plainCaptions: true,
@@ -1261,7 +1283,7 @@ export const useScenesWithTranslation = () => {
     progressPoint: true,
     plainCaptions: true,
     chart : (d:DataBundle, api) =>
-            <DailyChart data={((d as any)?.decadalAnomaly ?? []) as any} apiRef={api} />,
+            <DailyChart data={d?.decadalAnomaly ?? []} apiRef={asChartRef<DailyAnomalyApi>(api)} />,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1339,6 +1361,7 @@ export const useScenesWithTranslation = () => {
   /* ─────  BRIDGE · "Decades → Annual Extremes"  ───── */
   {
   key: "Fisherboat in Harbor",
+  progressTitle: t('scenes.railTitles.fisherboat'),
   chartSide: "fullscreen",
   parallax: false,
   fadeIn: true,
@@ -1379,7 +1402,7 @@ export const useScenesWithTranslation = () => {
     kicker    : t('scenes.kickers.arctic'),
         plainCaptions: true,
 
-    chart     : (d:DataBundle)=> <AnnualChart data={(d?.annualAnomaly ?? []) as any}/>,
+    chart     : (d:DataBundle)=> <AnnualChart data={d?.annualAnomaly ?? []}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1452,7 +1475,7 @@ export const useScenesWithTranslation = () => {
   {
     key      : "connections",
     kicker   : t('scenes.kickers.drivers'),
-    chart    : (d:DataBundle)=> <MultiChart data={(d?.annual ?? []) as any}/>,
+    chart    : (d:DataBundle)=> <MultiChart data={d?.annual ?? []}/>,
     axesSel  : AXES,
     axesInIdx : 0,
     plainCaptions: true,
@@ -1476,7 +1499,7 @@ export const useScenesWithTranslation = () => {
    {
     key       : "zscore",
     kicker    : t('scenes.kickers.drivers'),
-    chart     : (d:DataBundle,api)=> <ZScoreChart data={(d?.annual ?? []) as any} apiRef={api}/>,
+    chart     : (d:DataBundle,api)=> <ZScoreChart data={d?.annual ?? []} apiRef={asChartRef<ZScoreApi>(api)}/>,
     axesSel   : AXES,
     axesInIdx : 0,
 
@@ -1517,7 +1540,7 @@ export const useScenesWithTranslation = () => {
     kicker   : t('scenes.kickers.drivers'),
     progressTitle: t('scenes.2024.progressTitle'),
     progressPoint: true,
-    chart    : (d:DataBundle)=> <Bar24Chart data={(d?.annual ?? []) as any}/>,
+    chart    : (d:DataBundle)=> <Bar24Chart data={d?.annual ?? []}/>,
     axesSel  : AXES,
     plainCaptions: true,
     captions : [
