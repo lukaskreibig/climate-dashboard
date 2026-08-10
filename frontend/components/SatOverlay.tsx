@@ -50,17 +50,11 @@ const SatOverlay = forwardRef<SatOverlayApi, Props>(function SatOverlay(
         lng + (lng < 0 ? -pad : pad),
         lat + (lat < 0 ? -pad : pad),
       ]) as typeof coords,
-    [
-      coords[0][0],
-      coords[0][1],
-      coords[1][0],
-      coords[1][1],
-      coords[2][0],
-      coords[2][1],
-      coords[3][0],
-      coords[3][1],
-      pad,
-    ]
+    // coords is a module level constant at the one call site, so its identity
+    // is already stable. Spelling out its eight numbers guarded against a
+    // caller that rebuilds the array each render, a caller that does not
+    // exist, and cost the linter the ability to check this list at all.
+    [coords, pad]
   );
 
   const requestedStage = useRef<0 | 1 | 2>(0);

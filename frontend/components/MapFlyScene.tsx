@@ -217,6 +217,11 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
 
     buildMap();
 
+    // Held now, while it is still the node this effect was set up for. Read in
+    // the cleanup it is whatever the ref points at by then, which on a fast
+    // route change is somebody else's div.
+    const boxAtSetup = box.current;
+
     return () => {
       cancelled = true;
       const instance = map.current;
@@ -224,7 +229,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         instance.off("style.load", styleLoadHandler);
       }
       if (usedWarmedMap.current) {
-        releaseWarmedMap(preloadKey, box.current);
+        releaseWarmedMap(preloadKey, boxAtSetup);
       } else {
         instance?.remove();
       }

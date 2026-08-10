@@ -3,13 +3,7 @@
 ------------------------------------------------------------------ */
 "use client";
 
-import React, {
-  useMemo,
-  useState,
-  useImperativeHandle,
-  MutableRefObject,
-  useEffect,
-} from "react";
+import React, { MutableRefObject, useCallback, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -127,12 +121,18 @@ const MeanOnlyTooltip = ({ active, payload, label }: { active?: boolean; payload
 
 /* ——— COMPONENT ——— */
 export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
-  const formatLoss = (n: number) =>
-    n.toLocaleString(i18n.language === "de" ? "de-DE" : "en-US", {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
   const { t, i18n } = useTranslation();
+
+  // Below useTranslation now, where the i18n it reads is already in scope. It
+  // used to sit above and only worked because the body runs later.
+  const formatLoss = useCallback(
+    (n: number) =>
+      n.toLocaleString(i18n.language === "de" ? "de-DE" : "en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    [i18n.language]
+  );
 
   const [metricVisible, setMetricVisible] = useState(false);
   const [focus, setFocus] = useState<"early" | "late" | "both">("both");
@@ -160,15 +160,14 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
     if (!el) return;
     const target = meanLossPct ?? 0;
     const counter = { v: 0 };
-    const fmt = formatLoss;
     const tween = gsap.to(counter, {
       v: target,
       duration: 1.2,
       ease: "power2.out",
-      onUpdate: () => { el.textContent = fmt(counter.v); },
+      onUpdate: () => { el.textContent = formatLoss(counter.v); },
     });
     return () => { tween.kill(); };
-  }, [metricVisible, meanLossPct, i18n.language]);
+  }, [metricVisible, meanLossPct, formatLoss]);
 
   useEffect(() => {
     const earlyEls = gsap.utils.toArray<SVGElement>('.early-epoch');

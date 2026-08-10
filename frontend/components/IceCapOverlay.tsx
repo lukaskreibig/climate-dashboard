@@ -16,6 +16,7 @@
 
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -99,7 +100,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
   /** live opacity per decade, tweened so caption jumps still look continuous */
   const current = useRef<number[]>(ICE_DECADES.map(() => 0));
 
-  const setOpacities = (opacities: number[]) => {
+  const setOpacities = useCallback((opacities: number[]) => {
     const map = mapRef.current?.getMap();
     if (!map) return;
     ICE_DECADES.forEach((y, i) => {
@@ -107,7 +108,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
         map.setPaintProperty(srcId(y), "fill-opacity", opacities[i]);
       }
     });
-  };
+  }, [mapRef]);
 
   /** target opacities for one decade: that decade solid, 1980 as a faint ghost */
   const targetsForDecade = (index: number, gate: number): number[] =>
@@ -118,7 +119,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
     });
 
   /** tween from wherever we are to the requested decade */
-  const applyDecade = (index: number, gate: number) => {
+  const applyDecade = useCallback((index: number, gate: number) => {
     const targets = targetsForDecade(index, gate);
     tween.current?.kill();
     const proxy = { ...current.current };
@@ -132,7 +133,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
         setOpacities(next);
       },
     });
-  };
+  }, [setOpacities]);
 
   const opacitiesForProgress = (p: number): number[] => {
     const gate = clamp01((p - GATE_START) / (GATE_END - GATE_START));
@@ -220,7 +221,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
         if (map.getSource(srcId(y))) map.removeSource(srcId(y));
       });
     };
-  }, [mapRef]);
+  }, [mapRef, setOpacities, applyDecade]);
 
   useImperativeHandle(ref, () => ({
     setProgress(p: number) {
@@ -251,7 +252,7 @@ const IceCapOverlay = forwardRef<IceCapApi, Props>(function IceCapOverlay(
         )
       );
     },
-  }), [mapRef]);
+  }), [setOpacities, applyDecade]);
 
   return null;
 });

@@ -167,6 +167,10 @@ export default function Page() {
       cancelled = true;
       stopWaitingForIntent();
     };
+    // Runs once, on purpose. i18n.language only picks which map tiles to warm,
+    // and switching language pushes a different [lng] route, so this whole
+    // component remounts and the effect runs again with the new value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -113,11 +113,13 @@ const SatellitePixelInspector = forwardRef<SatellitePixelInspectorApi, Props>(
               the optimiser. Sending them through it here would give this copy a
               different URL and download the picture a second time. See
               scripts/gen-satellite-rasters.mjs. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
           <img
             src={rawImg}
             alt={t("charts.pixelInspector.rawAlt")}
             className="absolute inset-0 h-full w-full object-cover"
           />
+          {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
           <img
             src={maskImg}
             alt={t("charts.pixelInspector.maskAlt")}

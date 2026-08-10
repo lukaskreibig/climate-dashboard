@@ -31,6 +31,9 @@ export default function MapboxPreloader() {
     return () => {
       clearMapWarmupRoot(root);
     };
+    // Mount only. The language is read once to start the warm-up; the effect
+    // directly below is the one that reacts to a language change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

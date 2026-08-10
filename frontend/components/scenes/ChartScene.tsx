@@ -182,6 +182,15 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     maxCaptionWidth: 0,
     availableWidth: MAX_CHART_WIDTH,
   }));
+  /* The scroll choreography reads maxCaptionWidth only as a fallback, for the
+     case where no caption element can be measured. Listing the state in the
+     effect's dependencies would rebuild every ScrollTrigger in the scene each
+     time a caption is remeasured on resize, for a number the live path never
+     uses. A mirror keeps the fallback current without that. */
+  const maxCaptionWidthRef = useRef(0);
+  useEffect(() => {
+    maxCaptionWidthRef.current = layoutBounds.maxCaptionWidth;
+  }, [layoutBounds.maxCaptionWidth]);
   const stackLayout = cfg.chartSide === "fullscreen" ? false : isCompact;
 
   const fadeIn = !!cfg.fadeIn;
@@ -723,7 +732,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
 
           const capW = candidate
             ? candidate.getBoundingClientRect().width
-            : layoutBounds.maxCaptionWidth || 320;
+            : maxCaptionWidthRef.current || 320;
           const shift = Math.max(gap * SHIFT_FACTOR, capW / 2 + CAPTION_MARGIN);
           const rootStyle = getComputedStyle(document.documentElement);
           const gutter =
@@ -931,7 +940,7 @@ export default function ChartScene({ cfg, globalData, snowRef }: Props) {
     }, sec);
 
     return () => ctx.revert();
-  }, [cfg, ensureMounted, stackLayout]);
+  }, [cfg, ensureMounted, stackLayout, fadeIn, fadeOut, slideIn, slideUp]);
 
   /* ---------- helpers -------------------------------------- */
   const chartW =
