@@ -61,10 +61,30 @@ FJORD_CSV_CANDIDATES = [
 CHROMA_PATH = DATA_DIR / "chroma_db"
 LOGGER = logging.getLogger("backend.api")
 
-FJORD_SUN_START = 45
+# Day 53, 22 February, is measured rather than chosen. Over genuinely clear
+# scenes, cloud under 10 percent, in the weeks this fjord is frozen with near
+# certainty, the share that reports under 0.15 ice, which can only be a failure:
+#
+#     1 to 21 Feb   sun  7.8 deg   25 percent   median ice 0.56
+#    22 to 28 Feb   sun 10.7 deg    0 percent   median ice 0.94
+#     1 to  7 Mar   sun 13.1 deg   15 percent   median ice 0.83
+#     8 to 14 Mar   sun 15.7 deg    0 percent   median ice 0.97
+#      from 15 Mar  sun 18+  deg   0 to 4 pc    median ice 0.99
+#
+# Opening on day 45 carried eight days in which one clear scene in four reads a
+# frozen fjord as open water. The end is not a light problem, the sun sits at 42
+# degrees there, so it stays where it was: cutting it earlier would be an
+# analysis choice where the start is a physical one.
+#
+# See data-pipeline/refresh_fjord_season.py, which mirrors these.
+FJORD_SUN_START = 53
 FJORD_SUN_END = 180
-FJORD_SPRING_A = 60
-FJORD_SPRING_B = 151
+# The spring window the published decline is computed over. It sat at 60 to 151
+# while the series ran 45 to 180, so the panel quoted statistics from a window
+# it did not declare. Both are now the sun window, and the one number the story
+# leads with comes from the same days the charts draw.
+FJORD_SPRING_A = FJORD_SUN_START
+FJORD_SPRING_B = FJORD_SUN_END
 FJORD_THRESHOLD = 0.15
 # The early/late split that defines the headline loss figure. The boundary is a
 # single year, not two enumerated lists: the late group used to stop at 2025, so

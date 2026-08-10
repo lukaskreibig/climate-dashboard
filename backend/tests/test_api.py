@@ -77,7 +77,9 @@ def test_get_uummannaq_uses_csv_fallback_when_json_is_missing(tmp_path, monkeypa
 
     payload = resp.json()
     assert len(payload["daily"]) == 3
-    assert len(payload["season"]) == 136
+    # One entry per day of the sun window, derived rather than pinned, so moving
+    # the window start does not turn a deliberate change into a red test.
+    assert len(payload["season"]) == main.FJORD_SUN_END - main.FJORD_SUN_START + 1
     assert payload["meta"]["latestYear"] == 2025
 
 

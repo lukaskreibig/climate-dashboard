@@ -74,7 +74,30 @@ import pandas as pd
 
 # Mirrors backend/main.py's FJORD_SUN_START / FJORD_SUN_END. Outside this window
 # the sun is too low over Uummannaq for a usable optical scene.
-SEASON_START_DOY = 45
+#
+# Day 53, 22 February, is measured rather than chosen. Take only genuinely clear
+# scenes, cloud under 10 percent, in the weeks when this fjord is frozen with
+# near certainty, and count how often one of them reports under 0.15 ice, which
+# can only be a classification failure:
+#
+#     1 to 21 Feb   sun  7.8 deg   25 percent fail   median ice 0.56
+#    22 to 28 Feb   sun 10.7 deg    0 percent        median ice 0.94
+#     1 to  7 Mar   sun 13.1 deg   15 percent        median ice 0.83
+#     8 to 14 Mar   sun 15.7 deg    0 percent        median ice 0.97
+#      from 15 Mar  sun 18+  deg   0 to 4 percent    median ice 0.99
+#
+# The window used to open on day 45 and so carried eight days in which one clear
+# scene in four reads a frozen fjord as open water, and the median reads 0.56
+# where a week later it reads 0.94. That is the sun clearing about 10 degrees.
+#
+# The 15 percent in the first week of March is not darkness: three scenes from
+# 2021 and 2026, where 2020 reads 0.96 at the same sun elevation. That is a
+# genuinely late freeze, and the optical chain cannot tell it from a dim scene.
+#
+# The end is not a light problem, the sun sits at 42 degrees there. It stays at
+# 180 so the whole melt is in the picture; cutting it earlier would be an
+# analysis choice, where the start is a physical one.
+SEASON_START_DOY = 53
 SEASON_END_DOY = 180
 
 # Gap-filling and smoothing constants, from the notebook that produced the
@@ -110,6 +133,76 @@ INSTALL_HINT = (
 # --------------------------------------------------------------------------
 
 
+def _usable_mask(frame: pd.DataFrame) -> pd.Series:
+    """Whether a scene READ enough of the fjord, not merely saw enough of it.
+
+    The classifier's own `usable` column asks whether the scene could see past
+    the cloud. Seeing is not reading: a cell needs NDSI plus the brightness
+    floors to be ice and NDWI to be water, and a dark one is neither, so a scene
+    can clear the visibility bar and still come out almost blank.
+
+    61 of the 694 scenes that passed classified less than half of what they
+    could see. 2017-06-15 saw 90 percent of the fjord and classified nothing at
+    all; 2017-06-16 classified 6 percent of what it saw, reported 0.51 ice from
+    that sliver, and that was enough to set the season's break-up date.
+
+    So this recomputes the gate on the same 0.30 the classifier uses, against
+    the share of the AOI that actually came out as ice or water. It drops 77 of
+    694 scenes. Rebuilt here rather than by re-running the classifier, because
+    the archive carries the counts; where it does not, the stored column stands.
+    """
+    counts = {"solid_px", "light_px", "water_px", "cloud_px", "land_px", "nodata_px"}
+    if not counts.issubset(frame.columns):
+        return (
+            frame["usable"].astype(int)
+            if "usable" in frame.columns
+            else pd.Series(1, index=frame.index)
+        )
+
+    num = lambda c: pd.to_numeric(frame[c], errors="coerce").fillna(0.0)  # noqa: E731
+    classified = num("solid_px") + num("light_px") + num("water_px")
+    total = classified + num("cloud_px") + num("land_px") + num("nodata_px")
+    share = classified.divide(total.where(total > 0))
+    return (share >= MIN_CLASSIFIED_SHARE).astype(int)
+
+
+# Mirrors MIN_CLEAR_SHARE in the classifier, and means the same thing there now.
+MIN_CLASSIFIED_SHARE = 0.30
+
+
+def _classified_ice_fraction(frame: pd.DataFrame) -> pd.Series:
+    """Ice over the cells that came out as SOMETHING, not merely as visible.
+
+    A cell can be visible and still land in no class: ice needs NDSI and the
+    brightness gate, water needs NDWI above its cut, and a dark cell that fails
+    both is neither. Shadowed and wet ice at low sun does exactly that. Those
+    cells sat in the `_clear` denominator while they could never reach a
+    numerator, which is the whole-grid error one scale down and pointing the
+    same way, only ever pushing the ice fraction down.
+
+    Rebuilt from the counts rather than re-running the classifier, because the
+    archive already carries every part: `solid_px`, `light_px`, `water_px`.
+    Where those are missing the published `_clear` percentages are used as they
+    stand, so an older archive still resolves to a number.
+
+    Measured over the reprocessed archive: 282 of 694 usable scenes carry such
+    cells, the median scene does not move, the mean moves by +0.008, the worst
+    by +0.204, and the early-to-late decline goes from 27.6 to 27.2 percent.
+    """
+    counts = {"solid_px", "light_px", "water_px"}
+    if not counts.issubset(frame.columns):
+        return (
+            pd.to_numeric(frame["solid_pct_clear"], errors="coerce").fillna(0.0)
+            + pd.to_numeric(frame["light_pct_clear"], errors="coerce").fillna(0.0)
+        )
+
+    solid = pd.to_numeric(frame["solid_px"], errors="coerce").fillna(0.0)
+    light = pd.to_numeric(frame["light_px"], errors="coerce").fillna(0.0)
+    water = pd.to_numeric(frame["water_px"], errors="coerce").fillna(0.0)
+    classified = solid + light + water
+    return (solid + light).divide(classified.where(classified > 0))
+
+
 def _scene_ice_fraction(frame: pd.DataFrame) -> pd.Series:
     """Ice fraction per scene, cloud independent where the columns allow it.
 
@@ -143,20 +236,21 @@ def _scene_ice_fraction(frame: pd.DataFrame) -> pd.Series:
     if not has_clear:
         return _legacy_clear_fraction(frame)
 
-    usable = frame["usable"].astype(int) if "usable" in frame.columns else 1
-    fraction = (
-        pd.to_numeric(frame["solid_pct_clear"], errors="coerce").fillna(0.0)
-        + pd.to_numeric(frame["light_pct_clear"], errors="coerce").fillna(0.0)
-    )
-    if "usable" in frame.columns:
-        dropped = int((frame["usable"].astype(int) == 0).sum())
-        if dropped:
+    usable = _usable_mask(frame)
+    fraction = _classified_ice_fraction(frame)
+    dropped = int((usable == 0).sum())
+    if dropped:
+        print(
+            f"[INFO] {dropped} of {len(frame)} scenes read too little of the "
+            f"fjord to be a measurement and were dropped, not averaged in."
+        )
+        if "usable" in frame.columns:
+            stored = int((frame["usable"].astype(int) == 0).sum())
             print(
-                f"[INFO] {dropped} of {len(frame)} scenes saw too little of the "
-                f"fjord to be a measurement and were dropped, not averaged in."
+                f"[INFO] the archive's own column drops {stored}; the extra "
+                f"{dropped - stored} saw the fjord but classified too little of it."
             )
-        return fraction.where(usable == 1)
-    return fraction
+    return fraction.where(usable == 1)
 
 
 # The classifier's own visibility gate. A scene that saw less than this share of
