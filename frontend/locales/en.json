@@ -22,7 +22,7 @@
     "motorsledge": "A snowmobile in Uummannaq",
     "kids": "Two girls in red anoraks seated in front of painted portraits",
     "dogsSnowstorm": "Two sled dogs curled up and covered in snow",
-    "fisherboat": "A fishing boat in the harbour",
+    "fisherboat": "A fishing boat in the harbor",
     "arcticPanorama": "Arctic panorama",
     "knudPortrait": "Portrait of Knud Rasmussen",
     "knudAvatar": "Knud Rasmussen avatar",
@@ -96,12 +96,12 @@
       "intro": "But how do you test an observation like that? From above. For years, ESA's Sentinel-2 satellites have passed over Greenland and captured the fjord: image by image, winter by winter, until they add up to a comparable record.",
       "step1": "First, the view from above: this is Uummannaq as the satellite sees it.",
       "step2": "Now the raw winter image. Scenes like this are the basis for the measurement.",
-      "step3": "Since 2017, ESA's Sentinel programme has provided regular images. Thousands of scenes have to become one consistent record.",
+      "step3": "Since 2017, ESA's Sentinel program has provided regular images. Thousands of scenes have to become one consistent record.",
       "step4": "A computer-vision pipeline reads each image. It masks land and dense cloud, then separates ice from open water in what is left.",
       "step5": "The overlay is not the conclusion. What comes out is a single number per day: the share of the area that could be judged at all that day which the pipeline reads as ice. Land, cloud and data gaps are not in the denominator. A fjord frozen shore to shore under a clear sky therefore comes out at 100 percent, and a cloudy day is not marked down simply because there was cloud in the frame. That is the number every chart from here on shows.",
       "learnMoreLink": "Learn More about the Computer Vision Pipeline",
       "learnMoreTitle": "Computer Vision Pipeline for Sea Ice Detection",
-      "learnMoreContent": "Input: Sentinel-2 L1C (top-of-atmosphere reflectance, no atmospheric correction), all 13 bands, streamed from AWS. The analysed area is a fixed rectangle over Uummannaq Bay, roughly 14 by 18 kilometres, of which 253.1 km² is water, measured from the land mask. Season: mid-February to late June, day 45 to 180 of the year.\\n\\nProcessing, in this order:\\n1. All 13 bands are loaded onto a common 10 m grid; B11 (20 m) and the 60 m bands are upsampled to it.\\n2. The band stack is average-pooled over 4 by 4 pixels. Everything after this is decided on that 40 m grid, one cell covering 40 by 40 metres.\\n3. Cloud mask: a U-Net trained on the CloudSEN12 taxonomy outputs four classes, clear, thick cloud, thin cloud and cloud shadow. Everything the argmax does not call clear is masked, then closed with a 3 by 3 structuring element.\\n4. Land mask: a static coastline excludes rock and tundra. Pixels with no signal, the black image borders, are flagged too.\\n5. Ice/water: NDSI = (B3 − B11)/(B3 + B11), NDWI = (B3 − B8)/(B3 + B8).\\n   Solid ice NDSI > 0.70 · light ice 0.40 to 0.70 · open water NDWI > 0.20.\\n   Both ice classes must also clear a brightness gate, green above 0.10 and near infrared above 0.17. Without it NDSI separates nothing here: open water is nearly black at 1.6 micrometres and so scores a HIGHER NDSI than April fast ice. The gate is what separates ice from water, not the index.\\n\\nWhat the published number is: the share of ice in the area that could actually be judged that day. The denominator is not the whole grid but the clear water surface, with land, cloud and data gaps taken out. A frozen fjord under a clear sky comes out at 100%.\n\nUntil recently the whole grid sat in that denominator, and it mattered. A cell classified as cloud can never also be ice, so every cloud lowers the value whatever lies beneath it. That would be tolerable if cloud were spread evenly across the years. It is not: over the analysed window mean cloud cover rises from 0.350 in the 2017 to 2020 seasons to 0.436 in the 2021 to 2026 ones. The old denominator turned that near doubling of cloudiness into ice loss. On the same data the measured decline between the early and late periods drops from 31.7 to 27.0 percent, over the days with a scene of their own. For scale, the other analysis choices barely register: season window and averaging method move the answer by less than a percentage point, the denominator by ten.\n\nThe price is coverage. A scene that saw less than 30% of the fjord is not a measurement of it and is dropped rather than averaged in. That is 391 of the 934 scenes inside the window, or 41.9%. The gate does not ask whether the scene could see the fjord but whether it could read it: a cell needs NDSI and both brightness floors to be ice, and NDWI to be water, and a dark one is neither.\\n\\nWhat this method cannot do:\\n• It resolves nothing below 40 metres. Narrow leads and cracks vanish in the pooling, and a cell that is half ice and half water falls to one side on its average.\\n• Cloud detection is unreliable, and the change of denominator fixes only the mechanical half of that. No denominator helps against cloud the model failed to see.\\n• Melt ponds sit as water on top of ice. They read as open water and tend to date the measured breakup earlier. This bias points the same way as the result and grows in warm springs.\\n• The season starts in mid-February because the sun is too low before that. February rests on few usable scenes under very low sun and long mountain shadows.\\n• 42.4% of the days in the window shown have a usable scene of their own. The rest are filled from neighboring days or from the day-of-year mean and are marked as such in the calendar chart. 2017 is the thinnest season at 18.8%; since 2019 no season falls below 35.9%. The curves also show a centred 7-day mean.\\n• A first comparison against Sentinel-1 radar, which needs neither sunlight nor a clear sky, has been run, but it answers one question only. On the late winter days when the optical chain reports almost no ice under an almost clear sky, radar backscatter sits in the range of confirmed fast ice rather than of open water, in both well sampled viewing geometries. That bounds an error; it does not calibrate the record. The ice fraction itself and the break-up date remain unvalidated, and radar and optical both read melt water on ice as water.\\n\\nThe daily values are published as CSV: /data/summary_test_cleaned.csv\n\nHow certain is this decline?\n\nNot certain enough to call it established. The exact permutation test walks all 210 ways of splitting the ten seasons into a group of four and a group of six, and asks how often chance alone opens a gap at least as wide as the real one. The real, chronological split gives 0.155. 25 of the 210 manage it too, so p = 0.12. Put another way: about one arbitrary split of these ten winters in eight looks like ours. Tested for a monotone trend, by Mann-Kendall, p = 0.21.\n\nThree numbers say why. The spread between the years of the later period (standard deviation 0.15) is as large as the difference between the two period means (0.15). The 2022 season, at 0.77, sits above all four early years. And there are ten winters.\n\nHow sensitive is the figure to the analysis?\n\nMove the period boundary and the measured decline runs from 13.3% (from 2022) to 26.0% (from 2019). Move the season window and it runs from 18.2% (day 74 to 180) to 23.2% (day 53 to 151). Across all ten combinations tested p lies between 0.10 and 0.41. Not one falls below 0.05, and not one falls below 0.10.\n\nWhat holds: the direction is the same under every defensible analysis, every one of them shows a decline. The certainty is not, and the reason will not compute away: there are ten winters. A p above 0.10 is not evidence against the decline. With ten values the test has little power, and a real decline would often land above it too. Absence of proof is not proof of absence.",
+      "learnMoreContent": "Input: Sentinel-2 L1C (top-of-atmosphere reflectance, no atmospheric correction), all 13 bands, streamed from AWS. The analyzed area is a fixed rectangle over Uummannaq Bay, roughly 14 by 18 kilometers, of which 253.1 km² is water, measured from the land mask. Season: mid-February to late June, day 45 to 180 of the year.\\n\\nProcessing, in this order:\\n1. All 13 bands are loaded onto a common 10 m grid; B11 (20 m) and the 60 m bands are upsampled to it.\\n2. The band stack is average-pooled over 4 by 4 pixels. Everything after this is decided on that 40 m grid, one cell covering 40 by 40 meters.\\n3. Cloud mask: a U-Net trained on the CloudSEN12 taxonomy outputs four classes, clear, thick cloud, thin cloud and cloud shadow. Everything the argmax does not call clear is masked, then closed with a 3 by 3 structuring element.\\n4. Land mask: a static coastline excludes rock and tundra. Pixels with no signal, the black image borders, are flagged too.\\n5. Ice/water: NDSI = (B3 − B11)/(B3 + B11), NDWI = (B3 − B8)/(B3 + B8).\\n   Solid ice NDSI > 0.70 · light ice 0.40 to 0.70 · open water NDWI > 0.20.\\n   Both ice classes must also clear a brightness gate, green above 0.10 and near infrared above 0.17. Without it NDSI separates nothing here: open water is nearly black at 1.6 micrometers and so scores a HIGHER NDSI than April fast ice. The gate is what separates ice from water, not the index.\\n\\nWhat the published number is: the share of ice in the area that could actually be judged that day. The denominator is not the whole grid but the clear water surface, with land, cloud and data gaps taken out. A frozen fjord under a clear sky comes out at 100%.\n\nUntil recently the whole grid sat in that denominator, and it mattered. A cell classified as cloud can never also be ice, so every cloud lowers the value whatever lies beneath it. That would be tolerable if cloud were spread evenly across the years. It is not: over the analyzed window mean cloud cover rises from 0.350 in the 2017 to 2020 seasons to 0.436 in the 2021 to 2026 ones. The old denominator turned that near doubling of cloudiness into ice loss. On the same data the measured decline between the early and late periods drops from 31.7 to 27.0 percent, over the days with a scene of their own. For scale, the other analysis choices barely register: season window and averaging method move the answer by less than a percentage point, the denominator by ten.\n\nThe price is coverage. A scene that saw less than 30% of the fjord is not a measurement of it and is dropped rather than averaged in. That is 391 of the 934 scenes inside the window, or 41.9%. The gate does not ask whether the scene could see the fjord but whether it could read it: a cell needs NDSI and both brightness floors to be ice, and NDWI to be water, and a dark one is neither.\\n\\nWhat this method cannot do:\\n• It resolves nothing below 40 meters. Narrow leads and cracks vanish in the pooling, and a cell that is half ice and half water falls to one side on its average.\\n• Cloud detection is unreliable, and the change of denominator fixes only the mechanical half of that. No denominator helps against cloud the model failed to see.\\n• Melt ponds sit as water on top of ice. They read as open water and tend to date the measured breakup earlier. This bias points the same way as the result and grows in warm springs.\\n• The season starts in mid-February because the sun is too low before that. February rests on few usable scenes under very low sun and long mountain shadows.\\n• 42.4% of the days in the window shown have a usable scene of their own. The rest are filled from neighboring days or from the day-of-year mean and are marked as such in the calendar chart. 2017 is the thinnest season at 18.8%; since 2019 no season falls below 35.9%. The curves also show a centered 7-day mean.\\n• A first comparison against Sentinel-1 radar, which needs neither sunlight nor a clear sky, has been run, but it answers one question only. On the late winter days when the optical chain reports almost no ice under an almost clear sky, radar backscatter sits in the range of confirmed fast ice rather than of open water, in both well sampled viewing geometries. That bounds an error; it does not calibrate the record. The ice fraction itself and the break-up date remain unvalidated, and radar and optical both read melt water on ice as water.\\n\\nThe daily values are published as CSV: /data/summary_test_cleaned.csv\n\nHow certain is this decline?\n\nNot certain enough to call it established. The exact permutation test walks all 210 ways of splitting the ten seasons into a group of four and a group of six, and asks how often chance alone opens a gap at least as wide as the real one. The real, chronological split gives 0.155. 25 of the 210 manage it too, so p = 0.12. Put another way: about one arbitrary split of these ten winters in eight looks like ours. Tested for a monotone trend, by Mann-Kendall, p = 0.21.\n\nThree numbers say why. The spread between the years of the later period (standard deviation 0.15) is as large as the difference between the two period means (0.15). The 2022 season, at 0.77, sits above all four early years. And there are ten winters.\n\nHow sensitive is the figure to the analysis?\n\nMove the period boundary and the measured decline runs from 13.3% (from 2022) to 26.0% (from 2019). Move the season window and it runs from 18.2% (day 74 to 180) to 23.2% (day 53 to 151). Across all ten combinations tested p lies between 0.10 and 0.41. Not one falls below 0.05, and not one falls below 0.10.\n\nWhat holds: the direction is the same under every defensible analysis, every one of them shows a decline. The certainty is not, and the reason will not compute away: there are ten winters. A p above 0.10 is not evidence against the decline. With ten values the test has little power, and a real decline would often land above it too. Absence of proof is not proof of absence.",
       "learnMoreLinkUrl": "https://github.com/lukaskreibig"
     },
     "pixelInspector": {
@@ -119,7 +119,7 @@
       "buildTitle": "One Winter, Day by Day",
       "build": "Watch one season fill in: the ice forms in February, holds through spring, then breaks apart by June. Each mark is one day, most of them one satellite scene.",
       "dayTitle": "One scene becomes one daily value",
-      "day": "This day is the bridge between the satellite image and the table: the pipeline estimates how much of the analysed frame is ice that day.",
+      "day": "This day is the bridge between the satellite image and the table: the pipeline estimates how much of the analyzed frame is ice that day.",
       "seasonTitle": "One day is not enough",
       "season": "The sequence shows how a winter builds, holds, and breaks apart.",
       "intro": "Now all measured seasons are in view. Each row is one winter in Uummannaq; each small mark is one day.",
@@ -147,7 +147,7 @@
       "earlyPeriod": "The blue line shows the 2017-2020 mean. The light band shows how much those years varied.",
       "livingOutsideTitle": "A Changed Season",
       "livingOutside": "The red line shows the mean from 2021 on. In this comparison, the later years sit lower across much of the season.",
-      "consequence": "season mean (mid-February to late June) against 2017–2020",
+      "consequence": "season mean (mid-February to late June) against 2017 to 2020",
       "result": "That does not explain every local decision, and it is not yet proof: ten winters are too few to establish this difference statistically. The direction is the same under every defensible analysis. The certainty is not."
     },
     "trajectory": {
@@ -163,7 +163,7 @@
       "shift": {
         "title": "Earlier, on Average",
         "statUnit": "days",
-        "statLabel": "mean breakup, from 2021 vs. 2017–20",
+        "statLabel": "mean breakup, from 2021 vs. 2017 to 2020",
         "description": "Across the measured years, breakup moved from a late-May average toward mid-May, about twelve days earlier. Ten winters is a short window, so read it as a direction, not a fixed date."
       },
       "unpredictable": {
@@ -186,7 +186,7 @@
     },
     "arcticGlobe": {
       "title": "What Summer Leaves Behind",
-      "description": "At the end of each summer the sea ice pulls back to its yearly minimum. Seen from above, decade by decade, the loss is unmistakable: September ice has been shrinking by about 12 percent per decade since 1979, measured against the 1981–2010 September average.",
+      "description": "At the end of each summer the sea ice pulls back to its yearly minimum. Seen from above, decade by decade, the loss is unmistakable: September ice has been shrinking by about 12 percent per decade since 1979, measured against the 1981 to 2010 September average.",
       "septemberIce": "September sea ice",
       "intro": "At the end of every summer the sea ice pulls back to its minimum. What is left has been measured without a gap since 1979.",
       "decade1980": "This is what September looked like in the 1980s: a closed sheet reaching far off the coasts of Canada and Siberia.",
@@ -194,13 +194,13 @@
       "decade2024": "Today an area larger than Greenland is missing by the end of summer. The pale outline shows where the ice still stood in 1980.",
       "statLabel": "September ice per decade, since 1979",
       "attribution": "September mean sea-ice extent (≥15 % concentration) · NSIDC Sea Ice Index v4",
-      "aria": "Animated map: Arctic September sea ice shown on a 3-D globe. From 1980 to 2024 the ice cap visibly retreats; September ice has been shrinking by roughly 12 percent per decade since 1979, against the 1981–2010 September average. Source: NSIDC Sea Ice Index."
+      "aria": "Animated map: Arctic September sea ice shown on a 3-D globe. From 1980 to 2024 the ice cap visibly retreats; September ice has been shrinking by roughly 12 percent per decade since 1979, against the 1981 to 2010 September average. Source: NSIDC Sea Ice Index."
     },
     "seasonal": {
       "title": "The Arctic Seasonal Record",
       "description": "Each line traces one year of Arctic sea-ice extent, from autumn minimum to spring maximum and back again. Blue lines show older years, red lines show recent years.",
       "early": {
-        "title": "1979–2000: The Cold(er) Half",
+        "title": "1979 to 2000: The Cold(er) Half",
         "description": "The first half of the record sits visibly higher. The ice had more room to recover through the year."
       },
       "late": {
@@ -221,7 +221,7 @@
       "description": "Each colored band represents a decade of Arctic ice measurements, against the 1981 to 2010 average. Watch them appear one by one and notice the unmistakable staircase downward.",
       "1980s": {
         "title": "The 1980s: The Old Normal",
-        "description": "This soft blue band is our starting point, and it stays above the line all year. The 1980s run 0.34 to 0.97 million km² above the 1981–2010 average, with the widest surplus in late September."
+        "description": "This soft blue band is our starting point, and it stays above the line all year. The 1980s run 0.34 to 0.97 million km² above the 1981 to 2010 average, with the widest surplus in late September."
       },
       "1990s": {
         "title": "The 1990s: First Cracks",
@@ -237,7 +237,7 @@
       },
       "2020s": {
         "title": "The 2020s: A Lower Range",
-        "description": "The current decade sits lowest of all: 1.21 million km² below the 1981–2010 average across the year, and 2.21 million short in mid October.",
+        "description": "The current decade sits lowest of all: 1.21 million km² below the 1981 to 2010 average across the year, and 2.21 million short in mid October.",
         "acceleration": "The data shows no short-term return to the older range."
       }
     },
@@ -340,7 +340,7 @@
     "closeChat": "Close chat",
     "placeholder": "Ask about Greenlandic stories…",
     "send": "Send",
-    "description": "This chatbot is not Knud Rasmussen, and it was not trained on him. For every question it retrieves matching passages from “Eskimo Folk-Tales”, the collection of Greenlandic legends gathered by Danish-Greenlandic polar explorer Knud Rasmussen (1879–1933), and lets a language model (Claude Haiku 4.5 via OpenRouter) answer from them. Nothing is invented: what is not in the collection, it cannot tell.",
+    "description": "This chatbot is not Knud Rasmussen, and it was not trained on him. For every question it retrieves matching passages from “Eskimo Folk-Tales”, the collection of Greenlandic legends gathered by Danish-Greenlandic polar explorer Knud Rasmussen (1879 to 1933), and lets a language model (Claude Haiku 4.5 via OpenRouter) answer from them. Nothing is invented: what is not in the collection, it cannot tell.",
     "aboutKnud": "Known as the 'Father of Eskimology,' Knud Rasmussen conducted groundbreaking expeditions across the Arctic from 1912-1924. Fluent in Greenlandic, he collected over 20,000 pages of Inuit oral traditions and stories of spirits, shamans, hunting, and Arctic life.",
     "folkTales": "The 'Eskimo Folk-Tales' contain hundreds of stories: from Tulugaq the great raven who brought light to the world, to Sedna the sea goddess. These tales offer unique insights into the spiritual world of the Inuit.",
     "aiNote": "Greetings, traveller. Ask me about specific legends, characters, or the meaning behind Arctic myths!"
@@ -394,7 +394,7 @@
   },
   "charts": {
     "ariaSummaries": {
-      "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window. A grey band on each panel marks the 95% range of that season's average; the band is widest for 2026, whose season runs through break-up; 2017 has the fewest measurements at 24 days but not the widest band.",
+      "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window. A gray band on each panel marks the 95% range of that season's average; the band is widest for 2026, whose season runs through break-up; 2017 has the fewest measurements at 24 days but not the widest band.",
       "memoryMeasurement": "Calendar heatmap of measured ice days for each Uummannaq winter, February to June; later winters show fewer ice days. A column on the right gives each winter's average with its 95% range, widest for 2026; 2017 has the fewest measurements at 24 days.",
       "breakupTiming": "Scatter of the day each Uummannaq winter's ice broke up, 2017 to 2026; breakup is about ten days earlier on average and far more variable.",
       "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on the years from 2021 (red) across the season; averaged over the season the later period sits about 23 percent lower.",
@@ -412,7 +412,7 @@
       "emptyBody": "This chart could not be loaded just now. Please reload the page."
     },
     "seasonUncertainty": {
-      "explainer": "The grey band shows where the season average could sit if the satellite had recorded a different set of days: the wider the band, the fewer days of that season were measured at all.",
+      "explainer": "The gray band shows where the season average could sit if the satellite had recorded a different set of days: the wider the band, the fewer days of that season were measured at all.",
       "columnLabel": "Season average, 95% range",
       "panelLine": "avg {{mean}} · {{lo}} to {{hi}}",
       "rowSummary": "{{year}}: season average {{mean}}, 95% range {{lo}} to {{hi}}, from {{days}} measured days",
@@ -436,12 +436,12 @@
         "low": "0%",
         "mid": "50%",
         "high": "100%",
-        "estimated": "no scene, filled from neighbouring days",
+        "estimated": "no scene, filled from neighboring days",
         "missing": "no usable scene / gap"
       },
       "status": {
         "measured": "Satellite scene on this day",
-        "estimated": "No image that day, value from neighbouring days",
+        "estimated": "No image that day, value from neighboring days",
         "missing": "No usable scene"
       },
       "tooltip": {
@@ -484,12 +484,12 @@
       "title": "Arctic sea-ice anomaly by decade",
       "yAxisLabel": "Difference (million km²)",
       "source": "NOAA daily Arctic sea-ice extent",
-      "zeroLine": "1981–2010 average",
+      "zeroLine": "1981 to 2010 average",
       "emptyTitle": "No decadal anomaly data",
       "emptyBody": "This chart could not be loaded just now. Please reload the page."
     },
     "earlyLateSeason": {
-      "earlyTitle": "Sea Ice 2017–20 (Mean)",
+      "earlyTitle": "Sea Ice 2017 to 2020 (Mean)",
       "lateTitle": "Sea Ice from 2021 (Mean)",
       "lessIce": "less ice coverage",
       "iqrSuffix": " IQR",
@@ -544,7 +544,7 @@
       "emptyBody": "This chart could not be loaded just now. Please reload the page.",
       "anomaly": "Anomaly",
       "source": "NOAA Arctic sea-ice extent",
-      "zeroLine": "1981–2010 average"
+      "zeroLine": "1981 to 2010 average"
     },
     "multiLine": {
       "title": "CO₂, global temperature, Arctic temperature",
@@ -596,12 +596,12 @@
       "title": "When the ice broke up, year by year",
       "source": "Own analysis, Sentinel-2",
       "breakupLabel": "Breakup",
-      "earlyLabel": "2017–20 mean",
+      "earlyLabel": "2017 to 2020 mean",
       "lateLabel": "mean from 2021",
       "daysEarlier": "days earlier",
       "memoryNote": "remembered, a generation ago",
       "shiftMetricLabel": "Later period",
-      "shiftMetricDetail": "Mean breakup vs. 2017–2020",
+      "shiftMetricDetail": "Mean breakup vs. 2017 to 2020",
       "spreadMetricLabel": "Recent range",
       "spreadMetricDetail": "Earliest to latest breakup, from 2021",
       "emptyTitle": "No breakup record",

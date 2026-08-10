@@ -144,10 +144,10 @@
       "title": "Wenn sich verschiebt, was normal war",
       "description": "Um die Verschiebung lesbar zu machen, vergleichen wir die ersten vier gemessenen Saisons mit den späteren Jahren.",
       "earlyPeriodTitle": "Der frühe Maßstab",
-      "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017–2020. Der blaue Bereich macht sichtbar, wie stark diese Jahre schwankten.",
+      "earlyPeriod": "Die blaue Linie zeigt den Mittelwert 2017 bis 2020. Der blaue Bereich macht sichtbar, wie stark diese Jahre schwankten.",
       "livingOutsideTitle": "Eine veränderte Saison",
       "livingOutside": "Die rote Linie zeigt den Mittelwert ab 2021. In diesem Vergleich liegen die jüngeren Jahre über weite Teile der Saison niedriger.",
-      "consequence": "im Saisonmittel (Mitte Februar bis Ende Juni) gegenüber 2017–2020",
+      "consequence": "im Saisonmittel (Mitte Februar bis Ende Juni) gegenüber 2017 bis 2020",
       "result": "Das erklärt nicht jede Entscheidung vor Ort. Und es ist noch kein Beweis: zehn Winter reichen nicht, um diesen Unterschied statistisch abzusichern. Die Richtung ist in jeder vertretbaren Auswertung dieselbe. Die Sicherheit ist es nicht."
     },
     "trajectory": {
@@ -163,7 +163,7 @@
       "shift": {
         "title": "Im Mittel früher",
         "statUnit": "Tage",
-        "statLabel": "mittleres Aufbrechen ab 2021 gegenüber 2017–20",
+        "statLabel": "mittleres Aufbrechen ab 2021 gegenüber 2017 bis 2020",
         "description": "Über die Messjahre rückte das Aufbrechen von Ende Mai auf Mitte Mai vor, rund zwölf Tage früher. Zehn Winter sind kurz; man sollte das als Richtung lesen, nicht als festes Datum."
       },
       "unpredictable": {
@@ -200,7 +200,7 @@
       "title": "Die arktische Saisonkurve",
       "description": "Jede Linie zeigt ein Jahr arktischer Meereisausdehnung: vom Herbstminimum zum Frühjahrsmaximum und zurück. Blau steht für ältere Jahre, Rot für jüngere.",
       "early": {
-        "title": "1979–2000: Die (noch) kalte Hälfte",
+        "title": "1979 bis 2000: Die (noch) kalte Hälfte",
         "description": "Die erste Hälfte der Messreihe liegt sichtbar höher. Das Eis hatte im Jahresverlauf mehr Spielraum nach oben."
       },
       "late": {
@@ -340,7 +340,7 @@
     "closeChat": "Chat schließen",
     "placeholder": "Frage zu grönländischen Legenden …",
     "send": "Senden",
-    "description": "Dieser Chatbot ist nicht Knud Rasmussen und wurde auch nicht auf ihn trainiert. Er sucht zu jeder Frage passende Stellen in den „Eskimo Folk-Tales“, der Sammlung grönländischer Legenden des dänisch-grönländischen Polarforschers Knud Rasmussen (1879–1933), und lässt ein Sprachmodell (Claude Haiku 4.5 über OpenRouter) daraus antworten. Erfunden wird nichts: Was nicht in der Sammlung steht, kann er nicht erzählen.",
+    "description": "Dieser Chatbot ist nicht Knud Rasmussen und wurde auch nicht auf ihn trainiert. Er sucht zu jeder Frage passende Stellen in den „Eskimo Folk-Tales“, der Sammlung grönländischer Legenden des dänisch-grönländischen Polarforschers Knud Rasmussen (1879 bis 1933), und lässt ein Sprachmodell (Claude Haiku 4.5 über OpenRouter) daraus antworten. Erfunden wird nichts: Was nicht in der Sammlung steht, kann er nicht erzählen.",
     "aboutKnud": "Knud Rasmussen gilt als ‚Vater der Eskimologie' und unternahm zwischen 1912-1924 mehrere bahnbrechende Expeditionen durch die Arktis. Er sprach fließend Grönländisch und sammelte über 20.000 Seiten mündlicher Überlieferungen der Inuit: Geschichten über Geister, Schamanen, Jagd und das Leben in der Arktis.",
     "folkTales": "Die ‚Eskimo Folk-Tales' enthalten Hunderte von Geschichten: vom großen Raben Tulugaq, der das Licht in die Welt brachte, bis hin zu Sedna, der Meeresgöttin. Diese Erzählungen gewähren einzigartige Einblicke in die spirituelle Welt der Inuit.",
     "aiNote": "Willkommen, Reisender. Frage mich nach spezifischen Legenden, Charakteren oder der Bedeutung arktischer Mythen!"
@@ -484,12 +484,12 @@
       "title": "Arktische Meereis-Anomalie nach Jahrzehnten",
       "yAxisLabel": "Abweichung (Mio. km²)",
       "source": "NOAA, tägliche arktische Meereisausdehnung",
-      "zeroLine": "Mittel 1981–2010",
+      "zeroLine": "Mittel 1981 bis 2010",
       "emptyTitle": "Keine Dekaden-Anomalien",
       "emptyBody": "Diese Grafik konnte gerade nicht geladen werden. Bitte lade die Seite neu."
     },
     "earlyLateSeason": {
-      "earlyTitle": "Meereis 2017–20 (Mittelwert)",
+      "earlyTitle": "Meereis 2017 bis 2020 (Mittelwert)",
       "lateTitle": "Meereis ab 2021 (Mittelwert)",
       "lessIce": "weniger Eisbedeckung",
       "iqrSuffix": " IQR",
@@ -544,7 +544,7 @@
       "emptyBody": "Diese Grafik konnte gerade nicht geladen werden. Bitte lade die Seite neu.",
       "anomaly": "Anomalie",
       "source": "NOAA, arktische Meereisausdehnung",
-      "zeroLine": "Mittel 1981–2010"
+      "zeroLine": "Mittel 1981 bis 2010"
     },
     "multiLine": {
       "title": "CO₂, globale Temperatur, Arktistemperatur",
@@ -596,12 +596,12 @@
       "title": "Wann das Eis aufbrach, Jahr für Jahr",
       "source": "Eigene Auswertung, Sentinel-2",
       "breakupLabel": "Aufbruch",
-      "earlyLabel": "Mittel 2017–20",
+      "earlyLabel": "Mittel 2017 bis 2020",
       "lateLabel": "Mittel ab 2021",
       "daysEarlier": "Tage früher",
       "memoryNote": "laut Erinnerung, eine Generation zuvor",
       "shiftMetricLabel": "Jüngerer Zeitraum",
-      "shiftMetricDetail": "Mittlerer Aufbruch gegenüber 2017–2020",
+      "shiftMetricDetail": "Mittlerer Aufbruch gegenüber 2017 bis 2020",
       "spreadMetricLabel": "Jüngere Spanne",
       "spreadMetricDetail": "Frühester bis spätester Aufbruch, ab 2021",
       "emptyTitle": "Keine Aufbruch-Daten",

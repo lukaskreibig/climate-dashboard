@@ -294,7 +294,12 @@ test.describe('story layout guardrails', () => {
     await page.locator('[data-season-panel]').first().waitFor({ state: 'attached' });
     await page.waitForTimeout(700);
 
-    await expect(proofScene).toContainText('The grey band shows where the season average');
+    // Matched as a pattern, not as a sentence. This pinned the literal "The grey
+    // band shows where the season average" and went red when the copy moved to
+    // American spelling, which is a wording change and not a missing
+    // explanation. What has to hold is that an English reader is told what the
+    // band means.
+    await expect(proofScene).toContainText(/\bband\b[^.]*\bseason average\b/i);
     const bands = await page.locator('[data-season-panel] .season-ci-band').count();
     expect(bands).toBeGreaterThanOrEqual(9);
   });
