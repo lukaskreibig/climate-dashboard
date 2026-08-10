@@ -184,11 +184,22 @@ test.describe('story layout guardrails', () => {
 
   /**
    * Season means are averages over the days a satellite happened to see, and
-   * the seasons are not equally observed (2017: 39 days, the rest 81 to 107).
-   * Drawing them as bare points asserted a precision the record does not have,
-   * so both fjord charts now carry the API's bootstrapped 95% interval. This
-   * guards the property that matters: the drawn width is the measured width,
-   * and the least observed season is visibly the least firm one.
+   * the seasons are not equally observed. Drawing them as bare points asserted
+   * a precision the record does not have, so both fjord charts carry the API's
+   * bootstrapped 95% interval.
+   *
+   * What this guards is that the drawn width IS the measured width, for every
+   * season, which is the property the chart exists for.
+   *
+   * It used to also assert that the least observed season draws the widest
+   * band, and that is not a law. A bootstrap interval widens with a small n and
+   * with a large spread inside the season, and the two do not have to agree:
+   * measured today, 2017 has the fewest days by far, 24 against 46 to 66, and
+   * only the fourth widest band at 0.213, because the days it did get are
+   * consistent. 2026 has 60 days and the widest band at 0.236, because its
+   * season runs through break-up. The old assertion held by luck and failed the
+   * moment the estimator changed, which is the wrong reason for a gate to go
+   * red.
    */
   test('season means are drawn with their measured 95 percent interval', async ({ page, baseURL }) => {
     await gotoStory(page, baseURL, 'de');
@@ -215,12 +226,24 @@ test.describe('story layout guardrails', () => {
       expect(row.barWidth).toBeGreaterThan(0);
     }
 
-    // the least firm season is the least measured one, and it reads that way
+    // Every band is drawn from its own interval and to the same scale, which is
+    // the claim the chart makes. Checked as a ratio rather than in pixels, so
+    // the assertion survives a different viewport.
+    const scales = rows.map((row) => row.barWidth / (row.ciHi - row.ciLo));
+    const spread = Math.max(...scales) / Math.min(...scales);
+    expect(
+      spread,
+      `bands are not drawn to one scale: ${rows
+        .map((r) => `${r.year} ${(r.barWidth / (r.ciHi - r.ciLo)).toFixed(1)}`)
+        .join(', ')}`,
+    ).toBeLessThan(1.05);
+
+    // and the widest band really is the widest interval, whichever season that is
     const widest = [...rows].sort((a, b) => b.barWidth - a.barWidth)[0];
-    const leastMeasured = [...rows].sort((a, b) => a.measuredDays - b.measuredDays)[0];
-    expect(widest.year).toBe(leastMeasured.year);
-    const others = rows.filter((row) => row.year !== widest.year).map((row) => row.barWidth);
-    expect(widest.barWidth).toBeGreaterThan(Math.max(...others) * 1.2);
+    const widestInterval = [...rows].sort(
+      (a, b) => b.ciHi - b.ciLo - (a.ciHi - a.ciLo),
+    )[0];
+    expect(widest.year).toBe(widestInterval.year);
 
     // and the reader is told what it is, next to the column, in German
     await expect(memoryScene).toContainText('Das graue Band zeigt');
