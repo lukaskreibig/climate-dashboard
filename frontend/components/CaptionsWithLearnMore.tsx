@@ -30,15 +30,28 @@ interface CaptionWithLearnMoreProps {
   learnMore?: LearnMoreData;
 }
 
-// Helper function to render content with line breaks
-// Helper: split lines AND convert http/https to <a>.
+/**
+ * Splits a copy string into lines and turns bare URLs into links.
+ *
+ * It splits on BOTH forms of break, and the second one is not pedantry. This
+ * used to split only on the literal two-character sequence backslash-n, and
+ * the methods panel switches part way through to real newlines: 20 breaks
+ * rendered, 28 did not. Everything from the archive link onwards, which is
+ * every uncertainty caveat and both of its headings, arrived as one wall of
+ * prose, because HTML collapses a real newline to a space. Either form is an
+ * author asking for a paragraph, so either form gets one.
+ */
+const LINE_BREAK = /\\n|\r\n|\n/;
+
 const renderWithLineBreaks = (content: string | undefined): React.ReactNode => {
   if (!content) return null;
 
   const urlRegex =
-    /(https?:\/\/[^\s]+)/g; // simple 1-liner – good enough for docs
+    /(https?:\/\/[^\s]+)/g; // simple 1-liner, good enough for docs
 
-  return content.split('\\n').map((line, idx) => {
+  const lines = content.split(LINE_BREAK);
+
+  return lines.map((line, idx) => {
     // Replace each URL with an <a>
     const parts = line.split(urlRegex).map((part, i) =>
       urlRegex.test(part) ? (
@@ -59,7 +72,7 @@ const renderWithLineBreaks = (content: string | undefined): React.ReactNode => {
     return (
       <React.Fragment key={idx}>
         {parts}
-        {idx < content.split('\\n').length - 1 && <br />}
+        {idx < lines.length - 1 && <br />}
       </React.Fragment>
     );
   });
