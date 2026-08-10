@@ -155,13 +155,13 @@
       "progressTitle": "Earlier, less predictable breakup",
       "recall": {
         "title": "Back to the Opening Memory",
-        "description": "The story began with a memory that spans a lifetime: as a child, the ice held into June or July. Nine years of satellite data is far too short to test a childhood recollection. But it can ask the same question in numbers. Each dot is the day one Uummannaq winter's ice broke up."
+        "description": "The story began with a memory that spans a lifetime: as a child, the ice held into June or July. Ten winters of satellite data is far too short to test a childhood recollection. But it can ask the same question in numbers. Each dot is the day one Uummannaq winter's ice broke up."
       },
       "shift": {
         "title": "Earlier, on Average",
         "statUnit": "days",
         "statLabel": "mean breakup, from 2021 vs. 2017–20",
-        "description": "Across the measured years, breakup moved from a late-May average toward mid-May, about eleven days earlier. It is a short, nine-year window, so read it as a direction, not a fixed date."
+        "description": "Across the measured years, breakup moved from a late-May average toward mid-May, about twelve days earlier. Ten winters is a short window, so read it as a direction, not a fixed date."
       },
       "unpredictable": {
         "title": "And Harder to Predict",

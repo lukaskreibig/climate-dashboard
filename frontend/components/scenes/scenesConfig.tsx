@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { CaptionWithLearnMore } from "../CaptionsWithLearnMore";
 import StatChip from "../StatChip";
 import { registerMapPreload } from "@/lib/mapPreloadRegistry";
+import { summarizeBreakup } from "@/lib/chartData";
 import type { DashboardDataOrNull } from "@/types/dashboard";
 
 // const MapFlyScene   = dynamic(() => import("../MapFlyScene"), { ssr: false });
@@ -923,20 +924,30 @@ export const useScenesWithTranslation = () => {
       },
       {
         captionSide: "right",
-        html: (
-          <>
-            <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.shift.title')}</h3>
-            <StatChip
-              value={11}
-              prefix="−"
-              suffix={` ${t('scenes.breakup.shift.statUnit')}`}
-              label={t('scenes.breakup.shift.statLabel')}
-            />
-            <p className="text-lg">
-              {t('scenes.breakup.shift.description')}
-            </p>
-          </>
-        ),
+        /* Derived, not typed in. This chip used to carry a literal 11 while the
+           chart beside it computed its own figure from the API, and the two
+           drifted apart: the chip was still quoting a nine-season archive while
+           the chart read ten. Both now come from summarizeBreakup, so they
+           cannot disagree again. */
+        html: (d: DataBundle) => {
+          const shift = summarizeBreakup((d?.freeze ?? []) as any).shiftDays;
+          return (
+            <>
+              <h3 className="text-2xl font-display mb-2">{t('scenes.breakup.shift.title')}</h3>
+              {shift !== null && (
+                <StatChip
+                  value={Math.round(Math.abs(shift))}
+                  prefix={shift > 0 ? "−" : "+"}
+                  suffix={` ${t('scenes.breakup.shift.statUnit')}`}
+                  label={t('scenes.breakup.shift.statLabel')}
+                />
+              )}
+              <p className="text-lg">
+                {t('scenes.breakup.shift.description')}
+              </p>
+            </>
+          );
+        },
       },
       {
         captionSide: "right",
