@@ -160,7 +160,12 @@ function SeasonIntervalCell({
   title: string;
 }) {
   const band = season?.ci95 ?? null;
-  const mean = season?.mean ?? null;
+  // The interval is a bootstrap over the MEASURED days, so it belongs to
+  // measuredMean and not to `mean`, which averages the gap-filled, smoothed
+  // series over the whole window. Both chartData.ts:113 and backend/main.py:481
+  // say so; this component drew the second inside the first anyway, which put
+  // five of the ten ticks outside their own bar.
+  const mean = season?.measuredMean ?? null;
 
   return (
     <div
@@ -374,7 +379,8 @@ export default function MemoryMeasurementTimeline({
 
   const seasonIntervalLabel = (season: SeasonUncertainty | null) => {
     const band = season?.ci95 ?? null;
-    const mean = season?.mean ?? null;
+    // Same pairing as the bar above: the interval describes the measured days.
+    const mean = season?.measuredMean ?? null;
     if (!band || mean === null || season?.observedDays == null) {
       return t("charts.seasonUncertainty.missing");
     }
@@ -537,9 +543,9 @@ export default function MemoryMeasurementTimeline({
                     <SeasonIntervalCell
                       season={season}
                       meanLabel={
-                        season?.mean == null
+                        season?.measuredMean == null
                           ? "n/a"
-                          : seasonPercent.format(season.mean)
+                          : seasonPercent.format(season.measuredMean)
                       }
                       title={seasonIntervalLabel(season)}
                     />

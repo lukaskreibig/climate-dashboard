@@ -163,7 +163,7 @@ function Datenschutz() {
       {/* ---------- 1. Verantwortlicher ---------- */}
       <h2 id="verantwortlicher">{t('legal.privacy.responsible.title')}</h2>
       <p>
-        Lukas Kreibig – {t('legal.privacy.responsible.details')}&nbsp;
+        Lukas Kreibig, {t('legal.privacy.responsible.details')}&nbsp;
       </p>
 
       {/* ---------- 2. Datenarten + Zwecke ---------- */}
