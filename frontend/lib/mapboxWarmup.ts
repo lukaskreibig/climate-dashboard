@@ -9,7 +9,7 @@ import {
   type MapPreloadView,
   type MapSatelliteOverlayPreload,
 } from "@/lib/mapPreloadRegistry";
-import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
+import { ensureBasemapLayers } from "@/lib/basemapLayers";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -552,7 +552,7 @@ export function claimWarmedMap(
   // its imagery: MapTiler's relief and satellite layer, kept off the map during
   // the priming sweep so the sweep does not multiply them by every waypoint,
   // and the two classified rasters.
-  ensureMapTilerLayers(state.map, { terrain: state.terrain });
+  ensureBasemapLayers(state.map, { terrain: state.terrain });
   attachSatelliteOverlays();
 
   container.innerHTML = "";

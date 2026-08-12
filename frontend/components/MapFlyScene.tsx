@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ensureMapTilerLayers } from "@/lib/mapTilerLayers";
+import { ensureBasemapLayers } from "@/lib/basemapLayers";
 import { prefersReducedMotion } from "@/lib/reducedMotion";
 import {
   applyMapLanguage,
@@ -174,7 +174,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       };
 
       styleLoadHandler = () => {
-        ensureMapTilerLayers(instance, { terrain });
+        ensureBasemapLayers(instance, { terrain });
         applyMapLanguage(instance, i18n.language);
         if (globe) {
           try {

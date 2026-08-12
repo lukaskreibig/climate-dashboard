@@ -27,12 +27,19 @@ Two environment variables belong in `frontend/.env.local`:
 ```ini
 BACKEND_INTERNAL_URL=http://localhost:8000
 NEXT_PUBLIC_MAPBOX_TOKEN=pk.your-token
-NEXT_PUBLIC_MAPTILER_KEY=your-key
 ```
 
-Mapbox draws the globe and the map scenes and is required. MapTiler adds
-satellite imagery and terrain elevation to the Uummannaq map; without the key
-those layers are skipped and the scene still runs.
+Mapbox draws the globe and the map scenes and is required. It is the only key
+the story needs.
+
+The satellite imagery and the relief over Uummannaq used to come from MapTiler
+and no longer do. Mapbox's own imagery renders this fjord as an unbroken dark
+field, with no island in it at the closest waypoint, so the imagery comes from
+Esri's World Imagery with EOX's Sentinel-2 cloudless mosaic as an automatic
+fallback, neither of which needs a key. The relief ships in `public/terrain`,
+built from Copernicus DEM GLO-30 by `scripts/build_terrain_tiles.py` in the
+science repo, because Mapbox's terrain returns 198 m for a peak Copernicus puts
+at 792. See `lib/basemapLayers.ts`.
 
 ## Checks
 
@@ -46,8 +53,8 @@ yarn test:e2e        # story guardrails, Playwright
 `PLAYWRIGHT_BASE_URL`. `layout.spec.ts` asserts things the story must not lose,
 such as the season interval being explained in both languages.
 `responsive-audit.spec.ts` walks all 26 scenes at six viewport widths and fails
-on any overlap or overflow it finds. Both stub out MapTiler through
-`tests/e2e/fixtures.ts`, so a run costs no tiles from the quota.
+on any overlap or overflow it finds. Both abort the imagery providers through
+`tests/e2e/fixtures.ts`, so a run costs nobody any tiles.
 
 ## Where things live
 

@@ -1,19 +1,21 @@
 /**
  * The shared test base, which exists for one reason: the suite was spending the
- * project's MapTiler quota.
+ * project's map tile budget.
  *
- * Measured on the built story, one page view issues 571 requests to
- * api.maptiler.com, 260 of them during the loading gate before the reader has
- * scrolled at all. The free plan allows 100 000 a month, so about 175 views.
+ * Measured on the built story, one page view used to issue 571 requests to
+ * api.maptiler.com, 260 of them during the loading gate before the reader had
+ * scrolled at all. The free plan allowed 100 000 a month, so about 175 views.
  * One run of this suite is 19 tests, most of which load and scroll the whole
  * story, and it gets run many times a day. In August 2026 the account hit the
  * limit and MapTiler suspended the keys until the 26th, which is how this was
  * noticed: every terrain request in the built app started answering 403.
  *
- * So the tests no longer reach MapTiler. Every request is aborted, which is
- * deliberately the same thing the suite already experienced under those 403s,
- * and nothing here asserts anything about satellite imagery or the terrain
- * mesh: these tests check layout, captions, overflow and overlays.
+ * MapTiler is gone now. The relief ships with the story from public/terrain and
+ * costs nobody anything, but the imagery still comes from two public services,
+ * Esri and EOX, and neither of them agreed to serve a test suite. So the tests
+ * abort those two, which is deliberately the same thing the suite already
+ * experienced under those 403s, and nothing here asserts anything about
+ * satellite imagery: these tests check layout, captions, overflow and overlays.
  *
  * Serving stub tiles instead was tried and is worse. A stub tilejson has to
  * name a tile URL, and any host that is not intercepted costs a DNS timeout per
@@ -29,7 +31,8 @@ import { test as base, expect, type Page } from '@playwright/test';
 
 export const test = base.extend<{ page: Page }>({
   page: async ({ page }, use) => {
-    await page.route('**://api.maptiler.com/**', (route) => route.abort());
+    await page.route('**://server.arcgisonline.com/**', (route) => route.abort());
+    await page.route('**://tiles.maps.eox.at/**', (route) => route.abort());
     await use(page);
   },
 });

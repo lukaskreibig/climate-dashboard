@@ -71,14 +71,14 @@ test.describe('story layout guardrails', () => {
   });
 
   test('satellite mask overlay reaches the computer-vision step', async ({ page, baseURL }) => {
-    // The one test that opts out of the MapTiler stub in fixtures.ts, because
-    // this one is about the map. Aborting the terrain makes the map fail and
+    // The one test that opts out of the imagery stub in fixtures.ts, because
+    // this one is about the map. Aborting the imagery makes the map fail and
     // retry, and the retry re-adds the image sources: four full downloads of
-    // satellite.webp instead of one, purely as an artefact of the stub. Under a
-    // working or merely 403ing MapTiler the sharing holds, which is the
-    // property being asserted. One test's worth of tiles is a rounding error
-    // against the quota this stub exists to protect.
-    await page.unroute('**://api.maptiler.com/**');
+    // satellite.webp instead of one, purely as an artefact of the stub. With the
+    // imagery either working or merely refusing, the sharing holds, which is the
+    // property being asserted. One test's worth of tiles is a rounding error.
+    await page.unroute('**://server.arcgisonline.com/**');
+    await page.unroute('**://tiles.maps.eox.at/**');
 
     /**
      * Three consumers want these two rasters: a Mapbox image source, the
