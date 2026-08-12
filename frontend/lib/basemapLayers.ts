@@ -1,175 +1,125 @@
 import mapboxgl from "mapbox-gl";
 
 /**
- * The satellite imagery and the relief under the Uummannaq map scenes.
+ * The ground and the relief under the Uummannaq map scenes. Both are ours.
  *
- * Both used to come from MapTiler. In August 2026 the account passed the free
- * plan's monthly request limit and the keys were suspended for sixteen days, and
- * with them went the only thing that made the island visible: Mapbox's own
- * `satellite-streets-v12` renders this fjord as an unbroken dark blue field. At
- * the closest waypoint, zoom 11.4 centred on the town, there is no island in it
- * at all.
+ * Both used to come from MapTiler, whose free plan ran out of requests in August
+ * 2026 and suspended the keys for sixteen days. Dropping it was blocked on one
+ * fact: without it the island is not visible at all. Mapbox's own
+ * `satellite-streets-v12` renders this fjord as an unbroken dark blue field, and
+ * at the story's closest waypoint, zoom 11.4 centred on the town, there is no
+ * island in it.
  *
- * So neither layer depends on a key or a quota any more.
+ * Esri and EOX both work and both were tried. They are also somebody else's
+ * picture of a place this project has ten years of its own imagery of, so the
+ * ground is now a Sentinel-2 scene out of the same archive the analysis runs on:
+ * 24 July 2026, 0.5 percent cloud, full coverage, already in Web Mercator so the
+ * four corners below place it without any stretch of their own. Built by
+ * `scripts/build_basemap_image.py` in the science repo.
  *
- * IMAGERY comes from Esri's World Imagery, which needs no key and shows the
- * island, the mountain and the icebergs around it. EOX's Sentinel-2 cloudless
- * mosaic stands behind it as an automatic fallback: it is CC BY 4.0, it is
- * Sentinel-2, which is what this whole story is about, and it shows the island
- * just as clearly, though its water is nearly black and it carries no icebergs.
+ * The relief ships in `public/terrain`, built by `build_terrain_tiles.py` from
+ * ArcticDEM v4.1 at 2 m. Three models were measured against this one mountain
+ * and only ArcticDEM has it: Mapbox returns 198 m, Copernicus DEM GLO-30 returns
+ * 792, ArcticDEM returns 1206 against a published 1175. A 30 m grid cannot hold a
+ * peak this steep, and the first version of this file used one.
  *
- * RELIEF is baked and shipped from `public/terrain`, built by
- * `scripts/build_terrain_tiles.py` in the science repo from Copernicus DEM
- * GLO-30. Mapbox's own terrain-dem-v1 is not usable here and the reason is not
- * the one you would guess: it is accurate at the Matterhorn (4252 m against
- * 4478), at Mount Rainier (4391 against 4392) and at Kebnekaise at 67.9 degrees
- * north (2108 against 2096), and it returns 198 m for a Uummannaq peak that
- * Copernicus puts at 792. It is a Greenland gap, not a latitude cutoff.
+ * Nothing here needs a key, a quota or an account.
  */
 
 interface EnsureOptions {
   terrain?: boolean;
 }
 
-const SAT_SOURCE = "sat";
+const GROUND_SOURCE = "s2-ground";
 const DEM_SOURCE = "dem";
 
-/** Esri first, EOX behind it. Order is the fallback order. */
-const IMAGERY = [
-  {
-    tiles: [
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ],
-    maxzoom: 17,
-    attribution:
-      "Imagery © Esri, Maxar, Earthstar Geographics and the GIS User Community",
-  },
-  {
-    tiles: [
-      "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg",
-    ],
-    maxzoom: 14,
-    attribution:
-      "Sentinel-2 cloudless 2024 by EOX IT Services GmbH, CC BY 4.0, " +
-      "containing modified Copernicus Sentinel data",
-  },
-] as const;
+/** The scene's own corners, north-west first, clockwise. */
+const GROUND: {
+  url: string;
+  coordinates: [
+    [number, number],
+    [number, number],
+    [number, number],
+    [number, number],
+  ];
+  attribution: string;
+} = {
+  url: "/images/basemap-summer.jpg",
+  coordinates: [
+    [-52.9, 71.0],
+    [-51.5, 71.0],
+    [-51.5, 70.4],
+    [-52.9, 70.4],
+  ],
+  attribution:
+    "Ground: Sentinel-2 L2A, 24 July 2026, contains modified Copernicus " +
+    "Sentinel data, processed for this story",
+};
 
 const TERRAIN = {
   tiles: ["/terrain/{z}/{x}/{y}.png"],
+  // 512 rather than 256 on purpose. mapbox-gl picks its DEM zoom as the camera
+  // zoom plus log2(tileSize / 512), so at 256 a camera at 11.4 reads one level
+  // coarser than the tiles were built at.
+  tileSize: 512,
   minzoom: 8,
   maxzoom: 11,
   attribution:
-    "Elevation: Copernicus DEM GLO-30, © DLR e.V. and Airbus Defence and Space GmbH, " +
-    "provided under COPERNICUS by the European Union and ESA",
+    "Elevation: ArcticDEM v4.1, Polar Geospatial Center, University of Minnesota",
 } as const;
-
-/**
- * Which imagery source the session settled on.
- *
- * Module scope on purpose: once one provider has refused, no later map on the
- * page should discover that again. The MapTiler episode is the argument. It kept
- * asking a suspended key 571 times per page view, all 403, and one request is
- * enough to learn the answer.
- */
-let imageryIndex = 0;
-
-/** How many tile failures before we accept that a provider is not answering. */
-const FAILURES_BEFORE_GIVING_UP = 3;
-
-const addImagery = (map: mapboxgl.Map, index: number) => {
-  const source = IMAGERY[index];
-  if (!source) return;
-
-  if (!map.getSource(SAT_SOURCE)) {
-    map.addSource(SAT_SOURCE, {
-      type: "raster",
-      tiles: [...source.tiles],
-      tileSize: 256,
-      maxzoom: source.maxzoom,
-      attribution: source.attribution,
-    });
-  }
-
-  if (!map.getLayer(SAT_SOURCE)) {
-    const firstSymbol = map
-      .getStyle()
-      .layers?.find((layer) => layer.type === "symbol")?.id;
-    map.addLayer(
-      { id: SAT_SOURCE, type: "raster", source: SAT_SOURCE },
-      firstSymbol,
-    );
-  }
-};
-
-const removeImagery = (map: mapboxgl.Map) => {
-  try {
-    if (map.getLayer(SAT_SOURCE)) map.removeLayer(SAT_SOURCE);
-    if (map.getSource(SAT_SOURCE)) map.removeSource(SAT_SOURCE);
-  } catch {
-    /* a map torn down mid flight has nothing left to remove */
-  }
-};
-
-/**
- * Watch for the imagery provider refusing, and move to the next one when it
- * does. Falling through the whole list leaves the Mapbox base map, which is
- * dark here but still a map.
- */
-const watchForRefusal = (map: mapboxgl.Map) => {
-  let failures = 0;
-
-  // mapbox-gl puts the source id and the HTTP status on its error events, and
-  // its published type declares neither: the type is Error, the object is not.
-  type TileError = { sourceId?: string; error?: Error & { status?: number } };
-
-  const onError = (event: unknown) => {
-    const { sourceId, error } = event as TileError;
-    if (sourceId !== SAT_SOURCE) return;
-    failures += 1;
-    if (failures < FAILURES_BEFORE_GIVING_UP) return;
-
-    map.off("error", onError as never);
-    removeImagery(map);
-    imageryIndex += 1;
-
-    if (process.env.NODE_ENV !== "production") {
-      const next = IMAGERY[imageryIndex];
-      console.warn(
-        `Imagery provider ${imageryIndex - 1} refused ${failures} tiles ` +
-          `(status ${error?.status ?? "unknown"}). ` +
-          (next
-            ? "Falling back to the next source."
-            : "No sources left; the Mapbox base map carries on."),
-      );
-    }
-
-    if (IMAGERY[imageryIndex]) {
-      addImagery(map, imageryIndex);
-      watchForRefusal(map);
-    }
-  };
-
-  map.on("error", onError as never);
-};
 
 export function ensureBasemapLayers(
   map: mapboxgl.Map,
   { terrain = true }: EnsureOptions = {},
 ): void {
-  /* remove Mapbox's water layers so the imagery underneath shows through */
+  /* remove Mapbox's water layers so the scene underneath shows through */
   map
     .getStyle()
     .layers?.filter((layer) => layer.id.startsWith("water"))
     .forEach((layer) => map.removeLayer(layer.id));
 
-  addImagery(map, imageryIndex);
+  if (!map.getSource(GROUND_SOURCE)) {
+    map.addSource(GROUND_SOURCE, {
+      type: "image",
+      url: GROUND.url,
+      coordinates: GROUND.coordinates,
+    });
+  }
+
+  if (!map.getLayer(GROUND_SOURCE)) {
+    const firstSymbol = map
+      .getStyle()
+      .layers?.find((layer) => layer.type === "symbol")?.id;
+    map.addLayer(
+      {
+        id: GROUND_SOURCE,
+        type: "raster",
+        source: GROUND_SOURCE,
+        paint: {
+          // One scene covers one fjord, so from far out it would read as a
+          // bright rectangle stuck on a dark globe. It arrives with the camera
+          // instead, between zoom 6 and 8, by which point it fills the frame.
+          "raster-opacity": [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            6,
+            0,
+            8,
+            1,
+          ],
+          "raster-fade-duration": 0,
+        },
+      },
+      firstSymbol,
+    );
+  }
 
   if (terrain && !map.getSource(DEM_SOURCE)) {
     map.addSource(DEM_SOURCE, {
       type: "raster-dem",
       tiles: [...TERRAIN.tiles],
-      tileSize: 256,
+      tileSize: TERRAIN.tileSize,
       minzoom: TERRAIN.minzoom,
       maxzoom: TERRAIN.maxzoom,
       encoding: "mapbox",
@@ -178,5 +128,6 @@ export function ensureBasemapLayers(
     map.setTerrain({ source: DEM_SOURCE, exaggeration: 1.3 });
   }
 
-  watchForRefusal(map);
+  // The attribution control reads sources, and an image source carries none.
+  map.getContainer().setAttribute("data-ground-attribution", GROUND.attribution);
 }

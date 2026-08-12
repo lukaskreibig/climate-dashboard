@@ -77,8 +77,7 @@ test.describe('story layout guardrails', () => {
     // satellite.webp instead of one, purely as an artefact of the stub. With the
     // imagery either working or merely refusing, the sharing holds, which is the
     // property being asserted. One test's worth of tiles is a rounding error.
-    await page.unroute('**://server.arcgisonline.com/**');
-    await page.unroute('**://tiles.maps.eox.at/**');
+    await page.unroute('**://api.maptiler.com/**');
 
     /**
      * Three consumers want these two rasters: a Mapbox image source, the

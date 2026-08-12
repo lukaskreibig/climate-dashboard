@@ -31,8 +31,10 @@ import { test as base, expect, type Page } from '@playwright/test';
 
 export const test = base.extend<{ page: Page }>({
   page: async ({ page }, use) => {
-    await page.route('**://server.arcgisonline.com/**', (route) => route.abort());
-    await page.route('**://tiles.maps.eox.at/**', (route) => route.abort());
+    // Nothing external is left to stub: the ground and the relief both ship
+    // with the story. Kept as a no-op guard so a future external source cannot
+    // quietly reintroduce a per-run cost.
+    await page.route('**://api.maptiler.com/**', (route) => route.abort());
     await use(page);
   },
 });

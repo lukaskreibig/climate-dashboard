@@ -32,14 +32,15 @@ NEXT_PUBLIC_MAPBOX_TOKEN=pk.your-token
 Mapbox draws the globe and the map scenes and is required. It is the only key
 the story needs.
 
-The satellite imagery and the relief over Uummannaq used to come from MapTiler
-and no longer do. Mapbox's own imagery renders this fjord as an unbroken dark
-field, with no island in it at the closest waypoint, so the imagery comes from
-Esri's World Imagery with EOX's Sentinel-2 cloudless mosaic as an automatic
-fallback, neither of which needs a key. The relief ships in `public/terrain`,
-built from Copernicus DEM GLO-30 by `scripts/build_terrain_tiles.py` in the
-science repo, because Mapbox's terrain returns 198 m for a peak Copernicus puts
-at 792. See `lib/basemapLayers.ts`.
+The ground and the relief over Uummannaq used to come from MapTiler and now come
+from this project. Mapbox's own imagery renders this fjord as an unbroken dark
+field with no island in it at the closest waypoint, so the ground is a Sentinel-2
+scene from the same archive the analysis runs on, 24 July 2026, in
+`public/images/basemap-summer.jpg`. The relief is in `public/terrain`, from
+ArcticDEM v4.1 at 2 m: Mapbox returns 198 m for that mountain and Copernicus DEM
+returns 792, against a measured 1206. Both are built by
+`scripts/build_basemap_image.py` and `scripts/build_terrain_tiles.py` in the
+science repo. See `lib/basemapLayers.ts`. Nothing here needs a second key.
 
 ## Checks
 
