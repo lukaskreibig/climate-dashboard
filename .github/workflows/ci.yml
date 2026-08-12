@@ -1,0 +1,74 @@
+# The verification gates, which until now ran only on someone's laptop.
+#
+# The three workflows beside this one are data and ops automation: they refresh
+# the fjord series, fall back when a refresh fails, and keep a free-tier database
+# awake. None of them runs a typecheck, a linter or a test, and none of them has
+# a pull_request trigger, so a regression could land on a branch held to a
+# publication standard without anything objecting. The typecheck was reached only
+# through Vercel's `next build`, which frontend/vercel.json skips unless
+# README.md changed.
+#
+# The Playwright responsive audit is deliberately not here. It walks six
+# viewports with a ten minute timeout each and needs a dev server this config
+# does not start, so it belongs in a scheduled or manual run rather than on every
+# push. `yarn test:e2e` still runs it locally.
+
+name: CI
+
+on:
+  push:
+    branches: [main, "story/**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      # No npm script exists for this, which is part of why it never ran.
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Unit tests
+        run: yarn test
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Unit tests
+        run: python -m pytest tests/ -q
