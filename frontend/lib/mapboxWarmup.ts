@@ -63,7 +63,7 @@ interface WarmMapState {
   /** kept so the imagery can be attached later than the map is built */
   overlay?: MapSatelliteOverlayPreload;
   overlayAttached: boolean;
-  /** kept so MapTiler can be attached at claim time rather than during warmup */
+  /** whether this warm map carries the relief; see the sweep below */
   terrain: boolean;
   ready: boolean;
   failed: boolean;
@@ -441,27 +441,17 @@ const warmRegisteredMap = async (
   const styleReady = (async () => {
     try {
       await waitForStyle(map);
-      // MapTiler is NOT attached here, and that is a quota decision.
-      //
-      // The priming sweep below jumps through every waypoint of every map, and
-      // whatever sources are on the map at that moment get fetched for each
-      // view. With MapTiler attached that came to 260 requests before the
-      // reader had scrolled at all, out of 571 for a whole page view. The free
-      // plan allows 100 000 a month, so about 175 readers, and in August 2026
-      // the account hit that ceiling and the keys were suspended.
-      //
-      // So the sweep primes the Mapbox base map only, and MapTiler's imagery
-      // and terrain go on when a scene actually claims the map. The story does
-      // not open on a map, so there is room for it to arrive.
       // The relief IS attached here, and it used to not be.
       //
       // The comment this replaces was right for its time: with MapTiler's DEM
       // on the map, the sweep below jumped through every waypoint and fetched
       // MapTiler tiles for each, 260 requests before the reader had scrolled,
       // out of 571 for a page view against a 100 000 a month plan. That plan ran
-      // out in August 2026 and the keys were suspended.
+      // out in August 2026 and the keys were suspended. MapTiler is gone from
+      // this project entirely; the ground is a Sentinel-2 scene out of the same
+      // archive the analysis runs on, and the relief is ArcticDEM.
       //
-      // The relief now ships with the story as 340 static files under
+      // The relief now ships with the story as 47 static files under
       // public/terrain, so a sweep over it costs a few hundred kilobytes of
       // same-origin cache and nobody's quota. Leaving it out was the reason the
       // mountain arrived only once the reader had already zoomed in, and then
@@ -628,8 +618,8 @@ export function claimWarmedMap(
   if (state.claimedBy && state.claimedBy !== container) return null;
 
   // Whatever the reader did or did not do, a scene taking this map must have
-  // its imagery: MapTiler's relief and satellite layer, kept off the map during
-  // the priming sweep so the sweep does not multiply them by every waypoint,
+  // its imagery: the Sentinel-2 ground, kept off the map during the priming
+  // sweep so the sweep does not fetch its 3.2 MB for a beat far down the story,
   // and the two classified rasters.
   ensureBasemapLayers(state.map, { terrain: state.terrain });
   attachSatelliteOverlays();
