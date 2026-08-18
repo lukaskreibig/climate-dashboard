@@ -1,5 +1,20 @@
 # AUTHORITATIVE DATA REFRESH.
 #
+# BUILD THIS FROM main. It is the one setting that does not live in this file,
+# and it is the one that broke.
+#
+# Railway has no config key for the source branch; it lives only in the service's
+# deployment trigger. This service was pointed at a branch called `production`
+# whose head was from 22 February, 86 commits behind main, and nobody could see
+# that from the repository. On 11 July the NSIDC host that old code fetched
+# stopped resolving, the job crashed every morning, and the fix that made that
+# host a fallback sat on main from 4 August without ever reaching the container.
+# Thirty six days of the published story serving stale numbers, from one stale
+# branch name in a dashboard.
+#
+# The trigger now points at main, like the other two services. If you ever see
+# this job building from anything else, that is the bug, not the code.
+#
 # This Railway cron service is the single writer of the story's datasets. It writes
 # Postgres, and backend/main.py reads Postgres first. Nothing else is allowed to
 # refresh these tables on a schedule. The GitHub Action that used to commit
