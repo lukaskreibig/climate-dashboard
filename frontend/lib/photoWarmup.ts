@@ -26,10 +26,17 @@
  * used to compute the width here, which meant reimplementing next/image's
  * selection and being wrong the day a `sizes` changed.
  *
- * WHY NOT EVERYTHING. The photographs come to 12 MB. Warming them all would
- * compete with the map tiles for the same connection, so this takes a few at a
- * time, at low priority, and the caller passes only the ones reached before
- * there is any chance to fetch them on the way.
+ * WHY NOT EVERYTHING, AND WHY ONE AT A TIME. The photographs come to 12 MB, so
+ * warming them all would compete with the map tiles for the same connection.
+ * The caller therefore passes only the ones reached before there is any chance
+ * to fetch them on the way.
+ *
+ * The serial part is about the server, not the reader. Each warm can trigger a
+ * cold AVIF encode in the image optimiser, and libaom is expensive: measured
+ * against `next start`, four photos warmed two at a time push the process tree
+ * 442 MB above idle, one at a time 289 MB. The container has 512 MB and has
+ * been killed for it. Half a second of extra wall clock buys 153 MB, and the
+ * warm has tens of seconds of runway before the first photo is due.
  */
 
 /** next/image's default deviceSizes; next.config.ts does not override them. */
@@ -65,7 +72,7 @@ export function nextImageSrcSet(src: string): string {
  */
 export function warmPhotos(
   sources: readonly string[],
-  { concurrency = 2, sizes = FULLSCREEN_SIZES }: { concurrency?: number; sizes?: string } = {},
+  { concurrency = 1, sizes = FULLSCREEN_SIZES }: { concurrency?: number; sizes?: string } = {},
 ): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
 
@@ -80,7 +87,7 @@ export function warmPhotos(
       await new Promise<void>((resolve) => {
         const img = new Image();
         // Behind anything the reader is waiting for. Not every browser honours
-        // it, which is the other reason the concurrency stays small.
+        // it, which is the other reason the concurrency stays at one.
         img.fetchPriority = "low";
         img.decoding = "async";
         img.onload = img.onerror = () => resolve();

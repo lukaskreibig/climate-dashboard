@@ -133,10 +133,11 @@ export default function Page() {
         // The photographs the reader meets first. Same reasoning as the line
         // above and the same reason it is ungated: the scenes mount their
         // visuals only after hydration, so nothing asks for a photo until the
-        // reader is already looking at the space where it should be. Two at a
+        // reader is already looking at the space where it should be. One at a
         // time and at low priority, so they queue behind the terrain rather
-        // than racing it. Measured on a 1.6 Mbit line: the wait in front of the
-        // first photograph falls from about 7 s to under 50 ms.
+        // than racing it, and so the image optimiser is never asked for two
+        // cold AVIF encodes at once. Measured on a 1.6 Mbit line: the wait in
+        // front of the first photograph falls from about 7 s to under 50 ms.
         void warmPhotos(FIRST_PHOTOS);
 
         const tilesPromise = preloadTiles({
