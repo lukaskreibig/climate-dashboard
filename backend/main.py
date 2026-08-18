@@ -1016,7 +1016,7 @@ async def get_fjord_data(response: Response):
                     FROM fjord_freeze_breakup ORDER BY year
                 """)).mappings().all()
                 daily_rows  = conn.execute(text("""
-                    SELECT date::text AS date, year, doy, frac
+                    SELECT date::text AS date, year, doy, frac, frac_raw
                     FROM fjord_daily ORDER BY date
                 """)).mappings().all()
 
@@ -1053,12 +1053,45 @@ async def get_fjord_data(response: Response):
                     round((1 - (l_sum / e_sum)) * 100, 1) if paired and e_sum > 0 else None
                 )
 
+                # The per season sampling error, computed here exactly as the CSV
+                # branch computes it. These two branches serve the same route and
+                # have to answer the same, and for a long time they did not: this
+                # one returned the season means bare, without measuredMean,
+                # observedDays, standardError or ci95. Nobody saw it because the
+                # database read had been failing and every request fell through to
+                # the CSV. The morning the pipeline first filled these tables
+                # completely, this branch started succeeding, and the published
+                # charts lost their uncertainty bands with no error anywhere.
+                daily_frame = pd.DataFrame(
+                    [dict(r) for r in daily_rows],
+                    columns=["date", "year", "doy", "frac", "frac_raw"],
+                )
+                season_frame = daily_frame[
+                    (daily_frame["doy"] >= FJORD_SUN_START)
+                    & (daily_frame["doy"] <= FJORD_SUN_END)
+                ]
+                frac_payload = [
+                    {**dict(r), **_season_sampling_error(season_frame, int(r["year"]))}
+                    for r in frac_rows
+                ]
+
                 payload = {
                     "spring": [dict(r) for r in spring_rows],
                     "season": merged,                   # <— merged Struktur
-                    "frac":   [dict(r) for r in frac_rows],
+                    "frac":   frac_payload,
                     "freeze": [dict(r) for r in freeze_rows],
-                    "daily":  [dict(r) for r in daily_rows],
+                    "daily":  [
+                        {
+                            "date": r["date"],
+                            "year": r["year"],
+                            "doy": r["doy"],
+                            "frac": _json_float(r["frac"]),
+                            # None where no usable scene existed and the value
+                            # was filled, same contract as the CSV branch
+                            "fracRaw": _json_float(r.get("frac_raw")),
+                        }
+                        for r in daily_rows
+                    ],
                     "seasonLossPct": season_loss_pct,   # optional
                 }
                 payload = _attach_fjord_meta(payload)

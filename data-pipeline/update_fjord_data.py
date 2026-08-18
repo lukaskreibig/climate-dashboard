@@ -12,13 +12,38 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 # Constants matching the original front-end logic
-SUN_START = 45     # 14-Feb
+# Mirrors backend/main.py's FJORD_* constants, and it is not decoration that
+# they match: this script writes the tables that /uummannaq serves from the
+# database, while backend/main.py computes the same quantities from the CSV when
+# that read fails. Two windows meant the same season mean depending on who
+# answered the request.
+#
+# 53, not 45. The eight days from 45 carried one clear scene in four reading a
+# frozen fjord as open water, so the start is a physical limit rather than an
+# analysis choice. The end stays at 180, where the sun still sits at 42 degrees.
+#
+# The spring window IS the sun window. It sat at 60 to 151 while the series ran
+# 45 to 180, so the panel quoted statistics from a window it never declared.
+SUN_START = 53     # 22-Feb
 SUN_END   = 180    # 29-Jun
-SPRING_A  = 60     # 1-Mar
-SPRING_B  = 151    # 31-May
+SPRING_A  = SUN_START
+SPRING_B  = SUN_END
 THRESHOLD = 0.15
-EARLY_YRS = [2017, 2018, 2019, 2020]
-LATE_YRS  = [2021, 2022, 2023, 2024, 2025]
+# A boundary year, not two enumerated lists. The late list used to stop at 2025,
+# so the first 2026 season would have been drawn as "late" by the frontend, which
+# groups on year >= 2021, while this script silently left it out of the band and
+# out of the percentage. One boundary keeps every consumer in step, and a new
+# season needs no edit here at all.
+FIRST_YEAR = 2017
+LATE_START_YEAR = 2021
+
+
+def year_groups(years) -> tuple[list[int], list[int]]:
+    """Split the observed years into the early and late group, open ended."""
+    observed = sorted({int(y) for y in years if int(y) >= FIRST_YEAR})
+    early = [y for y in observed if y < LATE_START_YEAR]
+    late = [y for y in observed if y >= LATE_START_YEAR]
+    return early, late
 FJORD_KM2 = 3450
 
 def _database_url() -> str:
@@ -39,6 +64,7 @@ def create_tables(engine):
                 year integer NOT NULL,
                 doy integer NOT NULL,
                 frac double precision,
+                frac_raw double precision,
                 frac_smooth double precision
             )
         """))
@@ -115,6 +141,19 @@ def ensure_schema(engine):
         if "breakup_doy" not in cols:
             c.execute(text("ALTER TABLE fjord_freeze_breakup ADD COLUMN breakup_doy integer"))
 
+        # The raw, per scene series. `frac` is the smoothed one the charts plot,
+        # which is the naming the API uses too; `frac_raw` is the untouched
+        # measurement with its gaps intact. Only the latter can carry the per
+        # season sampling error, because a gap filled day holds no independent
+        # information. Writing only `frac` is what emptied the uncertainty bands
+        # on the published story the first time this script ran to completion.
+        cols = {r[0] for r in c.execute(text("""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name='fjord_daily'
+        """)).fetchall()}
+        if "frac_raw" not in cols:
+            c.execute(text("ALTER TABLE fjord_daily ADD COLUMN frac_raw double precision"))
+
         # Ensure fjord_daily exists and date is DATE
         c.execute(text("""
             CREATE TABLE IF NOT EXISTS fjord_daily (
@@ -141,10 +180,25 @@ def update_fjord_data():
     csv_path = os.getenv("FJORD_CSV_PATH", "/app/data/summary_test_cleaned.csv")
     rows = pd.read_csv(csv_path, parse_dates=['date'])
     rows.columns = [c.lower() for c in rows.columns]
-    rows = rows[['date', 'year', 'doy', 'frac_smooth']].rename(columns={'frac_smooth': 'frac'}).copy()
+    # `frac` is the smoothed series, matching what backend/main.py calls `frac`
+    # and what the charts plot. `frac_raw` is the untouched per scene column and
+    # travels with it, so a measured day stays distinguishable from a filled one.
+    keep = ['date', 'year', 'doy', 'frac_smooth']
+    has_raw = 'frac' in rows.columns
+    if has_raw:
+        keep.append('frac')
+    rows = rows[keep].copy()
+    if has_raw:
+        rows = rows.rename(columns={'frac': 'frac_raw', 'frac_smooth': 'frac'})
+    else:
+        rows = rows.rename(columns={'frac_smooth': 'frac'})
+        rows['frac_raw'] = None
 
     # ensure pure DATE before writing (not timestamp)
     rows['date'] = pd.to_datetime(rows['date']).dt.date
+
+    early_yrs, late_yrs = year_groups(rows['year'])
+    print(f"[INFO] early {early_yrs}  late {late_yrs}")
 
     # --- ensure DB schema is correct (handles upgrades)
     ensure_tables(engine)
@@ -162,7 +216,7 @@ def update_fjord_data():
     # 2) fjord_season_band
     records = []
     for doy in range(SUN_START, SUN_END + 1):
-        for period, years in [('early', EARLY_YRS), ('late', LATE_YRS)]:
+        for period, years in [('early', early_yrs), ('late', late_yrs)]:
             vals = rows.query('year in @years and doy == @doy')['frac']
             records.append({
                 'doy': doy,
@@ -177,7 +231,7 @@ def update_fjord_data():
 
     # 3) fjord_spring_anomaly
     spring_means = rows.query('doy >= @SPRING_A and doy <= @SPRING_B').groupby('year')['frac'].mean()
-    baseline = spring_means.loc[[y for y in EARLY_YRS if y in spring_means.index]].mean()
+    baseline = spring_means.loc[[y for y in early_yrs if y in spring_means.index]].mean()
     spring_anomaly = spring_means.subtract(baseline).mul(FJORD_KM2).round(1).reset_index()
     spring_anomaly.columns = ['year', 'anomaly']
     with engine.begin() as c:
