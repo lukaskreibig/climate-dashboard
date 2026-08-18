@@ -51,34 +51,95 @@ const AllYearsSeasonChart = dynamic(() => import("@/components/Rechart/AllYearsS
 const MemoryMeasurementTimeline = dynamic(() => import("@/components/Rechart/MemoryMeasurementTimeline"), { ssr: false });
 const SatellitePixelInspector = dynamic(() => import("@/components/SatellitePixelInspector"), { ssr: false });
 
+/**
+ * The island, measured rather than eyeballed.
+ *
+ * The height-weighted centroid of everything above 60 m inside the island's own
+ * window, read off the ArcticDEM tiles in public/terrain: 68 016 cells, mass
+ * centre 70.7091 N, 52.1361 W, with the 1203 m summit 400 m north of it. It is
+ * also, to three decimals, the centre of the satellite quad below.
+ *
+ * The camera used to pass 6.2 km west of this on the way in and 3.3 km south of
+ * it at the end, and worse, those were two DIFFERENT points, so the bearing
+ * sweep turned around a moving centre. A rotation around a moving centre is an
+ * arc, not an orbit, and it read as the island sitting off to one side.
+ */
+const UUMMANNAQ = { lng: -52.136, lat: 70.709 } as const;
+
+/**
+ * `leg` is a multiplier, not the weight itself. The weight comes from
+ * screenWork in lib/flightPath.ts, which counts how much PICTURE a hop moves
+ * rather than how much ground, so the flight paces itself. These numbers only
+ * lean on top of that: the two wide hops are given less than their work would
+ * buy, because the reader wants to be descending, and the approach and the
+ * landing more, because that is the beat the story is actually about.
+ */
 const GEOGRAPHIC_WAYPOINTS: Waypoint[] = [
   { lng: 0, lat: 90, zoom: 1.3, pitch: 0 },
-  { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },
-  { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30 },
-  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 30 },
-  // final dive toward the town — close enough to "land", far enough that the
-  // satellite tiles stay sharp (z12+ gets pixelated up here). The bearing
-  // sweeps 30°→115° on the way down: the camera swings around the
-  // heart-shaped mountain in real 3D relief before the photo match-cut.
-  { lng: -52.127, lat: 70.676, zoom: 11.4, pitch: 58, bearing: 115 },
+  { lng: -42, lat: 72, zoom: 3.3, pitch: 0, leg: 0.6 },
+  { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30, bearing: 95, leg: 0.6 },
+  { ...UUMMANNAQ, zoom: 10, pitch: 60, bearing: 55, leg: 0.85 },
+  // The landing, and it is where the story cuts to the photograph.
+  //
+  // WHICH SIDE. Not a matter of taste. The island has exactly one wide low bench
+  // a settlement can stand on, 2210 m of ground under 140 m, and it faces south,
+  // its shore at 70.675 N 52.136 W, which is the published centre of Uummannaq
+  // to within a few hundred metres. Everywhere else the mountain falls to the sea
+  // inside 600 m. So the photographer was south of the island looking north, and
+  // an earlier landing at bearing 115 was looking at the back of it.
+  //
+  // HOW CLOSE, and this is a decision rather than a measurement. A camera at eye
+  // level 4.8 km out reproduces the photograph's own framing almost exactly,
+  // summit at 19 against 20 percent of frame height, and it was built and
+  // measured. It is not what this beat wants. The photograph arrives close
+  // enough to count roofs; the map's job is to say WHERE, and an island you can
+  // see all of, with the fjord either side of it, says that better than a frame
+  // that has already become the photograph. So the flight stops here, at 12.65,
+  // and the cut does the rest of the travelling.
+  //
+  // WHY padTop. See the field on Waypoint. Mapbox will not pitch past 85 degrees
+  // and so always looks at least a little down, which pins the horizon high and
+  // fills the lower frame with open water. The headroom walks it back down.
+  { lng: -52.1856, lat: 70.6964, zoom: 12.65, pitch: 76, bearing: 46, padTop: 0.3, leg: 1.7 },
 ];
 
-/* the opening descent reversed: a grand ascent/pull-back from Uummannaq to the
-   whole Arctic that bookends the story (local → system) */
-const ARCTIC_PULLBACK_WAYPOINTS: Waypoint[] = [...GEOGRAPHIC_WAYPOINTS]
-  .reverse()
-  // land on a LARGER globe than the descent started from — the ice cap and
-  // its retreat need to fill the frame, not float as a marble
-  .map((wp, i, arr) => (i === arr.length - 1 ? { ...wp, zoom: 2.1 } : wp));
+/* the closing ascent: from the island back out to the whole Arctic, the
+   bookend to the opening descent (local → system)
 
+ * Written out rather than derived. It used to be
+ * `[...GEOGRAPHIC_WAYPOINTS].reverse()`, which meant every change to the opening
+ * silently rewrote the closing, and the opening has since gained an approach
+ * waypoint, per leg scroll weights and camera headroom. Two of those do not
+ * survive being reversed: `leg` weights the hop INTO a waypoint, so reversing
+ * shifts every weight by one, and the headroom would have the ascent open with
+ * the horizon pushed to the floor for no reason. This scene is driven by go()
+ * rather than by scroll and was choreographed separately, so it keeps its own
+ * five hops. It starts on the island the reader has just left, but pulled back
+ * to zoom 12: the landing frame itself sits at eye level on the water, which is
+ * a place to arrive, not a place to take off from.
+ */
+const ARCTIC_PULLBACK_WAYPOINTS: Waypoint[] = [
+  { lng: -52.1811, lat: 70.6931, zoom: 12.0, pitch: 70, bearing: 38 },
+  { ...UUMMANNAQ, zoom: 10, pitch: 60, bearing: 55 },
+  { lng: -52.14, lat: 71, zoom: 7.0, pitch: 30, bearing: 95 },
+  { lng: -42, lat: 72, zoom: 3.3, pitch: 0 },
+  // a LARGER globe than the descent started from: the ice cap and its retreat
+  // need to fill the frame, not float as a marble
+  { lng: 0, lat: 90, zoom: 2.1, pitch: 0 },
+];
+
+// Same centre. These frame the classified raster, whose quad below has its own
+// centre at 52.140 W, 70.708 N, which is UUMMANNAQ to three decimals. They used
+// to sit 3.1 km west of it, so the overlay arrived off to the side of the frame
+// it is meant to fill.
 const SATELLITE_WAYPOINTS: Waypoint[] = [
-  { lng: -52.27, lat: 70.67, zoom: 10, pitch: 60, bearing: 0 },
-  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
-  { lng: -52.22, lat: 70.7, zoom: 9.5, pitch: 0, bearing: 4.7 },
-  { lng: -52.22, lat: 70.7, zoom: 10.5, pitch: 70, bearing: 4.7 },
+  { ...UUMMANNAQ, zoom: 10, pitch: 60, bearing: 0 },
+  { ...UUMMANNAQ, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { ...UUMMANNAQ, zoom: 9.5, pitch: 0, bearing: 4.7 },
+  { ...UUMMANNAQ, zoom: 10.5, pitch: 70, bearing: 4.7 },
   // mask beat: tilted so the CV overlay visibly DRAPES over the real fjord
   // relief — the classified image is geography, not an illustration
-  { lng: -52.22, lat: 70.7, zoom: 9.8, pitch: 52, bearing: 20 },
+  { ...UUMMANNAQ, zoom: 9.8, pitch: 52, bearing: 20 },
 ];
 
 /**
@@ -194,6 +255,7 @@ export const useScenesWithTranslation = () => {
             waypoints={GEOGRAPHIC_WAYPOINTS}
             preloadKey="geographic-journey"
             scrollCamera
+            continuousFlight
           />
 
       ),
