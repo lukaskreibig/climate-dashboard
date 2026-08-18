@@ -9,7 +9,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
-import Image from "next/image";
+import StoryPhoto from "@/components/StoryPhoto";
 import { motion } from "framer-motion";
 import { Bebas_Neue } from "next/font/google";
 import { useTranslation } from "react-i18next";
@@ -141,7 +141,7 @@ export default function IntroHero() {
       {/* background photo */}
       {/* same file as the intro, so it comes out of cache; the timeline below
           fades it in and then zooms it, both on the element itself */}
-      <Image
+      <StoryPhoto
         ref={photo}
         src="/images/heartofaseal-28.jpg"
         alt={t("alt.arcticPanorama")}

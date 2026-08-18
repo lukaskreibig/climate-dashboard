@@ -10,10 +10,9 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import Image from "next/image";
+import StoryPhoto from "@/components/StoryPhoto";
 import { motion } from "framer-motion";
 import { usePrefersReducedMotion } from "@/lib/reducedMotion";
-import { imageSize } from "@/lib/imageMeta";
 
 /* ────────────────────────── TYPES ────────────────────────── */
 export interface PhotoStoryApi {
@@ -78,9 +77,8 @@ const Figure = ({ p }: { p: Photo }) => (
     className="relative flex items-center justify-center rounded-3xl shadow-xl overflow-hidden"
     style={{ maxWidth: MAX_IMAGE_WIDTH }}
   >
-    <Image
+    <StoryPhoto
       src={p.src}
-      {...imageSize(p.src)}
       alt={p.alt}
       sizes={`(max-width: 900px) 100vw, ${MAX_IMAGE_WIDTH}px`}
       className="max-h-[80vh] w-auto max-w-full h-auto object-contain"
@@ -339,7 +337,7 @@ const Fullscreen = ({
         style={{ y: bgY, scale: zoomScale, x: bgXAlign }}
         transition={{ type: "spring", stiffness: 40, damping: 15 }}
       >
-        <Image
+        <StoryPhoto
           src={photos[0].src}
           alt={photos[0].alt}
           fill
@@ -446,10 +444,9 @@ const FullscreenSplit = ({
         }}
         transition={{ type: "spring", stiffness: 40, damping: 15 }}
       >
-        <Image
+        <StoryPhoto
           src={photos[0].src}
           alt={photos[0].alt}
-          {...imageSize(photos[0].src)}
           sizes={stacked ? "100vw" : "50vw"}
           className={`${stacked ? "max-h-[46vh]" : "max-h-[90vh]"} w-auto h-auto object-contain`}
         />

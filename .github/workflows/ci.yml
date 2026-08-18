@@ -49,6 +49,12 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      # The photographs are encoded by a script, not by the running server, and
+      # the variant tests check the files it produces rather than trusting the
+      # manifest. Twenty-five seconds cold, nothing when the cache is warm.
+      - name: Encode photo variants
+        run: yarn photos
+
       - name: Unit tests
         run: yarn test
 

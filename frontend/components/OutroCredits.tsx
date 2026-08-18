@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CaptionWithLearnMore } from "@/components/CaptionsWithLearnMore";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
+import StoryPhoto from "@/components/StoryPhoto";
 import { Send, User } from "lucide-react";
 import clsx from "clsx";
 import DataFreshnessNote from "@/components/DataFreshnessNote";
@@ -327,7 +327,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
           <>
             {/* Avatar - nur anzeigen wenn Chat geschlossen */}
             <div className="mb-6 text-center">
-              <Image 
+              <StoryPhoto 
                 src="/images/knud.jpg" 
                 alt={t("alt.knudPortrait")}
                 width={192}
@@ -366,7 +366,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
           <div className="w-full max-w-lg bg-gray-900 rounded-lg border border-gray-700 flex flex-col h-[80vh] min-h-[600px]">
             {/* Chat Header */}
             <div className="flex items-center gap-3 p-4 border-b border-gray-700">
-              <Image 
+              <StoryPhoto 
                 src="/images/knud.jpg" 
                 alt={t("alt.knudAvatar")}
                 width={32} 
@@ -388,7 +388,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
               {messages.map((msg, idx) => (
                 <div key={idx} className={clsx("flex", msg.fromUser ? "justify-end" : "justify-start")}>
                   {!msg.fromUser && (
-                    <Image 
+                    <StoryPhoto 
                       src="/images/knud.jpg" 
                       alt={t("alt.knudAvatar")}
                       width={24} 
@@ -416,7 +416,7 @@ export default function OutroCredits({ baseMeta, fjordMeta }: OutroCreditsProps 
 
               {isLoading && !accumulatedText && blinkingDots && (
                 <div className="flex items-center gap-2">
-                  <Image 
+                  <StoryPhoto 
                     src="/images/knud.jpg" 
                     alt={t("alt.knudAvatar")}
                     width={24} 
