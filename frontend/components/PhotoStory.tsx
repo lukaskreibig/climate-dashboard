@@ -59,6 +59,13 @@ interface Props {
   /* fullscreen knobs */
   fullscreenQuoteOpts?: FullscreenQuoteOpts;
   fullscreenImageFit?: "contain" | "cover";
+  /**
+   * Drop the lazy attribute and ask for this photo first, rather than when it
+   * approaches the viewport. Only worth it for the few photos that must not be
+   * late; note that it cannot help before hydration, because ChartScene mounts
+   * its visual in an effect. The head start comes from warmPhotos.
+   */
+  priority?: boolean;
 }
 
 /* ───────────────────── CONSTANTS ─────────────────────────── */
@@ -197,6 +204,8 @@ interface VariantProps {
   className: string;
   background: string;
   quoteNode: React.ReactNode;
+  /** See PhotoStoryProps.priority: put this photo in the head, not in a scene. */
+  priority?: boolean;
 }
 
 /* ───────────── VARIANT A – single ───────────── */
@@ -284,6 +293,7 @@ const Fullscreen = ({
   quoteNode,
   opts,
   fit: fitProp,
+  priority,
   reducedMotion,
 }: VariantProps & {
   opts: FullscreenQuoteOpts;
@@ -334,6 +344,7 @@ const Fullscreen = ({
           alt={photos[0].alt}
           fill
           sizes="100vw"
+          priority={priority}
           className={`${fit} object-center`}
         />
       </motion.div>
@@ -496,6 +507,7 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
     parallaxIntensity = 1,
     fullscreenQuoteOpts,
     fullscreenImageFit,
+    priority,
     backgroundColor,
     textColor = "black",
     quote = true,
@@ -530,6 +542,7 @@ const PhotoStory = forwardRef<PhotoStoryApi, Props>((props, ref) => {
           {...shared}
           opts={fullscreenQuoteOpts ?? {}}
           fit={fullscreenImageFit}
+          priority={priority}
           reducedMotion={reducedMotion}
         />
       );

@@ -335,6 +335,13 @@ export const useScenesWithTranslation = () => {
       ref={api}
       photos={[{ src: "/images/heartofaseal_town.jpg", alt: t("alt.uummannaqView") }]}
       variant="fullscreen"
+      // The map lands on the viewpoint this photograph was taken from and cuts
+      // straight to it, so of all the photos this is the one that must not be
+      // late. `priority` drops the lazy attribute and asks for it first; the
+      // fetch that actually saves the cut is the warm in page.tsx, because
+      // ChartScene mounts its visual only after hydration and until then no
+      // photo exists in the document at all.
+      priority
       // mainCaption="When I was a child, the ice was gone in June and July…"
       // author="Uummannaq Resident"
       fullscreenImageFit="cover"    
