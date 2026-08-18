@@ -12,6 +12,7 @@ import ArcticBackgroundSystem, {
 } from "@/components/ArcticBackgroundSystem";
 import MapboxPreloader, {
   preloadMapImages,
+  preloadTerrainTiles,
   preloadTiles,
 } from "@/components/MapboxPreloader";
 import { attachSatelliteOverlays } from "@/lib/mapboxWarmup";
@@ -109,6 +110,11 @@ export default function Page() {
             updateProgress(28);
           });
         });
+        // Ungated, and before everything else that touches the map. See
+        // preloadTerrainTiles: behind the intent gate it started at the same
+        // moment the reader did and always arrived second.
+        void preloadTerrainTiles();
+
         const tilesPromise = preloadTiles({
           language: i18n.language,
           timeoutMs: 10000,
