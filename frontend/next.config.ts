@@ -7,13 +7,24 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    // AVIF first, WebP for anything that cannot take it. These are photographs
-    // of snow and rock, where AVIF is worth its slower encode: the encode
-    // happens once per size and is cached, the download happens once per
-    // reader. minimumCacheTTL keeps a variant for a year, which is safe
-    // because a changed photo means a changed filename here.
-    formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 31_536_000,
+    /**
+     * The optimiser is switched off, and that is the point rather than a
+     * regression. The photographs are encoded to AVIF and WebP once, by
+     * scripts/gen-photo-variants.mjs, and served as files through the <picture>
+     * in components/StoryPhoto.tsx.
+     *
+     * It used to encode on demand, and libaom is expensive out of all
+     * proportion to what it produces: a single 2800 px AVIF took the server
+     * process from 55 MB to 312 MB, four warmed photographs pushed the tree
+     * 442 MB above idle, and the container has 512 MB and was being killed for
+     * it. After the move, two full page loads cost 4 MB.
+     *
+     * `unoptimized` rather than a comment saying not to use next/image: if one
+     * ever comes back, it should hand over the original file, not quietly bring
+     * the 400 MB encode back with it. lib/__tests__/photoVariants.test.ts fails
+     * if next/image is imported at all.
+     */
+    unoptimized: true,
   },
   async headers() {
     return [

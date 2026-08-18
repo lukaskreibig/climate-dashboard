@@ -4,12 +4,13 @@
   "private": true,
   "packageManager": "yarn@3.2.3",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "yarn photos && next dev --turbopack",
+    "build": "yarn photos && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "photos": "node scripts/gen-photo-variants.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -54,6 +55,7 @@
     "jsdom": "^25.0.0",
     "postcss": "^8.5.3",
     "postcss-simple-vars": "^7.0.1",
+    "sharp": "^0.34.4",
     "stylelint": "^16.19.1",
     "stylelint-config-tailwindcss": "^1.0.0",
     "tailwindcss": "^4.1.6",

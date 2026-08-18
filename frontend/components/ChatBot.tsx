@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+import StoryPhoto from "@/components/StoryPhoto";
 import { Send, User } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
@@ -155,7 +155,7 @@ export default function ChatBot() {
         onClick={() => setOpened(true)}
         className="fixed bottom-30 right-5.5 z-40 rounded-full shadow-lg ring-1  ring-slate-900/10 transition-transform hover:scale-105 animate-pulse"
       >
-        <Image src="/knud.jpg" alt={t("chatbot.chatWith")} width={50} height={56} className="rounded-full" />
+        <StoryPhoto src="/images/knud.jpg" alt={t("chatbot.chatWith")} width={50} height={56} className="rounded-full" />
       </button>
 
       {/* Modal overlay */}
@@ -171,7 +171,7 @@ export default function ChatBot() {
           <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col bg-white text-gray-900 rounded-lg shadow-xl p-4 h-[80vh]">
             {/* header */}
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/images/knud.jpg" alt={t("alt.knudAvatar")} width={32} height={32} className="rounded-full" />
+              <StoryPhoto src="/images/knud.jpg" alt={t("alt.knudAvatar")} width={32} height={32} className="rounded-full" />
               <h2 className="font-semibold">{t("chatbot.chatWithFull")}</h2>
               <button
                 onClick={() => setOpened(false)}
@@ -187,7 +187,7 @@ export default function ChatBot() {
               {messages.map((msg, idx) => (
                 <div key={idx} className={clsx("flex", msg.fromUser ? "justify-end" : "justify-start")}>
                   {!msg.fromUser && (
-                    <Image src="/images/knud.jpg" alt={t("alt.knudAvatar")} width={24} height={24} className="rounded-full mr-2 self-start" />
+                    <StoryPhoto src="/images/knud.jpg" alt={t("alt.knudAvatar")} width={24} height={24} className="rounded-full mr-2 self-start" />
                   )}
                   {msg.fromUser && (
                     <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2">
@@ -209,7 +209,7 @@ export default function ChatBot() {
 
               {isLoading && !accumulatedText && blinkingDots && (
                 <div className="flex items-center gap-2">
-                  <Image src="/knud.jpg" alt={t("alt.knudAvatar")} width={24} height={24} className="rounded-full" />
+                  <StoryPhoto src="/images/knud.jpg" alt={t("alt.knudAvatar")} width={24} height={24} className="rounded-full" />
                   <div className="px-3 py-2 bg-gray-100 rounded-lg text-sm shadow">{blinkingDots}</div>
                 </div>
               )}
