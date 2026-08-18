@@ -43,4 +43,3 @@ cronSchedule = "0 6 * * *"
 # wedge the cron permanently after a single bad day. NEVER lets a failed run die and
 # lets tomorrow's tick start clean.
 restartPolicyType = "NEVER"
-restartPolicyMaxRetries = 0
