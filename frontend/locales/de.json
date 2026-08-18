@@ -148,7 +148,8 @@
       "livingOutsideTitle": "Eine veränderte Saison",
       "livingOutside": "Die rote Linie zeigt den Mittelwert ab 2021. In diesem Vergleich liegen die jüngeren Jahre über weite Teile der Saison niedriger.",
       "consequence": "im Saisonmittel (Mitte Februar bis Ende Juni) gegenüber 2017 bis 2020",
-      "result": "Das erklärt nicht jede Entscheidung vor Ort. Und es ist noch kein Beweis: zehn Winter reichen nicht, um diesen Unterschied statistisch abzusichern. Die Richtung ist in jeder vertretbaren Auswertung dieselbe. Die Sicherheit ist es nicht."
+      "result": "Das erklärt nicht jede Entscheidung vor Ort. Und es ist noch kein Beweis: zehn Winter reichen nicht, um diesen Unterschied statistisch abzusichern. Die Richtung ist in jeder vertretbaren Auswertung dieselbe. Die Sicherheit ist es nicht.",
+      "correction": "Einen systematischen Fehler belegen inzwischen drei Instrumente: die Auswertung liest dunkles, nasses Eis als offenes Wasser, in den späteren Jahren doppelt so oft, und das macht diese Zahl zu groß. Rechnet man ihn heraus, werden aus 22,6 Prozent etwa 19,5. Der Rückgang bleibt, seine Größe ist unsicherer, als eine einzelne Zahl aussehen lässt."
     },
     "trajectory": {
       "title": "Eine Richtung, kein Schicksal",
@@ -407,7 +408,7 @@
       "allYearsSeason": "Kleine Einzeldiagramme des täglichen Eisanteils je Uummannaq-Saison ab 2017; jüngere Saisons liegen im selben Zeitfenster (Februar bis Juni) niedriger. Ein graues Band markiert in jedem Feld den 95-Prozent-Bereich des Saisonmittels; am breitesten ist es 2026, dessen Saison durch den Aufbruch läuft; 2017 hat mit 24 Tagen die wenigsten Messungen, aber nicht das breiteste Band.",
       "memoryMeasurement": "Kalender-Heatmap der gemessenen Eistage je Uummannaq-Winter, Februar bis Juni; jüngere Winter zeigen weniger Eistage. Rechts steht je Winter das Saisonmittel mit seinem 95-Prozent-Bereich, am breitesten 2026; 2017 hat mit 24 Tagen die wenigsten Messungen.",
       "breakupTiming": "Streudiagramm des Tages, an dem das Eis jedes Uummannaq-Winters aufbrach, 2017 bis 2026; der Aufbruch erfolgt im Mittel rund zehn Tage früher und deutlich unregelmäßiger.",
-      "earlyLateSeason": "Mittlerer Eisanteil 2017 bis 2020 (blau) über die Jahre ab 2021 (rot) im Saisonverlauf; im Saisonmittel liegt der jüngere Zeitraum rund 23 Prozent niedriger.",
+      "earlyLateSeason": "Mittlerer Eisanteil 2017 bis 2020 (blau) über die Jahre ab 2021 (rot) im Saisonverlauf; im Saisonmittel liegt der jüngere Zeitraum 22,6 Prozent niedriger.",
       "seasonal": "Liniendiagramm der arktischen Meereisausdehnung je Jahr seit 1979; jüngere Jahre (rot) liegen unter älteren (blau), besonders am Wintermaximum und Spätsommerminimum.",
       "dailyAnomaly": "Arktische Meereis-Anomalie nach Jahrzehnt; jedes Jahrzehnt liegt tiefer, von nahe dem Durchschnitt in den 1980ern bis deutlich darunter in den 2020ern.",
       "annualAnomaly": "Jährliche Balken der arktischen Meereis-Anomalie; ab den 2000ern liegen die meisten Jahre unter dem langfristigen Durchschnitt.",

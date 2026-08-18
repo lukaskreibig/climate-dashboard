@@ -148,7 +148,8 @@
       "livingOutsideTitle": "A Changed Season",
       "livingOutside": "The red line shows the mean from 2021 on. In this comparison, the later years sit lower across much of the season.",
       "consequence": "season mean (mid-February to late June) against 2017 to 2020",
-      "result": "That does not explain every local decision, and it is not yet proof: ten winters are too few to establish this difference statistically. The direction is the same under every defensible analysis. The certainty is not."
+      "result": "That does not explain every local decision, and it is not yet proof: ten winters are too few to establish this difference statistically. The direction is the same under every defensible analysis. The certainty is not.",
+      "correction": "One systematic error is now established by three instruments: the chain reads dark, wet ice as open water, twice as often in the later years, and that makes this figure too large. Correct for it and 22.6 percent becomes about 19.5. The decline holds, and its size is less certain than a single number makes it look."
     },
     "trajectory": {
       "title": "A Direction, Not a Fate",
@@ -407,7 +408,7 @@
       "allYearsSeason": "Small-multiple charts of daily ice fraction for each Uummannaq season from 2017; later seasons sit lower in the same February-to-June window. A gray band on each panel marks the 95% range of that season's average; the band is widest for 2026, whose season runs through break-up; 2017 has the fewest measurements at 24 days but not the widest band.",
       "memoryMeasurement": "Calendar heatmap of measured ice days for each Uummannaq winter, February to June; later winters show fewer ice days. A column on the right gives each winter's average with its 95% range, widest for 2026; 2017 has the fewest measurements at 24 days.",
       "breakupTiming": "Scatter of the day each Uummannaq winter's ice broke up, 2017 to 2026; breakup is about ten days earlier on average and far more variable.",
-      "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on the years from 2021 (red) across the season; averaged over the season the later period sits about 23 percent lower.",
+      "earlyLateSeason": "Mean ice fraction for 2017 to 2020 (blue) overlaid on the years from 2021 (red) across the season; averaged over the season the later period sits 22.6 percent lower.",
       "seasonal": "Line chart of Arctic sea-ice extent by year since 1979; recent years (red) sit below older years (blue), especially at the winter maximum and late-summer minimum.",
       "dailyAnomaly": "Arctic sea-ice anomaly by decade; each decade steps lower, from near the average in the 1980s to well below it in the 2020s.",
       "annualAnomaly": "Yearly Arctic sea-ice anomaly bars; from the 2000s onward most years fall below the long-term average.",
