@@ -28,6 +28,12 @@ import mapboxgl from "mapbox-gl";
 
 interface EnsureOptions {
   terrain?: boolean;
+  /**
+   * The 3.2 MB Sentinel-2 ground. Off during the warmup sweep, because mapbox
+   * fetches an image source the moment it is added and the story does not open
+   * on a map. attachSatelliteOverlays and claimWarmedMap turn it on.
+   */
+  ground?: boolean;
 }
 
 const GROUND_SOURCE = "s2-ground";
@@ -56,21 +62,42 @@ const GROUND: {
     "Sentinel data, processed for this story",
 };
 
-const TERRAIN = {
+export const TERRAIN = {
   tiles: ["/terrain/{z}/{x}/{y}.png"],
   // 512 rather than 256 on purpose. mapbox-gl picks its DEM zoom as the camera
   // zoom plus log2(tileSize / 512), so at 256 a camera at 11.4 reads one level
   // coarser than the tiles were built at.
   tileSize: 512,
-  minzoom: 8,
+  // 6, not 8, and the two levels are worth more than their four tiles.
+  //
+  // A raster-dem source has NO terrain below its minzoom, so that zoom is a
+  // visible edge the camera crosses: the mountain appeared on the way down and
+  // vanished again on the way up, at the same caption both times. It looked like
+  // the relief loading late and it was not loading at all, it did not exist yet.
+  // Zoom 6 is where the ground image starts fading in, so the two now arrive
+  // together. Must match public/terrain/meta.json, which the test enforces.
+  minzoom: 6,
+  // 11, and the detail over the island rides inside these tiles rather than
+  // below them. Measured: with the camera at the landing's zoom 12.65, mapbox-gl
+  // requests DEM tiles at zoom 10, at every pitch, roughly two and a half levels
+  // under the camera. Levels 12 and 13 were built and never once fetched. What
+  // does reach the screen is the tile's own pixel count, which mapbox reads from
+  // the image rather than from tileSize below, so the ten tiles over the island
+  // carry 1024 pixels and halve the posting there from 25 m to 12.6. See
+  // build_terrain_tiles.py in the science repo for the measurement and the risk.
   maxzoom: 11,
+  // The tiles cover one fjord. Without bounds, mapbox-gl asks for every
+  // neighbour the camera can see and gets a 404 for most of them: measured at
+  // 202 of 237 requests on one camera path. See public/terrain/meta.json, which
+  // the builder writes and which these numbers must match.
+  bounds: [-52.9, 70.4, -51.5, 71.0] as [number, number, number, number],
   attribution:
     "Elevation: ArcticDEM v4.1, Polar Geospatial Center, University of Minnesota",
 } as const;
 
 export function ensureBasemapLayers(
   map: mapboxgl.Map,
-  { terrain = true }: EnsureOptions = {},
+  { terrain = true, ground = true }: EnsureOptions = {},
 ): void {
   /* remove Mapbox's water layers so the scene underneath shows through */
   map
@@ -78,7 +105,7 @@ export function ensureBasemapLayers(
     .layers?.filter((layer) => layer.id.startsWith("water"))
     .forEach((layer) => map.removeLayer(layer.id));
 
-  if (!map.getSource(GROUND_SOURCE)) {
+  if (ground && !map.getSource(GROUND_SOURCE)) {
     map.addSource(GROUND_SOURCE, {
       type: "image",
       url: GROUND.url,
@@ -86,7 +113,7 @@ export function ensureBasemapLayers(
     });
   }
 
-  if (!map.getLayer(GROUND_SOURCE)) {
+  if (ground && !map.getLayer(GROUND_SOURCE)) {
     const firstSymbol = map
       .getStyle()
       .layers?.find((layer) => layer.type === "symbol")?.id;
@@ -115,18 +142,36 @@ export function ensureBasemapLayers(
     );
   }
 
-  if (terrain && !map.getSource(DEM_SOURCE)) {
-    map.addSource(DEM_SOURCE, {
-      type: "raster-dem",
-      tiles: [...TERRAIN.tiles],
-      tileSize: TERRAIN.tileSize,
-      minzoom: TERRAIN.minzoom,
-      maxzoom: TERRAIN.maxzoom,
-      encoding: "mapbox",
-      attribution: TERRAIN.attribution,
-    });
+  if (terrain) {
+    if (!map.getSource(DEM_SOURCE)) {
+      map.addSource(DEM_SOURCE, {
+        type: "raster-dem",
+        tiles: [...TERRAIN.tiles],
+        tileSize: TERRAIN.tileSize,
+        minzoom: TERRAIN.minzoom,
+        maxzoom: TERRAIN.maxzoom,
+        bounds: [...TERRAIN.bounds],
+        encoding: "mapbox",
+        attribution: TERRAIN.attribution,
+      });
+    }
+
+    // Outside the `if` that adds the source, and that is the whole point.
+    //
+    // This function runs twice on a warmed map: once on style.load, and again
+    // when a scene claims it. On the first run the map is still the globe at
+    // zoom 1.3, and the very next lines of MapFlyScene's style.load handler call
+    // setProjection("globe"), which drops the terrain again. With setTerrain
+    // inside the source guard, the second run saw the source already there and
+    // skipped it, so the relief never came back and the fjord stayed flat all
+    // the way down. The ground image kept working throughout, because a raster
+    // layer does not care about the projection, which is exactly why the map
+    // looked half fixed.
     map.setTerrain({ source: DEM_SOURCE, exaggeration: 1.3 });
+  } else if (map.getTerrain()) {
+    map.setTerrain(null);
   }
+
 
   // The attribution control reads sources, and an image source carries none.
   map.getContainer().setAttribute("data-ground-attribution", GROUND.attribution);

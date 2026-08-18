@@ -16,6 +16,18 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ensureBasemapLayers } from "@/lib/basemapLayers";
+import {
+  FLIGHT_RAMP_IN,
+  FLIGHT_RAMP_OUT,
+  FLIGHT_SETTLE,
+  buildFlightTimeline,
+  buildKeyframes,
+  cameraAtProgress,
+  easeEnds,
+} from "@/lib/flightPath";
+import type { Waypoint } from "@/lib/flightPath";
+export type { Waypoint } from "@/lib/flightPath";
+
 import { prefersReducedMotion } from "@/lib/reducedMotion";
 import {
   applyMapLanguage,
@@ -27,65 +39,9 @@ import {
 gsap.registerPlugin(ScrollTrigger);
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
-/* ——— scroll-linked camera helpers ——— */
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const lerpAngle = (a: number, b: number, t: number) => {
-  const d = ((b - a + 540) % 360) - 180;
-  return a + d * t;
-};
-const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-interface CamKeyframe { from: number; to: number; start: number; end: number }
-
-/** Build a hold→move→hold keyframe timeline; the final descent is the longest
- *  (a slow "landing"), followed by a settle hold. */
-function buildKeyframes(n: number): CamKeyframe[] {
-  const HOLD = 0.5;
-  const MOVE = 1;
-  const raw: { from: number; to: number; w: number }[] = [{ from: 0, to: 0, w: HOLD }];
-  for (let i = 0; i < n - 1; i++) {
-    raw.push({ from: i, to: i + 1, w: i === n - 2 ? MOVE * 1.7 : MOVE });
-    raw.push({ from: i + 1, to: i + 1, w: HOLD });
-  }
-  const total = raw.reduce((acc, s) => acc + s.w, 0);
-  let acc = 0;
-  return raw.map((s) => {
-    const start = acc / total;
-    acc += s.w;
-    return { from: s.from, to: s.to, start, end: acc / total };
-  });
-}
-
-function cameraAtProgress(wps: Waypoint[], keys: CamKeyframe[], p: number) {
-  const prog = Math.max(0, Math.min(1, p));
-  const k = keys.find((s) => prog >= s.start && prog < s.end) ?? keys[keys.length - 1];
-  const a = wps[k.from];
-  const b = wps[k.to];
-  const t = k.from === k.to ? 0 : easeInOutCubic((prog - k.start) / (k.end - k.start));
-  return {
-    lng: lerp(a.lng, b.lng, t),
-    lat: lerp(a.lat, b.lat, t),
-    zoom: lerp(a.zoom, b.zoom, t),
-    pitch: lerp(a.pitch ?? 0, b.pitch ?? 0, t),
-    bearing: lerpAngle(a.bearing ?? 0, b.bearing ?? 0, t),
-  };
-}
+/* the camera path lives in lib/flightPath.ts: arithmetic, and testable there */
 
 /* ——— types ——— */
-export interface Waypoint {
-  lng: number;
-  lat: number;
-  zoom: number;
-  pitch?: number;
-  bearing?: number;
-
-  /** optional clockwise spin while we stay on this wp (° per sec) */
-  orbit?: number;
-
-  /** optional Mapbox flyTo speed for this single hop */
-  flySpeed?: number;
-}
 
 /* public (unchanged) */
 export interface MapFlyApi {
@@ -99,6 +55,12 @@ interface Props {
   className?: string;
   terrain?: boolean;     // default true
   preloadKey?: string;
+  /**
+   * Fly the whole scene as one continuous move: no standstill between waypoints,
+   * one acceleration at the start and one deceleration at the end. Off by
+   * default, because the globe scene is choreographed against the holds.
+   */
+  continuousFlight?: boolean;
   /** drive the camera continuously from scroll instead of discrete flyTo hops */
   scrollCamera?: boolean;
   /** render on a 3-D globe (setProjection) — for the whole-Arctic pull-back */
@@ -112,7 +74,7 @@ interface Props {
 
 /* ——— component ——— */
 const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
-  { waypoints, flySpeed = 0.5, className = "", terrain = true, preloadKey, scrollCamera = false, globe = false, cameraEnd = 1, onProgress },
+  { waypoints, flySpeed = 0.5, className = "", terrain = true, preloadKey, scrollCamera = false, globe = false, cameraEnd = 1, onProgress, continuousFlight = false },
   ref
 ) {
   const { i18n } = useTranslation();
@@ -292,7 +254,11 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
     const section = box.current?.closest<HTMLElement>("[data-scene]");
     if (!section) return;
 
-    const keys = buildKeyframes(waypoints.length);
+    // A settle at the end either way: the last frame has to stand still for a
+    // beat before the story cuts to the photograph taken from that spot.
+    const keys = continuousFlight
+      ? buildFlightTimeline(waypoints)
+      : buildKeyframes(waypoints.length);
     // while the globe holds and the decades pass, let the Earth keep turning:
     // a slow, scroll-driven bearing drift (scrub-safe and fully reversible)
     const HOLD_SPIN_DEG = 35;
@@ -302,7 +268,15 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       // camera finishes its ascent by `cameraEnd`, then holds while a later
       // beat (ice retreat) drives the remaining scroll.
       const cp = cameraEnd >= 1 ? p : Math.min(1, p / cameraEnd);
-      const cam = cameraAtProgress(waypoints, keys, cp);
+      // The settle comes off the raw scroll first, then the flight is eased over
+      // what is left. Easing first would have the ease compress the settle too.
+      const flight = Math.min(1, cp / (1 - FLIGHT_SETTLE));
+      const cam = cameraAtProgress(
+        waypoints,
+        keys,
+        continuousFlight ? easeEnds(flight, FLIGHT_RAMP_IN, FLIGHT_RAMP_OUT) : cp,
+        continuousFlight,
+      );
       const spin =
         globe && cameraEnd < 1 && p > cameraEnd
           ? ((p - cameraEnd) / (1 - cameraEnd)) * HOLD_SPIN_DEG
@@ -312,6 +286,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         zoom: cam.zoom,
         pitch: cam.pitch,
         bearing: cam.bearing + spin,
+        padding: { top: cam.padTop * m.getCanvas().clientHeight, bottom: 0, left: 0, right: 0 },
       });
       onProgressRef.current?.(p);
     };
@@ -334,7 +309,7 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
       st.kill();
       scrubActive.current = false;
     };
-  }, [scrollCamera, ready, waypoints, cameraEnd, globe]);
+  }, [scrollCamera, ready, waypoints, cameraEnd, globe, continuousFlight]);
 
   /* ═════════════════ expose API ═════════════════ */
   useImperativeHandle(
@@ -345,11 +320,18 @@ const MapFlyScene = forwardRef<MapFlyApi, Props>(function MapFlyScene(
         const wp = waypoints[idx] ?? waypoints[0];
         if (!wp) return;
 
+        const canvasHeight = map.current?.getCanvas().clientHeight ?? 0;
         map.current?.flyTo({
           center: [wp.lng, wp.lat],
           zoom: wp.zoom,
           pitch: wp.pitch ?? (map.current?.getPitch() ?? 0),
           bearing: wp.bearing ?? (map.current?.getBearing() ?? 0),
+          padding: {
+            top: (wp.padTop ?? 0) * canvasHeight,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          },
           speed: wp.flySpeed ?? flySpeed,
         });
 

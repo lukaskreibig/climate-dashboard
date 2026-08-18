@@ -9,7 +9,7 @@ import {
   type MapPreloadView,
   type MapSatelliteOverlayPreload,
 } from "@/lib/mapPreloadRegistry";
-import { ensureBasemapLayers } from "@/lib/basemapLayers";
+import { TERRAIN, ensureBasemapLayers } from "@/lib/basemapLayers";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -222,6 +222,70 @@ const preloadImage = (src: string) =>
     img.src = src;
   });
 
+/**
+ * The relief, fetched the moment the page loads.
+ *
+ * NOT behind the first-intent gate, and that is the entire point. It was, and it
+ * lost every race: the gate fires on the reader's first scroll, which is the same
+ * moment they start travelling toward the map, so the prefetch and the descent
+ * began together and the mountain arrived second. The reader saw a flat island
+ * inflate exactly as the map came into view.
+ *
+ * The imagery is gated because it is 3.2 MB of Sentinel-2 for a beat far down the
+ * story. This is 20 same-origin PNGs and 1.2 MB, which is less than the story's
+ * own fonts, so it can simply be fetched.
+ *
+ * Zoom 8 and 9 only, out of 11.3 MB for the whole set. That is enough for relief
+ * to exist under the island from the first frame it is visible; zoom 10 and 11
+ * refine it while the camera is still travelling, which is when streaming is
+ * invisible. The ranges come from the builder's own manifest rather than being
+ * guessed here.
+ */
+const COARSE_THROUGH = 9;
+
+interface TerrainManifest {
+  levels: Record<string, { x0: number; x1: number; y0: number; y1: number }>;
+}
+
+let terrainWarmed = false;
+let terrainWarmPromise: Promise<void> | null = null;
+
+export function preloadTerrainTiles(): Promise<void> {
+  if (terrainWarmed) return Promise.resolve();
+  if (terrainWarmPromise) return terrainWarmPromise;
+
+  terrainWarmPromise = fetch("/terrain/meta.json")
+    .then((response) => (response.ok ? response.json() : null))
+    .then((manifest: TerrainManifest | null) => {
+      if (!manifest?.levels) return;
+      const urls: string[] = [];
+      Object.entries(manifest.levels).forEach(([zoom, range]) => {
+        const z = Number(zoom);
+        if (z > COARSE_THROUGH) return;
+        for (let x = range.x0; x <= range.x1; x += 1) {
+          for (let y = range.y0; y <= range.y1; y += 1) {
+            urls.push(
+              TERRAIN.tiles[0]
+                .replace("{z}", String(z))
+                .replace("{x}", String(x))
+                .replace("{y}", String(y)),
+            );
+          }
+        }
+      });
+      return Promise.all(urls.map((src) => preloadImage(src))).then(() => undefined);
+    })
+    .catch(() => undefined)
+    .then(() => {
+      terrainWarmed = true;
+    })
+    .finally(() => {
+      terrainWarmPromise = null;
+    });
+
+  return terrainWarmPromise;
+}
+
 export function preloadMapImages(): Promise<void> {
   if (imagesWarmed) return Promise.resolve();
   if (imageWarmPromise) return imageWarmPromise;
@@ -389,6 +453,21 @@ const warmRegisteredMap = async (
       // So the sweep primes the Mapbox base map only, and MapTiler's imagery
       // and terrain go on when a scene actually claims the map. The story does
       // not open on a map, so there is room for it to arrive.
+      // The relief IS attached here, and it used to not be.
+      //
+      // The comment this replaces was right for its time: with MapTiler's DEM
+      // on the map, the sweep below jumped through every waypoint and fetched
+      // MapTiler tiles for each, 260 requests before the reader had scrolled,
+      // out of 571 for a page view against a 100 000 a month plan. That plan ran
+      // out in August 2026 and the keys were suspended.
+      //
+      // The relief now ships with the story as 340 static files under
+      // public/terrain, so a sweep over it costs a few hundred kilobytes of
+      // same-origin cache and nobody's quota. Leaving it out was the reason the
+      // mountain arrived only once the reader had already zoomed in, and then
+      // popped: mapbox-gl asks for DEM tiles for the view it is in, so with no
+      // terrain during the sweep, nothing was ever asked for in advance.
+      ensureBasemapLayers(map, { terrain: state.terrain, ground: false });
       applyMapLanguage(map, currentLanguage);
       // The satellite overlay is NOT attached here. Mapbox fetches an image
       // source the moment it is added, and these two are 2.4 MB for a scene far

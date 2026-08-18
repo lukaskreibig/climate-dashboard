@@ -9,13 +9,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import {
   clearMapWarmupRoot,
   preloadMapImages,
+  preloadTerrainTiles,
   preloadTiles,
   setMapWarmupRoot,
   setWarmMapLanguage,
   startMapWarmup,
 } from "@/lib/mapboxWarmup";
 
-export { preloadMapImages, preloadTiles, startMapWarmup };
+export { preloadMapImages, preloadTerrainTiles, preloadTiles, startMapWarmup };
 
 export default function MapboxPreloader() {
   const { i18n } = useTranslation();
