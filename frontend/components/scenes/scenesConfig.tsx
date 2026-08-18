@@ -951,7 +951,11 @@ export const useScenesWithTranslation = () => {
               <h3 className="text-2xl font-display mb-2">{t('scenes.newAbnormal.livingOutsideTitle')}</h3>
               {typeof loss === "number" && (
                 <StatChip
-                  value={Math.abs(Math.round(loss))}
+                  // One decimal, because the paragraph below this chip now
+                  // names 22.6 and the chart overlay prints it too. Rounded to
+                  // 23 it read as a third, slightly different number.
+                  value={Math.abs(Math.round(loss * 10) / 10)}
+                  decimals={1}
                   prefix="−"
                   suffix=" %"
                   label={t('scenes.newAbnormal.consequence')}
@@ -961,6 +965,13 @@ export const useScenesWithTranslation = () => {
                 {t('scenes.newAbnormal.livingOutside')}
                 <br/><br/>
                 {t('scenes.newAbnormal.result')}
+              </p>
+              {/* The one bias big enough to move this number, named where the
+                  number is rather than only in the method panel. It points one
+                  way, so leaving it to a panel most readers never open would be
+                  the convenient omission. */}
+              <p className="text-base opacity-80 mt-4">
+                {t('scenes.newAbnormal.correction')}
               </p>
             </>
           );
