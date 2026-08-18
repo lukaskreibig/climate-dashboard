@@ -825,7 +825,8 @@ if __name__ == "__main__":
     if _should_run_chained_pipeline():
         if _has_database_url():
             _run_step("wait_for_db.py")
-        update_data()
-        _run_step("update_fjord_data.py")
-    else:
-        update_data()
+    # The fjord step is NOT chained here. See data-pipeline/railway.toml: it is
+    # owned by refresh_fjord_season.py, which runs when there are new Sentinel-2
+    # days to classify, and calling it daily made it a second writer that only
+    # ever rewrote the same tables from whatever this file happened to contain.
+    update_data()

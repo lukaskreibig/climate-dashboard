@@ -35,7 +35,20 @@ watchPatterns = [
 [deploy]
 # Kept byte for byte in sync with the CMD in data-pipeline/Dockerfile so it makes no
 # difference which one Railway ends up executing.
-startCommand = "sh -c \"python3 -u wait_for_db.py && python3 -u update_pipeline.py && python3 -u update_fjord_data.py\""
+# The fjord step is deliberately NOT here.
+#
+# update_fjord_data.py recomputes the derived fjord tables from the classified
+# series, and it is owned by refresh_fjord_season.py, which calls it after it has
+# actually classified new Sentinel-2 days. The observation season runs late
+# February to late June, so that happens a handful of times a year, not daily.
+#
+# Running it from the daily cron as well meant a second writer for the same
+# tables on a schedule that never had anything new to write. On 18 August 2026 it
+# rewrote them from a stale copy of the analysis: the season window opened at day
+# 45 instead of 53, the spring window was one this project had already retired,
+# and the raw per scene series was dropped, which emptied the uncertainty bands
+# on the published story with no error anywhere.
+startCommand = "sh -c \"python3 -u wait_for_db.py && python3 -u update_pipeline.py\""
 cronSchedule = "0 6 * * *"
 
 # Cron services must terminate. Railway skips the next scheduled execution while a
