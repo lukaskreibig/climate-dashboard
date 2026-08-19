@@ -64,7 +64,8 @@ function buildDense(rows: SeasonRow[]) {
   // Wir laufen den vollen Feb–Jun Bereich ab, damit X-Achse immer gleich ist
   for (let doy = SUN_START; doy <= SUN_END; doy++) {
     // DOY → "DD-Mon" (2020 chosen for leap-safe JS parity)
-    const d = new Date(Date.UTC(2020, 0, doy));
+    // A common year, not a leap year. See doyToMonthDay in lib/chartData.ts.
+    const d = new Date(Date.UTC(2001, 0, doy));
     const day = `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString("en-US", { month: "short", timeZone: "UTC" })}`;
 
     const r = byDay[day];

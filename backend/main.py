@@ -662,7 +662,10 @@ def _attach_fjord_meta(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _label_for_doy(doy: int) -> str:
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    day = date(2020, 1, 1) + timedelta(days=doy - 1)
+    # A common year. 2020 is a leap year, and pinning to it put every label
+    # past 29 February one day early: the axis read 28-Jun for day 180, which
+    # is 29 June in eight of the ten seasons this axis is drawn over.
+    day = date(2001, 1, 1) + timedelta(days=doy - 1)
     return f"{day.day:02d}-{months[day.month - 1]}"
 
 
