@@ -103,3 +103,36 @@ class TestBothBranchesAgree:
             "one branch is not returning fracRaw, so the story cannot label "
             "measured days as measured"
         )
+
+
+class TestOneBreakupDefinition:
+    """Freeze-up and break-up must come from one definition, not two agreeing ones.
+
+    The database branch used to read these out of fjord_freeze_breakup, which the
+    data pipeline fills with min and max of the days above the threshold. That is
+    the definition _freeze_and_breakup was written to replace, and production
+    served it while the CSV fallback served the careful one. On this data the two
+    land within a day of each other every season, so the only visible symptom was
+    the badge reading 29 Apr under prose that says the earliest break-up in the
+    record is 30 April.
+    """
+
+    def test_neither_branch_reads_the_pipeline_table(self) -> None:
+        # The name still appears in the helper's docstring, explaining why the
+        # table is not read, so this looks for the query rather than the word.
+        assert not re.search(r"FROM\s+fjord_freeze_breakup", SOURCE, re.I), (
+            "the route is reading break-up from the pipeline's table again, which "
+            "is a second definition of the same day"
+        )
+
+    def test_both_branches_go_through_the_same_helper(self) -> None:
+        # one definition, one call in each branch
+        assert len(re.findall(r"_freeze_and_breakup\(", SOURCE)) >= 2
+
+    def test_the_helper_needs_a_sustained_open_run(self) -> None:
+        # The naive definition is max(doy where frozen). If the helper ever
+        # collapses to that, 2025 goes back to breaking up on 8 March, before
+        # its ice had arrived.
+        start = SOURCE.index("def _freeze_and_breakup")
+        body = SOURCE[start : SOURCE.index("\ndef ", start + 10)]
+        assert "_first_run_start" in body and "_sustained_runs" in body
