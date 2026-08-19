@@ -332,10 +332,19 @@ export default function MemoryMeasurementTimeline({
       timeZone: "UTC",
     }).format(new Date(`${date}T00:00:00Z`));
 
+  // Through the locale, like percentFormatter and seasonNumber above it. Written
+  // by hand this printed "-22.6%" on the German page, with a hyphen for the
+  // minus, a point for the comma and no space before the sign, while the chip
+  // two scenes earlier printed "−22,6 %" for the same quantity.
   const percentLabel =
     prepared.change === null
-      ? "n/a"
-      : `${prepared.change > 0 ? "+" : ""}${prepared.change.toFixed(1)}%`;
+      ? t("common.noData")
+      : new Intl.NumberFormat(locale, {
+          style: "percent",
+          signDisplay: "exceptZero",
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(prepared.change / 100);
 
   const shouldDim = (year: number) => {
     if (stage < STAGE_ALL) return year !== exampleCell.year;

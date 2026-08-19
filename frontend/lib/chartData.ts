@@ -38,9 +38,11 @@ export const UUMMANNAQ_SEASON_END_DOY = 181;
  *
  * This has to be a fixed year, not a median split of whatever rows happen to
  * have arrived. The headline the story prints next to these charts is the
- * backend's seasonLossPct, which is defined over FJORD_EARLY_YEARS =
- * 2017-2020 against FJORD_LATE_YEARS = 2021-2025 (backend/main.py). A median
- * split of the nine measured seasons puts 2021 in the *early* group, so the
+ * backend's seasonLossPct, which is defined over 2017-2020 against everything
+ * from FJORD_LATE_START_YEAR = 2021 (backend/main.py). That constant is open
+ * ended on purpose: it used to enumerate the late seasons, so a new season had
+ * to be added by hand to join them. A median split of the ten measured seasons
+ * puts 2021 in the *early* group, so the
  * calendar and the small multiples were highlighting 2017-2021 vs 2022-2025
  * while the badge beside them reported a 2017-2020 vs 2021-2025 number. One
  * more measured season would have moved the highlight again without moving

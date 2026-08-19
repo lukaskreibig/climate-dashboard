@@ -200,7 +200,11 @@ export default function EarlyLateSeasonChart({ data, apiRef, lossPct }: Props) {
   const AxisStyle = { tick: { fill: "#94a3b8", fontSize: 12 }, className: "chart-axis" };
 
   return (
-    <div style={{ position:"relative", width:"100%", height:HEIGHT }} role="img" aria-label={t("charts.ariaSummaries.earlyLateSeason")}>
+    <div style={{ position:"relative", width:"100%", height:HEIGHT }} role="img" aria-label={t("charts.ariaSummaries.earlyLateSeason", {
+      /* fed from the same number the overlay prints, so the summary a
+         screen reader hears cannot outlive the value on screen */
+      loss: formatLoss(meanLossPct ?? 0),
+    })}>
       {/* inline legend replaces the two stacked panel titles */}
       <div className="absolute left-16 top-0 z-[5] flex flex-wrap items-center gap-4 text-base font-semibold text-slate-700">
         <span className="inline-flex items-center gap-2">
