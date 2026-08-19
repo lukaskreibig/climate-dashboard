@@ -610,6 +610,43 @@ def _freeze_and_breakup(
     return doys[start], (doys[end + 1 + thaw] if thaw is not None else None)
 
 
+def _freeze_table(rows: "pd.DataFrame") -> list[dict]:
+    """Freeze-up and break-up per season, from the daily series, one definition.
+
+    WHY THIS EXISTS. The database branch used to read these two days out of
+    fjord_freeze_breakup, a table the data pipeline fills with
+
+        freeze_doy  = min(doy where frac >= 0.15)
+        breakup_doy = max(doy where frac >= 0.15)
+
+    which is the definition _freeze_and_breakup above was written to replace,
+    and the comment over it says why: the last icy day of a season is not the
+    day the fjord opened, and taking the first frozen day called 2025 frozen on
+    23 February because of a four day cold snap. So production served one
+    definition and the CSV fallback another, and nobody could see it, because on
+    this data the two land within a day of each other in every season.
+
+    Within a day is still wrong. The story's own prose says the earliest
+    break-up in the record is 30 April; the badge beside the chart said 29 Apr,
+    because it was rendering the pipeline's number. The early-to-late shift is
+    10.25 days under both definitions, so the headline never moved, which is
+    exactly why this survived.
+
+    Computing it here rather than fixing the pipeline means there is one
+    definition rather than two agreeing ones, and it takes effect without
+    waiting for a pipeline run. The table is left in place; nothing reads it.
+    """
+    out = []
+    for year, group in rows.groupby("year"):
+        freeze_doy, breakup_doy = _freeze_and_breakup(group)
+        out.append({
+            "year": int(year),
+            "freeze": freeze_doy,
+            "breakup": breakup_doy,
+        })
+    return sorted(out, key=lambda r: r["year"])
+
+
 def _fjord_baseline_label(years) -> str:
     """Name the two comparison periods from the seasons actually present."""
     early, late = _fjord_year_groups(years)
@@ -1014,10 +1051,6 @@ async def get_fjord_data(response: Response):
                 season_rows = conn.execute(text("SELECT * FROM fjord_season_band ORDER BY doy")).mappings().all()
                 spring_rows = conn.execute(text("SELECT year, anomaly FROM fjord_spring_anomaly ORDER BY year")).mappings().all()
                 frac_rows   = conn.execute(text("SELECT year, mean FROM fjord_mean_fraction ORDER BY year")).mappings().all()
-                freeze_rows = conn.execute(text("""
-                    SELECT year, freeze_doy AS freeze, breakup_doy AS breakup
-                    FROM fjord_freeze_breakup ORDER BY year
-                """)).mappings().all()
                 daily_rows  = conn.execute(text("""
                     SELECT date::text AS date, year, doy, frac, frac_raw
                     FROM fjord_daily ORDER BY date
@@ -1082,7 +1115,7 @@ async def get_fjord_data(response: Response):
                     "spring": [dict(r) for r in spring_rows],
                     "season": merged,                   # <— merged Struktur
                     "frac":   frac_payload,
-                    "freeze": [dict(r) for r in freeze_rows],
+                    "freeze": _freeze_table(daily_frame),
                     "daily":  [
                         {
                             "date": r["date"],
