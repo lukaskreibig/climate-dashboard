@@ -460,8 +460,8 @@ def _season_sampling_error(season_rows: "pd.DataFrame", year: int) -> dict[str, 
     """How much a season mean would move if different days had been observed.
 
     A season mean is an average over the days a satellite happened to see, and
-    the seasons are not equally observed: 2017 has 26 measured days inside the
-    analysed window against 58 to 76 for the others. Presenting all of them as
+    the seasons are not equally observed: 2017 has 24 measured days inside the
+    analysed window against 46 to 66 for the others. Presenting all of them as
     equally firm point values overstates what the record can carry.
 
     The error is measured rather than assumed. Resampling the measured days of a
@@ -584,7 +584,7 @@ def _close_short_gaps(flags: list[bool], need: int) -> list[bool]:
 # threshold after its declared break-up, peaking at 1.00. Every other season
 # has exactly one sustained frozen run, so first, longest and last agree and
 # this change moves nothing else. It moves 2025 from 54/67 to 75/134, and with
-# it the early-to-late shift from 23.1 days to 11.9.
+# it the early-to-late shift from 23.1 days to 10.25.
 def _freeze_and_breakup(
     group: "pd.DataFrame",
     threshold: float = FJORD_THRESHOLD,

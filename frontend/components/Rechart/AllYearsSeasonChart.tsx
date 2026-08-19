@@ -40,8 +40,15 @@ interface Props {
 }
 
 /* ─── constants ──────────────────────────────────────────────────── */
-const SUN_START = 45;   // 14‑Feb
-const SUN_END   = 180;  // 29‑Jun
+/* The window these charts DRAW, which is wider than the one the analysis
+   measures over. The backend's FJORD_SUN_START is 53, and its comment records
+   why 45 was dropped: over genuinely clear scenes in the first three weeks of
+   February, one in four reads a frozen fjord as open water. The extra days are
+   shown because a season that begins mid-frame reads as missing data, and the
+   published figures are all computed over 53 to 180. Named for the drawing, not
+   for the sun, so the two are no longer easy to confuse. */
+const DRAW_START = 45;   // 14 Feb
+const DRAW_END   = 180;  // 29 Jun
 const MINI_H    = 120;
 const COLORS    = [
   "#38bdf8","#0ea5e9","#0284c7","#0369a1",
@@ -61,7 +68,7 @@ const doyLabel = (doy: number, locale: string = 'de-DE') => {
 const densify = (rows:Row[]) => {
   const out:Row[] = [], idx = new Map(rows.map(r=>[`${r.year}-${r.doy}`,r]));
   [...new Set(rows.map(r=>r.year))].forEach(y=>{
-    for(let doy=SUN_START; doy<=SUN_END; doy++)
+    for(let doy=DRAW_START; doy<=DRAW_END; doy++)
       out.push(idx.get(`${y}-${doy}`) ?? {year:y,doy,frac:null});
   });
   return out;
@@ -211,7 +218,7 @@ export default function AllYearsSeasonChart({data, seasonMeans, apiRef}:Props){
             between a wide and a narrow interval */}
         <LineChart data={dense.filter(r=>r.year===yr)} margin={{left:8,right:8,top:8,bottom:8}}>
           <CartesianGrid className="chart-grid" strokeDasharray="2 3" stroke="#CBD5E1" vertical={false}/>
-          <XAxis dataKey="doy" type="number" domain={[SUN_START,SUN_END]} ticks={ticks}
+          <XAxis dataKey="doy" type="number" domain={[DRAW_START,DRAW_END]} ticks={ticks}
             tickFormatter={d => doyLabel(Number(d), i18n.language === 'de' ? 'de-DE' : 'en-US').split("-")[1]}
             axisLine={false} tickLine={false} height={18} className="chart-axis"/>
           <YAxis domain={[0,1]} ticks={[0,0.5,1]} tickFormatter={v=>`${(v*100).toFixed(0)} %`}
