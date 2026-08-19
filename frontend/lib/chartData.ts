@@ -281,7 +281,13 @@ export function latestYearFrom<T extends { Year?: number; year?: number }>(
 }
 
 export function doyToMonthDay(doy: number, locale: string) {
-  const date = new Date(Date.UTC(2020, 0, doy));
+  // 2001, and the year matters. This used to pin to 2020, a leap year, so every
+  // day of year past 29 February rendered one day early: the break-up badge
+  // printed "29 Apr" for day 120 while the method panel called the same event
+  // 30 April. Eight of the ten seasons in the record are common years, so a
+  // common year is right for eight of them and one day out for 2020 and 2024,
+  // which is inherent to sharing one axis across leap and common years.
+  const date = new Date(Date.UTC(2001, 0, doy));
   return new Intl.DateTimeFormat(locale, {
     // numeric, not 2-digit: neither language writes a date this way. "08. Juni"
     // and "Jun 08" are both wrong outside a filename, and the padding bought

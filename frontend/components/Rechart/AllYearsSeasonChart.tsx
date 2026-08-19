@@ -51,7 +51,8 @@ const COLORS    = [
 
 /* ─── helpers ─────────────────────────────────────────────────────── */
 const doyLabel = (doy: number, locale: string = 'de-DE') => {
-  const d = new Date(Date.UTC(2020, 0, doy));
+  // A common year, not a leap year. See doyToMonthDay in lib/chartData.ts.
+  const d = new Date(Date.UTC(2001, 0, doy));
   return `${String(d.getUTCDate()).padStart(2, "0")}-${d.toLocaleString(
     locale, { month: "short", timeZone: "UTC" }
   )}`;
