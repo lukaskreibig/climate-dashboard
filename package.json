@@ -9,7 +9,7 @@
         "dev:backend": "cd backend && uvicorn main:app --host :: --port 8000"
     },
     "devDependencies": {
-        "concurrently": "^9.2.1"
+        "concurrently": "latest"
     },
     "packageManager": "yarn@3.2.3"
 }

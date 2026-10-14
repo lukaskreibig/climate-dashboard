@@ -69,7 +69,9 @@ export async function generateMetadata({
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ lng: Language }>;
+  // Next 15.5 checks this against the route: the segment arrives as a plain
+  // string and only becomes a Language through the isLanguage guard below.
+  params: Promise<{ lng: string }>;
 }
 
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
