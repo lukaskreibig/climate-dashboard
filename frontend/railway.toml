@@ -11,4 +11,4 @@ watchPatterns = [
 [deploy]
 startCommand = "npm run start"
 restartPolicyType = "ALWAYS"
-healthcheckPath = "/"
+healthcheckPath = "/en"
