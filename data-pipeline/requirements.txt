@@ -2,4 +2,5 @@ pandas
 requests
 openpyxl
 sqlalchemy
-psycopg2-binarypsycopg[binary]>=3.2,<4
+psycopg2-binary
+psycopg[binary]>=3.2,<4
