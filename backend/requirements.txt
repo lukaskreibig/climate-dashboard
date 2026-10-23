@@ -11,3 +11,4 @@ sentence-transformers
 sqlalchemy
 psycopg2-binary
 numpy
+psycopg[binary]>=3.2,<4
